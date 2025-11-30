@@ -9,8 +9,10 @@ export default defineNuxtConfig({
   ],
 
   css: [
-    '~/assets/css/main.css'
+    '~/assets/css/tailwind.css',
+    '@fortawesome/fontawesome-free/css/all.css'
   ],
+  // Trigger rebuild
 
   runtimeConfig: {
     public: {

@@ -125,6 +125,7 @@ async function testGoogleSheetsConnection() {
   // Step 5: Test connection to Profil Sheet
   log('\n5️⃣  Testing connection to Profil Sheet...', 'blue');
   
+  let profilSheetName;
   try {
     const response = await sheets.spreadsheets.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID_PROFIL,
@@ -132,7 +133,11 @@ async function testGoogleSheetsConnection() {
     
     log(`   ✅ Connected to Profil Sheet`, 'green');
     log(`   📊 Sheet Name: ${response.data.properties.title}`, 'cyan');
-    log(`   📋 Number of sheets: ${response.data.sheets.length}`, 'cyan');
+    log(`   📋 Number of tabs: ${response.data.sheets.length}`, 'cyan');
+    
+    // Get first tab name
+    profilSheetName = response.data.sheets[0].properties.title;
+    log(`   📄 Tab 1 name: "${profilSheetName}"`, 'cyan');
   } catch (error) {
     log(`   ❌ Failed to connect to Profil Sheet:`, 'red');
     
@@ -156,7 +161,7 @@ async function testGoogleSheetsConnection() {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID_PROFIL,
-      range: 'Sheet1!A1:I2', // Header + first data row
+      range: `${profilSheetName}!A1:I2`, // Use detected tab name
     });
     
     const rows = response.data.values;
@@ -188,6 +193,7 @@ async function testGoogleSheetsConnection() {
   // Step 7: Test connection to Personil Sheet
   log('\n7️⃣  Testing connection to Personil Sheet...', 'blue');
   
+  let personilSheetName;
   try {
     const response = await sheets.spreadsheets.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID_PERSONIL,
@@ -195,6 +201,11 @@ async function testGoogleSheetsConnection() {
     
     log(`   ✅ Connected to Personil Sheet`, 'green');
     log(`   📊 Sheet Name: ${response.data.properties.title}`, 'cyan');
+    
+    // Get second tab name (atau first jika berbeda spreadsheet)
+    const tabIndex = response.data.sheets.length > 1 ? 1 : 0;
+    personilSheetName = response.data.sheets[tabIndex].properties.title;
+    log(`   📄 Tab ${tabIndex + 1} name: "${personilSheetName}"`, 'cyan');
   } catch (error) {
     log(`   ❌ Failed to connect to Personil Sheet:`, 'red');
     
@@ -217,7 +228,7 @@ async function testGoogleSheetsConnection() {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID_PERSONIL,
-      range: 'Sheet1!A1:I', // All data
+      range: `${personilSheetName}!A1:I`, // Use detected tab name
     });
     
     const rows = response.data.values;

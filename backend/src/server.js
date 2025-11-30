@@ -37,12 +37,16 @@ app.get('/', (req, res) => {
   });
 });
 
-// Import routes (akan dibuat nanti)
+// Import routes
+import companyRoutes from './routes/company.routes.js';
+import personnelRoutes from './routes/personnel.routes.js';
 // import documentRoutes from './routes/document.routes.js';
 // import authRoutes from './routes/auth.routes.js';
 // import projectRoutes from './routes/project.routes.js';
 
 // Use routes
+app.use('/api/company', companyRoutes);
+app.use('/api/personnel', personnelRoutes);
 // app.use('/api/auth', authRoutes);
 // app.use('/api/documents', documentRoutes);
 // app.use('/api/projects', projectRoutes);
