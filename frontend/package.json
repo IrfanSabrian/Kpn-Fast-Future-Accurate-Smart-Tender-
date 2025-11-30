@@ -1,0 +1,23 @@
+{
+  "name": "kpn-fast-frontend",
+  "version": "1.0.0",
+  "description": "KPN FAST - Frontend Dashboard untuk Automasi Dokumen Pengadaan",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev --host 0.0.0.0",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "nuxt": "^4.2.1",
+    "vue": "^3.5.24",
+    "@pinia/nuxt": "^0.5.1",
+    "pinia": "^2.1.7"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.11.4"
+  }
+}
