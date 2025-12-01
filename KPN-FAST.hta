@@ -1,6 +1,7 @@
 <html>
 <head>
     <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta charset="UTF-8">
     <title>KPN FAST Server Manager</title>
     <HTA:APPLICATION
         ID="KPN_FAST"
@@ -17,7 +18,6 @@
         SCROLL="no"
         WINDOWSTATE="normal"
     />
-    <!-- Note: Logo.ico diperlukan untuk HTA icon. Convert Logo.png ke Logo.ico menggunakan online converter atau tools seperti ImageMagick -->
     <style>
         * {
             margin: 0;
@@ -46,18 +46,19 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 15px;
+            gap: 20px;
             color: white;
         }
         
         .logo {
-            width: 50px;
-            height: 50px;
+            width: 85px;
+            height: 85px;
             background: white;
             border-radius: 50%;
-            padding: 4px;
+            padding: 5px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: block; /* Ensure visible */
+            display: block;
+            margin-right: 30px;
         }
         
         .header-text {
@@ -69,14 +70,14 @@
             font-size: 24px;
             font-weight: 800;
             margin: 0;
-            color: #60a5fa;
+            color: white;
             line-height: 1.1;
         }
         
         .subtitle {
             font-size: 13px;
             opacity: 0.9;
-            color: #93c5fd;
+            color: white;
         }
         
         .content {
@@ -176,6 +177,306 @@
             border: 1px solid #eee;
         }
     </style>
+    
+    <script type="text/vbscript">
+        Dim WshShell, fso, currentDir
+        Dim backendRunning, frontendRunning
+        Dim checkIntervalBackend, checkIntervalFrontend
+        
+        ' Initialize objects safely
+        On Error Resume Next
+        Set WshShell = CreateObject("WScript.Shell")
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        On Error GoTo 0
+        
+        backendRunning = False
+        frontendRunning = False
+        checkIntervalBackend = 0
+        checkIntervalFrontend = 0
+        
+        Sub Window_OnLoad()
+            On Error Resume Next
+            window.resizeTo 420, 580
+            window.moveTo (screen.width - 420) / 2, (screen.height - 580) / 2
+            
+            Dim htaPath
+            htaPath = Replace(location.pathname, "/", "\")
+            If Left(htaPath, 1) = "\" Then htaPath = Mid(htaPath, 2)
+            currentDir = fso.GetParentFolderName(htaPath)
+            
+            ' Wire button event handlers
+            document.getElementById("btnBackend").onclick = GetRef("HandleBackendClick")
+            document.getElementById("btnFrontend").onclick = GetRef("HandleFrontendClick")
+            document.getElementById("btnBrowser").onclick = GetRef("HandleBrowserClick")
+            
+            ' Auto Start
+            StartBackend()
+        End Sub
+        
+        Sub HandleBackendClick()
+            ToggleBackend()
+        End Sub
+        
+        Sub HandleFrontendClick()
+            ToggleFrontend()
+        End Sub
+        
+        Sub HandleBrowserClick()
+            OpenBrowser()
+        End Sub
+        
+        Sub ToggleBackend()
+            If backendRunning Then
+                StopBackend()
+            Else
+                StartBackend()
+            End If
+        End Sub
+        
+        Sub ToggleFrontend()
+            If frontendRunning Then
+                StopFrontend()
+            Else
+                StartFrontend()
+            End If
+        End Sub
+        
+        Sub StartBackend()
+            UpdateUI "Backend", "loading", "STARTING..."
+            SetBtn "btnBackend", "stop", True
+            SetBtn "btnBrowser", "play", True ' Disable browser while starting
+            checkIntervalBackend = 0
+            
+            Dim backendDir
+            backendDir = currentDir & "\backend"
+            
+            If Not fso.FolderExists(backendDir) Then
+                MsgBox "Folder backend tidak ditemukan di: " & backendDir, vbCritical
+                UpdateUI "Backend", "stopped", "FOLDER NOT FOUND"
+                SetBtn "btnBackend", "play", False
+                Exit Sub
+            End If
+            
+            WshShell.CurrentDirectory = backendDir
+            ' Run npm run dev with minimized window
+            WshShell.Run "cmd /c npm run dev", 7, False
+            
+            UpdateMessage "Backend starting... (Check minimized CMD window for errors)"
+            window.setTimeout "CheckBackendStatus", 3000, "VBScript"
+        End Sub
+        
+        Sub CheckBackendStatus()
+            On Error Resume Next
+            
+            Dim xmlHttp, isRunning
+            Set xmlHttp = CreateObject("MSXML2.XMLHTTP")
+            isRunning = False
+            
+            ' Synchronous request with timeout
+            xmlHttp.open "GET", "http://localhost:5000", False
+            xmlHttp.setRequestHeader "Cache-Control", "no-cache"
+            xmlHttp.send
+            
+            If Err.Number = 0 Then
+                If xmlHttp.status = 200 Or xmlHttp.status = 404 Then
+                    isRunning = True
+                End If
+            End If
+            
+            Set xmlHttp = Nothing
+            On Error GoTo 0
+            
+            If isRunning Then
+                ' SUCCESS - Backend is running
+                backendRunning = True
+                UpdateUI "Backend", "running", "RUNNING ✓"
+                SetBtn "btnBackend", "stop", False
+                UpdateMessage "Backend started successfully! Starting Frontend..."
+                
+                ' Auto start frontend
+                If Not frontendRunning Then
+                    window.setTimeout "StartFrontend", 1000, "VBScript"
+                End If
+            Else
+                ' Not ready yet
+                checkIntervalBackend = checkIntervalBackend + 1
+                
+                If checkIntervalBackend > 60 Then ' 60 seconds timeout
+                    UpdateUI "Backend", "stopped", "TIMEOUT ✗"
+                    SetBtn "btnBackend", "play", False
+                    UpdateMessage "Backend timeout! Check CMD window for errors."
+                Else
+                    UpdateUI "Backend", "loading", "STARTING (" & checkIntervalBackend & "s)..."
+                    UpdateMessage "Waiting for Backend... (" & checkIntervalBackend & "/60s)"
+                    window.setTimeout "CheckBackendStatus", 1000, "VBScript"
+                End If
+            End If
+        End Sub
+        
+        Sub StartFrontend()
+            UpdateUI "Frontend", "loading", "STARTING..."
+            SetBtn "btnFrontend", "stop", True
+            SetBtn "btnBrowser", "play", True ' Disable browser while starting
+            checkIntervalFrontend = 0
+            
+            Dim frontendDir
+            frontendDir = currentDir & "\frontend"
+            
+            If Not fso.FolderExists(frontendDir) Then
+                MsgBox "Folder frontend tidak ditemukan di: " & frontendDir, vbCritical
+                UpdateUI "Frontend", "stopped", "FOLDER NOT FOUND"
+                SetBtn "btnFrontend", "play", False
+                Exit Sub
+            End If
+            
+            WshShell.CurrentDirectory = frontendDir
+            WshShell.Run "cmd /c npm run dev", 7, False
+            
+            UpdateMessage "Frontend starting... (Check minimized CMD window for errors)"
+            window.setTimeout "CheckFrontendStatus", 5000, "VBScript"
+        End Sub
+        
+        Sub CheckFrontendStatus()
+            On Error Resume Next
+            
+            Dim xmlHttp, isRunning
+            Set xmlHttp = CreateObject("MSXML2.XMLHTTP")
+            isRunning = False
+            
+            ' Synchronous request with timeout
+            xmlHttp.open "GET", "http://localhost:3000", False
+            xmlHttp.setRequestHeader "Cache-Control", "no-cache"
+            xmlHttp.send
+            
+            If Err.Number = 0 Then
+                If xmlHttp.status = 200 Or xmlHttp.status = 404 Then
+                    isRunning = True
+                End If
+            End If
+            
+            Set xmlHttp = Nothing
+            On Error GoTo 0
+            
+            If isRunning Then
+                ' SUCCESS - Frontend is running
+                frontendRunning = True
+                UpdateUI "Frontend", "running", "RUNNING ✓"
+                SetBtn "btnFrontend", "stop", False
+                SetBtn "btnBrowser", "play", False ' Enable browser button
+                UpdateMessage "All systems running! Click browser button to open app."
+                
+                ' Auto open browser
+                window.setTimeout "OpenBrowser", 1500, "VBScript"
+            Else
+                ' Not ready yet
+                checkIntervalFrontend = checkIntervalFrontend + 1
+                
+                If checkIntervalFrontend > 90 Then ' 90 seconds timeout (Nuxt takes longer)
+                    UpdateUI "Frontend", "stopped", "TIMEOUT ✗"
+                    SetBtn "btnFrontend", "play", False
+                    UpdateMessage "Frontend timeout! Check CMD window for errors."
+                Else
+                    UpdateUI "Frontend", "loading", "STARTING (" & checkIntervalFrontend & "s)..."
+                    UpdateMessage "Waiting for Frontend... (" & checkIntervalFrontend & "/90s)"
+                    window.setTimeout "CheckFrontendStatus", 1000, "VBScript"
+                End If
+            End If
+        End Sub
+        
+        Sub StopBackend()
+            If MsgBox("Stop all servers (Backend & Frontend)?", vbYesNo + vbQuestion, "Confirm Stop") = vbYes Then
+                On Error Resume Next
+                WshShell.Run "taskkill /f /im node.exe", 0, True
+                On Error GoTo 0
+                
+                ' Reset all states
+                backendRunning = False
+                frontendRunning = False
+                checkIntervalBackend = 0
+                checkIntervalFrontend = 0
+                
+                UpdateUI "Backend", "stopped", "STOPPED"
+                SetBtn "btnBackend", "play", False
+                
+                UpdateUI "Frontend", "stopped", "STOPPED"
+                SetBtn "btnFrontend", "play", False
+                
+                ' Disable browser button when servers are stopped
+                SetBtn "btnBrowser", "play", True
+                
+                UpdateMessage "All servers stopped."
+            End If
+        End Sub
+        
+        Sub StopFrontend()
+            ' Frontend stop will also stop backend
+            StopBackend()
+        End Sub
+        
+        Sub OpenBrowser()
+            If Not backendRunning Or Not frontendRunning Then
+                MsgBox "Servers are not running!" & vbCrLf & vbCrLf & _
+                       "Backend: " & IIf(backendRunning, "Running", "Stopped") & vbCrLf & _
+                       "Frontend: " & IIf(frontendRunning, "Running", "Stopped") & vbCrLf & vbCrLf & _
+                       "Please start the servers first.", vbExclamation, "Cannot Open Browser"
+                Exit Sub
+            End If
+            
+            WshShell.Run "http://localhost:3000", 1, False
+            UpdateMessage "Browser opened! Application running at http://localhost:3000"
+        End Sub
+        
+        Function IIf(condition, trueValue, falseValue)
+            If condition Then
+                IIf = trueValue
+            Else
+                IIf = falseValue
+            End If
+        End Function
+        
+        Sub UpdateUI(server, status, text)
+            document.getElementById("card" & server).className = "server-card " & status
+            document.getElementById("status" & server).className = "server-status status-" & status
+            document.getElementById("status" & server).innerText = text
+        End Sub
+        
+        Sub SetBtn(id, typeBtn, disabled)
+            Dim btn
+            Set btn = document.getElementById(id)
+            
+            If typeBtn = "play" Then
+                btn.className = "btn-toggle btn-play"
+                btn.innerHTML = "&#9658;"
+                btn.title = "Start Server"
+            Else
+                btn.className = "btn-toggle btn-stop"
+                btn.innerHTML = "&#9632;"
+                btn.title = "Stop Server"
+            End If
+            
+            If disabled Then
+                btn.disabled = True
+                btn.className = btn.className & " btn-disabled"
+            Else
+                btn.disabled = False
+            End If
+        End Sub
+        
+        Sub UpdateMessage(msg)
+            document.getElementById("message").innerText = msg
+        End Sub
+        
+        Sub Window_OnBeforeUnload()
+            If backendRunning Or frontendRunning Then
+                If MsgBox("Servers are still running!" & vbCrLf & vbCrLf & _
+                         "Stop all servers before closing?", vbYesNo + vbQuestion, "Confirm Exit") = vbYes Then
+                    On Error Resume Next
+                    WshShell.Run "taskkill /f /im node.exe", 0, True
+                    On Error GoTo 0
+                End If
+            End If
+        End Sub
+    </script>
 </head>
 <body>
     <div class="container">
@@ -197,219 +498,42 @@
                     <span class="server-status status-loading" id="statusBackend">STARTING...</span>
                 </div>
                 <div class="controls">
-                    <button class="btn-toggle btn-stop" id="btnBackend" onclick="vbscript:ToggleBackend()" title="Stop Backend">
-                        &#9632;
+                    <button class="btn-toggle btn-stop btn-disabled" id="btnBackend" title="Stop Backend" disabled>
+                        &#9658;
                     </button>
                 </div>
             </div>
             
             <!-- Frontend Control -->
-            <div class="server-card waiting" id="cardFrontend">
+            <div class="server-card loading" id="cardFrontend">
                 <div class="server-info">
                     <span class="server-name">Frontend Server</span>
                     <span class="server-status status-loading" id="statusFrontend">WAITING...</span>
                 </div>
                 <div class="controls">
-                    <button class="btn-toggle btn-stop" id="btnFrontend" onclick="vbscript:ToggleFrontend()" title="Stop Frontend">
-                        &#9632;
+                    <button class="btn-toggle btn-stop btn-disabled" id="btnFrontend" title="Stop Frontend" disabled>
+                        &#9658;
                     </button>
                 </div>
             </div>
             
             <!-- Browser Control -->
-            <div class="server-card running" id="cardBrowser">
+            <div class="server-card stopped" id="cardBrowser">
                 <div class="server-info">
                     <span class="server-name">Web Browser</span>
-                    <span class="server-status status-running" id="statusBrowser">READY</span>
+                    <span class="server-status status-stopped" id="statusBrowser">WAITING</span>
                 </div>
                 <div class="controls">
-                    <button class="btn-toggle btn-play" onclick="vbscript:OpenBrowser()" title="Open Browser">
+                    <button class="btn-toggle btn-play btn-disabled" id="btnBrowser" title="Open Browser" disabled>
                         &#8599;
                     </button>
                 </div>
             </div>
             
             <div class="message-area" id="message">
-                System initializing...
+                Initializing servers...
             </div>
         </div>
     </div>
-
-    <script type="text/vbscript">
-        Dim WshShell, fso, currentDir
-        Dim backendRunning, frontendRunning
-        
-        Set WshShell = CreateObject("WScript.Shell")
-        Set fso = CreateObject("Scripting.FileSystemObject")
-        
-        backendRunning = False
-        frontendRunning = False
-        
-        Sub Window_OnLoad()
-            window.resizeTo 400, 550
-            window.moveTo (screen.width - 400) / 2, (screen.height - 550) / 2
-            
-            Dim htaPath
-            htaPath = Replace(location.pathname, "/", "\")
-            If Left(htaPath, 1) = "\" Then htaPath = Mid(htaPath, 2)
-            currentDir = fso.GetParentFolderName(htaPath)
-            
-            ' Auto Start
-            StartBackend()
-        End Sub
-        
-        Sub ToggleBackend()
-            If backendRunning Then
-                StopBackend()
-            Else
-                StartBackend()
-            End If
-        End Sub
-        
-        Sub ToggleFrontend()
-            If frontendRunning Then
-                StopFrontend()
-            Else
-                StartFrontend()
-            End If
-        End Sub
-        
-        Sub StartBackend()
-            UpdateUI "Backend", "loading", "STARTING..."
-            SetBtn "btnBackend", "stop", True ' Disabled while starting
-            
-            Dim backendDir
-            backendDir = currentDir & "\backend"
-            WshShell.CurrentDirectory = backendDir
-            WshShell.Run "cmd /c npm run dev", 0, False
-            
-            UpdateMessage "Backend starting..."
-            window.setTimeout "CheckBackend", 2000, "VBScript"
-        End Sub
-        
-        Sub StopBackend()
-            If MsgBox("Stop Backend?", vbYesNo + vbQuestion) = vbYes Then
-                On Error Resume Next
-                WshShell.Run "taskkill /f /im node.exe", 0, True
-                On Error GoTo 0
-                
-                backendRunning = False
-                UpdateUI "Backend", "stopped", "STOPPED"
-                SetBtn "btnBackend", "play", False
-                
-                ' Frontend usually dies too if node is killed
-                frontendRunning = False
-                UpdateUI "Frontend", "stopped", "STOPPED"
-                SetBtn "btnFrontend", "play", False
-                
-                UpdateMessage "Servers stopped."
-            End If
-        End Sub
-        
-        Sub CheckBackend()
-            On Error Resume Next
-            Dim objHTTP
-            Set objHTTP = CreateObject("MSXML2.ServerXMLHTTP.6.0")
-            objHTTP.open "GET", "http://localhost:5000", False
-            objHTTP.setTimeOption 2, 1000
-            objHTTP.send
-            
-            If objHTTP.Status = 200 Or objHTTP.Status = 404 Then
-                backendRunning = True
-                UpdateUI "Backend", "running", "RUNNING"
-                SetBtn "btnBackend", "stop", False
-                UpdateMessage "Backend OK. Starting Frontend..."
-                
-                ' Auto start frontend if not running
-                If Not frontendRunning Then StartFrontend()
-            Else
-                ' Keep checking
-                window.setTimeout "CheckBackend", 2000, "VBScript"
-            End If
-        End Sub
-        
-        Sub StartFrontend()
-            UpdateUI "Frontend", "loading", "STARTING..."
-            SetBtn "btnFrontend", "stop", True
-            
-            Dim frontendDir
-            frontendDir = currentDir & "\frontend"
-            WshShell.CurrentDirectory = frontendDir
-            WshShell.Run "cmd /c npm run dev", 0, False
-            
-            window.setTimeout "CheckFrontend", 4000, "VBScript"
-        End Sub
-        
-        Sub StopFrontend()
-            ' Killing node kills both in this setup usually
-            StopBackend()
-        End Sub
-        
-        Sub CheckFrontend()
-            On Error Resume Next
-            Dim objHTTP
-            Set objHTTP = CreateObject("MSXML2.ServerXMLHTTP.6.0")
-            objHTTP.open "GET", "http://localhost:3000", False
-            objHTTP.setTimeOption 2, 1000
-            objHTTP.send
-            
-            If objHTTP.Status = 200 Or objHTTP.Status = 404 Then
-                frontendRunning = True
-                UpdateUI "Frontend", "running", "RUNNING"
-                SetBtn "btnFrontend", "stop", False
-                UpdateMessage "All Systems Go!"
-                OpenBrowser()
-            Else
-                window.setTimeout "CheckFrontend", 2000, "VBScript"
-            End If
-        End Sub
-        
-        Sub OpenBrowser()
-            WshShell.Run "http://localhost:3000", 1, False
-        End Sub
-        
-        Sub UpdateUI(server, status, text)
-            document.getElementById("card" & server).className = "server-card " & status
-            document.getElementById("status" & server).className = "server-status status-" & status
-            document.getElementById("status" & server).innerText = text
-        End Sub
-        
-        Sub SetBtn(id, typeBtn, disabled)
-            Dim btn, icon
-            Set btn = document.getElementById(id)
-            
-            If typeBtn = "play" Then
-                btn.className = "btn-toggle btn-play"
-                btn.innerHTML = "&#9658;" ' Play
-                btn.title = "Start Server"
-            Else
-                btn.className = "btn-toggle btn-stop"
-                btn.innerHTML = "&#9632;" ' Stop
-                btn.title = "Stop Server"
-            End If
-            
-            If disabled Then
-                btn.disabled = True
-                btn.className = btn.className & " btn-disabled"
-            Else
-                btn.disabled = False
-            End If
-        End Sub
-        
-        Sub UpdateMessage(msg)
-            document.getElementById("message").innerText = msg
-        End Sub
-        
-        Sub Window_OnBeforeUnload()
-            If backendRunning Or frontendRunning Then
-                If MsgBox("Server is running. Close anyway?", vbYesNo + vbQuestion) = vbNo Then
-                    window.event.returnValue = False
-                Else
-                    On Error Resume Next
-                    WshShell.Run "taskkill /f /im node.exe", 0, True
-                End If
-            End If
-        End Sub
-</html>
 </body>
 </html>
