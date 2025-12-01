@@ -2,10 +2,10 @@
 <head>
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta charset="UTF-8">
-    <title>KPN FAST Server Manager</title>
+    <title>KPN FAST Manager</title>
     <HTA:APPLICATION
         ID="KPN_FAST"
-        APPLICATIONNAME="KPN FAST Server Manager"
+        APPLICATIONNAME="KPN FAST Manager"
         BORDER="dialog"
         BORDERSTYLE="normal"
         CAPTION="yes"
@@ -19,519 +19,294 @@
         WINDOWSTATE="normal"
     />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #121212; 
+            color: #e0e0e0;
+            padding: 0; 
+            overflow: hidden; 
+            font-size: 14px; 
         }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 0;
-            overflow: hidden;
-            font-size: 16px;
+        .container { 
+            background-color: #1e1e1e; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
         }
+        .header { 
+            background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%); 
+            padding: 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            color: white; 
+            border-bottom: 1px solid #333;
+        }
+        .logo { 
+            width: 50px; 
+            height: 50px; 
+            background: white; 
+            border-radius: 50%; 
+            padding: 3px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+        }
+        .header-text { display: flex; flex-direction: column; }
+        h1 { font-size: 18px; font-weight: 700; margin: 0; color: white; }
+        .subtitle { font-size: 11px; opacity: 0.8; color: #bbdefb; }
         
-        .container {
-            background: white;
-            height: 100vh;
+        .content { flex: 1; padding: 15px; overflow-y: auto; }
+        
+        .server-card { 
+            background-color: #2d2d2d; 
+            border: 1px solid #424242; 
+            border-radius: 8px; 
+            padding: 12px; 
+            margin-bottom: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
+        }
+        .server-card.running { border-left: 4px solid #4caf50; }
+        .server-card.stopped { border-left: 4px solid #f44336; }
+        .server-card.loading { border-left: 4px solid #ff9800; }
+        
+        .server-info { flex: 1; }
+        .server-name { font-weight: 600; font-size: 14px; color: #ffffff; display: block; margin-bottom: 2px; }
+        .server-status { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        
+        .status-running { background: #1b5e20; color: #a5d6a7; }
+        .status-stopped { background: #b71c1c; color: #ffcdd2; }
+        .status-loading { background: #e65100; color: #ffe0b2; }
+        
+        .controls { display: flex; gap: 8px; }
+        .btn-icon { 
+            width: 32px; 
+            height: 32px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 14px; 
+            transition: all 0.2s; 
+        }
+        .btn-start { background: #2e7d32; color: white; }
+        .btn-start:hover { background: #388e3c; }
+        .btn-stop { background: #c62828; color: white; }
+        .btn-stop:hover { background: #d32f2f; }
+        .btn-browser { background: #1565c0; color: white; }
+        .btn-browser:hover { background: #1976d2; }
+        
+        .message-area { 
+            margin-top: 15px; 
+            padding: 10px; 
+            background: #252525; 
+            border-radius: 6px; 
+            font-size: 12px; 
+            color: #bdbdbd; 
+            text-align: center; 
+            border: 1px solid #333; 
+            font-family: monospace;
+        }
+
+        .footer-controls {
+            margin-top: 15px;
             display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 20px;
-            color: white;
-        }
-        
-        .logo {
-            width: 85px;
-            height: 85px;
-            background: white;
-            border-radius: 50%;
-            padding: 5px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: block;
-            margin-right: 30px;
-        }
-        
-        .header-text {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        h1 {
-            font-size: 24px;
-            font-weight: 800;
-            margin: 0;
-            color: white;
-            line-height: 1.1;
-        }
-        
-        .subtitle {
-            font-size: 13px;
-            opacity: 0.9;
-            color: white;
-        }
-        
-        .content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .server-card {
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            transition: all 0.3s ease;
-        }
-        
-        .server-card.running { border-left: 5px solid #4caf50; }
-        .server-card.stopped { border-left: 5px solid #f44336; }
-        .server-card.loading { border-left: 5px solid #ff9800; }
-        
-        .server-info {
-            flex: 1;
-        }
-        
-        .server-name {
-            font-weight: 700;
-            font-size: 16px;
-            color: #333;
-            display: block;
-            margin-bottom: 4px;
-        }
-        
-        .server-status {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 10px;
-            display: inline-block;
-        }
-        
-        .status-running { background: #e8f5e9; color: #2e7d32; }
-        .status-stopped { background: #ffebee; color: #c62828; }
-        .status-loading { background: #fff3e0; color: #ef6c00; }
-        
-        .controls {
-            display: flex;
+            justify-content: center;
             gap: 10px;
         }
-        
-        .btn-toggle {
-            width: 40px;
-            height: 40px;
-            border: none;
-            border-radius: 8px;
+        .btn-footer {
+            background: #424242;
+            color: white;
+            border: 1px solid #616161;
+            padding: 8px 16px;
+            border-radius: 4px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: all 0.2s;
-            font-family: 'Segoe UI Symbol', sans-serif;
+            font-size: 12px;
         }
-        
-        .btn-play {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #a5d6a7;
-        }
-        .btn-play:hover { background: #4caf50; color: white; }
-        
-        .btn-stop {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef9a9a;
-        }
-        .btn-stop:hover { background: #f44336; color: white; }
-        
-        .btn-disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            filter: grayscale(100%);
-        }
-        
-        .message-area {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #555;
-            text-align: center;
-            border: 1px solid #eee;
-        }
+        .btn-footer:hover { background: #616161; }
     </style>
     
-    <script type="text/vbscript">
-        Dim WshShell, fso, currentDir
-        Dim backendRunning, frontendRunning
-        Dim checkIntervalBackend, checkIntervalFrontend
-        
-        ' Initialize objects safely
-        On Error Resume Next
-        Set WshShell = CreateObject("WScript.Shell")
-        Set fso = CreateObject("Scripting.FileSystemObject")
-        On Error GoTo 0
-        
-        backendRunning = False
-        frontendRunning = False
-        checkIntervalBackend = 0
-        checkIntervalFrontend = 0
-        
-        Sub Window_OnLoad()
-            On Error Resume Next
-            window.resizeTo 420, 580
-            window.moveTo (screen.width - 420) / 2, (screen.height - 580) / 2
+    <script type="text/javascript">
+        var shell = new ActiveXObject("WScript.Shell");
+        var backendRunning = false;
+        var frontendRunning = false;
+
+        function resizeWindow() {
+            window.resizeTo(400, 550);
+            window.moveTo((screen.width - 400) / 2, (screen.height - 550) / 2);
+        }
+
+        function updateUI(server, status, text) {
+            var card = document.getElementById("card" + server);
+            var statusSpan = document.getElementById("status" + server);
+            var btn = document.getElementById("btn" + server);
             
-            Dim htaPath
-            htaPath = Replace(location.pathname, "/", "\")
-            If Left(htaPath, 1) = "\" Then htaPath = Mid(htaPath, 2)
-            currentDir = fso.GetParentFolderName(htaPath)
+            if (card) card.className = "server-card " + status;
+            if (statusSpan) {
+                statusSpan.className = "server-status status-" + status;
+                statusSpan.innerText = text;
+            }
             
-            ' Wire button event handlers
-            document.getElementById("btnBackend").onclick = GetRef("HandleBackendClick")
-            document.getElementById("btnFrontend").onclick = GetRef("HandleFrontendClick")
-            document.getElementById("btnBrowser").onclick = GetRef("HandleBrowserClick")
+            if (btn) {
+                if (status === "running") {
+                    btn.className = "btn-icon btn-stop";
+                    btn.innerHTML = "&#9632;"; // Square stop icon
+                    btn.title = "Stop " + server;
+                    btn.onclick = function() { toggleServer(server); };
+                } else {
+                    btn.className = "btn-icon btn-start";
+                    btn.innerHTML = "&#9658;"; // Play icon
+                    btn.title = "Start " + server;
+                    btn.onclick = function() { toggleServer(server); };
+                }
+            }
+        }
+
+        function updateMessage(msg) {
+            document.getElementById("message").innerText = "> " + msg;
+        }
+
+        function toggleServer(server) {
+            if (server === "Backend") {
+                if (backendRunning) stopBackend(); else runBackend();
+            } else if (server === "Frontend") {
+                if (frontendRunning) stopFrontend(); else runFrontend();
+            }
+        }
+
+        function runBackend() {
+            try {
+                // Use title to identify window later
+                shell.Run('cmd /c start "KPN FAST - Backend" cmd /k "cd backend && npm run dev"', 1, false);
+                backendRunning = true;
+                updateUI("Backend", "running", "RUNNING");
+                updateMessage("Backend starting...");
+            } catch (e) {
+                updateUI("Backend", "stopped", "ERROR");
+                updateMessage("Error starting Backend: " + e.message);
+            }
+        }
+
+        function stopBackend() {
+            try {
+                // Kill cmd window with specific title, /T kills child processes (node)
+                shell.Run('taskkill /F /FI "WINDOWTITLE eq KPN FAST - Backend*" /IM cmd.exe /T', 0, false);
+                backendRunning = false;
+                updateUI("Backend", "stopped", "STOPPED");
+                updateMessage("Backend stopped.");
+            } catch (e) {
+                updateMessage("Error stopping Backend: " + e.message);
+            }
+        }
+
+        function runFrontend() {
+            try {
+                shell.Run('cmd /c start "KPN FAST - Frontend" cmd /k "cd frontend && npm run dev"', 1, false);
+                frontendRunning = true;
+                updateUI("Frontend", "running", "RUNNING");
+                updateMessage("Frontend starting...");
+            } catch (e) {
+                updateUI("Frontend", "stopped", "ERROR");
+                updateMessage("Error starting Frontend: " + e.message);
+            }
+        }
+
+        function stopFrontend() {
+            try {
+                shell.Run('taskkill /F /FI "WINDOWTITLE eq KPN FAST - Frontend*" /IM cmd.exe /T', 0, false);
+                frontendRunning = false;
+                updateUI("Frontend", "stopped", "STOPPED");
+                updateMessage("Frontend stopped.");
+            } catch (e) {
+                updateMessage("Error stopping Frontend: " + e.message);
+            }
+        }
+
+        function openBrowser() {
+            try {
+                shell.Run("http://localhost:3000");
+                updateMessage("Browser opened.");
+            } catch (e) {
+                updateMessage("Error opening browser: " + e.message);
+            }
+        }
+
+        function startAll() {
+            resizeWindow();
+            updateMessage("Initializing...");
             
-            ' Auto Start
-            StartBackend()
-        End Sub
-        
-        Sub HandleBackendClick()
-            ToggleBackend()
-        End Sub
-        
-        Sub HandleFrontendClick()
-            ToggleFrontend()
-        End Sub
-        
-        Sub HandleBrowserClick()
-            OpenBrowser()
-        End Sub
-        
-        Sub ToggleBackend()
-            If backendRunning Then
-                StopBackend()
-            Else
-                StartBackend()
-            End If
-        End Sub
-        
-        Sub ToggleFrontend()
-            If frontendRunning Then
-                StopFrontend()
-            Else
-                StartFrontend()
-            End If
-        End Sub
-        
-        Sub StartBackend()
-            UpdateUI "Backend", "loading", "STARTING..."
-            SetBtn "btnBackend", "stop", True
-            SetBtn "btnBrowser", "play", True ' Disable browser while starting
-            checkIntervalBackend = 0
-            
-            Dim backendDir
-            backendDir = currentDir & "\backend"
-            
-            If Not fso.FolderExists(backendDir) Then
-                MsgBox "Folder backend tidak ditemukan di: " & backendDir, vbCritical
-                UpdateUI "Backend", "stopped", "FOLDER NOT FOUND"
-                SetBtn "btnBackend", "play", False
-                Exit Sub
-            End If
-            
-            WshShell.CurrentDirectory = backendDir
-            ' Run npm run dev with minimized window
-            WshShell.Run "cmd /c npm run dev", 7, False
-            
-            UpdateMessage "Backend starting... (Check minimized CMD window for errors)"
-            window.setTimeout "CheckBackendStatus", 3000, "VBScript"
-        End Sub
-        
-        Sub CheckBackendStatus()
-            On Error Resume Next
-            
-            Dim xmlHttp, isRunning
-            Set xmlHttp = CreateObject("MSXML2.XMLHTTP")
-            isRunning = False
-            
-            ' Synchronous request with timeout
-            xmlHttp.open "GET", "http://localhost:5000", False
-            xmlHttp.setRequestHeader "Cache-Control", "no-cache"
-            xmlHttp.send
-            
-            If Err.Number = 0 Then
-                If xmlHttp.status = 200 Or xmlHttp.status = 404 Then
-                    isRunning = True
-                End If
-            End If
-            
-            Set xmlHttp = Nothing
-            On Error GoTo 0
-            
-            If isRunning Then
-                ' SUCCESS - Backend is running
-                backendRunning = True
-                UpdateUI "Backend", "running", "RUNNING ✓"
-                SetBtn "btnBackend", "stop", False
-                UpdateMessage "Backend started successfully! Starting Frontend..."
-                
-                ' Auto start frontend
-                If Not frontendRunning Then
-                    window.setTimeout "StartFrontend", 1000, "VBScript"
-                End If
-            Else
-                ' Not ready yet
-                checkIntervalBackend = checkIntervalBackend + 1
-                
-                If checkIntervalBackend > 60 Then ' 60 seconds timeout
-                    UpdateUI "Backend", "stopped", "TIMEOUT ✗"
-                    SetBtn "btnBackend", "play", False
-                    UpdateMessage "Backend timeout! Check CMD window for errors."
-                Else
-                    UpdateUI "Backend", "loading", "STARTING (" & checkIntervalBackend & "s)..."
-                    UpdateMessage "Waiting for Backend... (" & checkIntervalBackend & "/60s)"
-                    window.setTimeout "CheckBackendStatus", 1000, "VBScript"
-                End If
-            End If
-        End Sub
-        
-        Sub StartFrontend()
-            UpdateUI "Frontend", "loading", "STARTING..."
-            SetBtn "btnFrontend", "stop", True
-            SetBtn "btnBrowser", "play", True ' Disable browser while starting
-            checkIntervalFrontend = 0
-            
-            Dim frontendDir
-            frontendDir = currentDir & "\frontend"
-            
-            If Not fso.FolderExists(frontendDir) Then
-                MsgBox "Folder frontend tidak ditemukan di: " & frontendDir, vbCritical
-                UpdateUI "Frontend", "stopped", "FOLDER NOT FOUND"
-                SetBtn "btnFrontend", "play", False
-                Exit Sub
-            End If
-            
-            WshShell.CurrentDirectory = frontendDir
-            WshShell.Run "cmd /c npm run dev", 7, False
-            
-            UpdateMessage "Frontend starting... (Check minimized CMD window for errors)"
-            window.setTimeout "CheckFrontendStatus", 5000, "VBScript"
-        End Sub
-        
-        Sub CheckFrontendStatus()
-            On Error Resume Next
-            
-            Dim xmlHttp, isRunning
-            Set xmlHttp = CreateObject("MSXML2.XMLHTTP")
-            isRunning = False
-            
-            ' Synchronous request with timeout
-            xmlHttp.open "GET", "http://localhost:3000", False
-            xmlHttp.setRequestHeader "Cache-Control", "no-cache"
-            xmlHttp.send
-            
-            If Err.Number = 0 Then
-                If xmlHttp.status = 200 Or xmlHttp.status = 404 Then
-                    isRunning = True
-                End If
-            End If
-            
-            Set xmlHttp = Nothing
-            On Error GoTo 0
-            
-            If isRunning Then
-                ' SUCCESS - Frontend is running
-                frontendRunning = True
-                UpdateUI "Frontend", "running", "RUNNING ✓"
-                SetBtn "btnFrontend", "stop", False
-                SetBtn "btnBrowser", "play", False ' Enable browser button
-                UpdateMessage "All systems running! Click browser button to open app."
-                
-                ' Auto open browser
-                window.setTimeout "OpenBrowser", 1500, "VBScript"
-            Else
-                ' Not ready yet
-                checkIntervalFrontend = checkIntervalFrontend + 1
-                
-                If checkIntervalFrontend > 90 Then ' 90 seconds timeout (Nuxt takes longer)
-                    UpdateUI "Frontend", "stopped", "TIMEOUT ✗"
-                    SetBtn "btnFrontend", "play", False
-                    UpdateMessage "Frontend timeout! Check CMD window for errors."
-                Else
-                    UpdateUI "Frontend", "loading", "STARTING (" & checkIntervalFrontend & "s)..."
-                    UpdateMessage "Waiting for Frontend... (" & checkIntervalFrontend & "/90s)"
-                    window.setTimeout "CheckFrontendStatus", 1000, "VBScript"
-                End If
-            End If
-        End Sub
-        
-        Sub StopBackend()
-            If MsgBox("Stop all servers (Backend & Frontend)?", vbYesNo + vbQuestion, "Confirm Stop") = vbYes Then
-                On Error Resume Next
-                WshShell.Run "taskkill /f /im node.exe", 0, True
-                On Error GoTo 0
-                
-                ' Reset all states
-                backendRunning = False
-                frontendRunning = False
-                checkIntervalBackend = 0
-                checkIntervalFrontend = 0
-                
-                UpdateUI "Backend", "stopped", "STOPPED"
-                SetBtn "btnBackend", "play", False
-                
-                UpdateUI "Frontend", "stopped", "STOPPED"
-                SetBtn "btnFrontend", "play", False
-                
-                ' Disable browser button when servers are stopped
-                SetBtn "btnBrowser", "play", True
-                
-                UpdateMessage "All servers stopped."
-            End If
-        End Sub
-        
-        Sub StopFrontend()
-            ' Frontend stop will also stop backend
-            StopBackend()
-        End Sub
-        
-        Sub OpenBrowser()
-            If Not backendRunning Or Not frontendRunning Then
-                MsgBox "Servers are not running!" & vbCrLf & vbCrLf & _
-                       "Backend: " & IIf(backendRunning, "Running", "Stopped") & vbCrLf & _
-                       "Frontend: " & IIf(frontendRunning, "Running", "Stopped") & vbCrLf & vbCrLf & _
-                       "Please start the servers first.", vbExclamation, "Cannot Open Browser"
-                Exit Sub
-            End If
-            
-            WshShell.Run "http://localhost:3000", 1, False
-            UpdateMessage "Browser opened! Application running at http://localhost:3000"
-        End Sub
-        
-        Function IIf(condition, trueValue, falseValue)
-            If condition Then
-                IIf = trueValue
-            Else
-                IIf = falseValue
-            End If
-        End Function
-        
-        Sub UpdateUI(server, status, text)
-            document.getElementById("card" & server).className = "server-card " & status
-            document.getElementById("status" & server).className = "server-status status-" & status
-            document.getElementById("status" & server).innerText = text
-        End Sub
-        
-        Sub SetBtn(id, typeBtn, disabled)
-            Dim btn
-            Set btn = document.getElementById(id)
-            
-            If typeBtn = "play" Then
-                btn.className = "btn-toggle btn-play"
-                btn.innerHTML = "&#9658;"
-                btn.title = "Start Server"
-            Else
-                btn.className = "btn-toggle btn-stop"
-                btn.innerHTML = "&#9632;"
-                btn.title = "Stop Server"
-            End If
-            
-            If disabled Then
-                btn.disabled = True
-                btn.className = btn.className & " btn-disabled"
-            Else
-                btn.disabled = False
-            End If
-        End Sub
-        
-        Sub UpdateMessage(msg)
-            document.getElementById("message").innerText = msg
-        End Sub
-        
-        Sub Window_OnBeforeUnload()
-            If backendRunning Or frontendRunning Then
-                If MsgBox("Servers are still running!" & vbCrLf & vbCrLf & _
-                         "Stop all servers before closing?", vbYesNo + vbQuestion, "Confirm Exit") = vbYes Then
-                    On Error Resume Next
-                    WshShell.Run "taskkill /f /im node.exe", 0, True
-                    On Error GoTo 0
-                End If
-            End If
-        End Sub
+            // Start Backend
+            updateUI("Backend", "loading", "STARTING...");
+            setTimeout(function() {
+                runBackend();
+            }, 1000);
+
+            // Start Frontend after 3 seconds
+            setTimeout(function() {
+                updateUI("Frontend", "loading", "STARTING...");
+                runFrontend();
+            }, 3000);
+
+            // Open Browser after 8 seconds
+            setTimeout(function() {
+                openBrowser();
+                updateMessage("All systems go.");
+            }, 8000);
+        }
     </script>
 </head>
-<body>
+<body onload="startAll()">
     <div class="container">
         <div class="header">
-            <div class="logo-container" id="logoContainer">
-                <img src="Logo.ico" class="logo">
-            </div>
+            <img src="Logo.ico" class="logo">
             <div class="header-text">
                 <h1>KPN FAST</h1>
-                <div class="subtitle">Future Accurate Smart Tender</div>
+                <div class="subtitle">Manager</div>
             </div>
         </div>
-        
         <div class="content">
-            <!-- Backend Control -->
+            <!-- Backend Card -->
             <div class="server-card loading" id="cardBackend">
                 <div class="server-info">
                     <span class="server-name">Backend Server</span>
-                    <span class="server-status status-loading" id="statusBackend">STARTING...</span>
+                    <span class="server-status status-loading" id="statusBackend">WAITING...</span>
                 </div>
                 <div class="controls">
-                    <button class="btn-toggle btn-stop btn-disabled" id="btnBackend" title="Stop Backend" disabled>
-                        &#9658;
-                    </button>
+                    <button class="btn-icon btn-start" id="btnBackend" title="Start Backend" onclick="toggleServer('Backend')">&#9658;</button>
                 </div>
             </div>
-            
-            <!-- Frontend Control -->
+
+            <!-- Frontend Card -->
             <div class="server-card loading" id="cardFrontend">
                 <div class="server-info">
                     <span class="server-name">Frontend Server</span>
                     <span class="server-status status-loading" id="statusFrontend">WAITING...</span>
                 </div>
                 <div class="controls">
-                    <button class="btn-toggle btn-stop btn-disabled" id="btnFrontend" title="Stop Frontend" disabled>
-                        &#9658;
-                    </button>
+                    <button class="btn-icon btn-start" id="btnFrontend" title="Start Frontend" onclick="toggleServer('Frontend')">&#9658;</button>
                 </div>
             </div>
-            
-            <!-- Browser Control -->
-            <div class="server-card stopped" id="cardBrowser">
+
+            <!-- Browser Card -->
+            <div class="server-card running" id="cardBrowser" style="border-left-color: #1976d2;">
                 <div class="server-info">
-                    <span class="server-name">Web Browser</span>
-                    <span class="server-status status-stopped" id="statusBrowser">WAITING</span>
+                    <span class="server-name">Web Application</span>
+                    <span class="server-status" style="background: #1565c0; color: white;">http://localhost:3000</span>
                 </div>
                 <div class="controls">
-                    <button class="btn-toggle btn-play btn-disabled" id="btnBrowser" title="Open Browser" disabled>
-                        &#8599;
-                    </button>
+                    <button class="btn-icon btn-browser" title="Open Browser" onclick="openBrowser()">&#8599;</button>
                 </div>
             </div>
+
+            <div class="message-area" id="message">Ready...</div>
             
-            <div class="message-area" id="message">
-                Initializing servers...
+            <div class="footer-controls">
+                <button class="btn-footer" onclick="startAll()">Restart All</button>
+                <button class="btn-footer" onclick="window.close()">Close</button>
             </div>
         </div>
     </div>
