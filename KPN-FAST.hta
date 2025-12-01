@@ -1,0 +1,415 @@
+<html>
+<head>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>KPN FAST Server Manager</title>
+    <HTA:APPLICATION
+        ID="KPN_FAST"
+        APPLICATIONNAME="KPN FAST Server Manager"
+        BORDER="dialog"
+        BORDERSTYLE="normal"
+        CAPTION="yes"
+        ICON="Logo.ico"
+        MAXIMIZEBUTTON="no"
+        MINIMIZEBUTTON="yes"
+        SHOWINTASKBAR="yes"
+        SINGLEINSTANCE="yes"
+        SYSMENU="yes"
+        SCROLL="no"
+        WINDOWSTATE="normal"
+    />
+    <!-- Note: Logo.ico diperlukan untuk HTA icon. Convert Logo.png ke Logo.ico menggunakan online converter atau tools seperti ImageMagick -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0;
+            overflow: hidden;
+            font-size: 16px;
+        }
+        
+        .container {
+            background: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+            color: white;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            padding: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: block; /* Ensure visible */
+        }
+        
+        .header-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 0;
+            color: #60a5fa;
+            line-height: 1.1;
+        }
+        
+        .subtitle {
+            font-size: 13px;
+            opacity: 0.9;
+            color: #93c5fd;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .server-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+        }
+        
+        .server-card.running { border-left: 5px solid #4caf50; }
+        .server-card.stopped { border-left: 5px solid #f44336; }
+        .server-card.loading { border-left: 5px solid #ff9800; }
+        
+        .server-info {
+            flex: 1;
+        }
+        
+        .server-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #333;
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .server-status {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .status-running { background: #e8f5e9; color: #2e7d32; }
+        .status-stopped { background: #ffebee; color: #c62828; }
+        .status-loading { background: #fff3e0; color: #ef6c00; }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-toggle {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            font-family: 'Segoe UI Symbol', sans-serif;
+        }
+        
+        .btn-play {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+        .btn-play:hover { background: #4caf50; color: white; }
+        
+        .btn-stop {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+        .btn-stop:hover { background: #f44336; color: white; }
+        
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+        
+        .message-area {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #555;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container" id="logoContainer">
+                <img src="Logo.ico" class="logo">
+            </div>
+            <div class="header-text">
+                <h1>KPN FAST</h1>
+                <div class="subtitle">Future Accurate Smart Tender</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Backend Control -->
+            <div class="server-card loading" id="cardBackend">
+                <div class="server-info">
+                    <span class="server-name">Backend Server</span>
+                    <span class="server-status status-loading" id="statusBackend">STARTING...</span>
+                </div>
+                <div class="controls">
+                    <button class="btn-toggle btn-stop" id="btnBackend" onclick="vbscript:ToggleBackend()" title="Stop Backend">
+                        &#9632;
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Frontend Control -->
+            <div class="server-card waiting" id="cardFrontend">
+                <div class="server-info">
+                    <span class="server-name">Frontend Server</span>
+                    <span class="server-status status-loading" id="statusFrontend">WAITING...</span>
+                </div>
+                <div class="controls">
+                    <button class="btn-toggle btn-stop" id="btnFrontend" onclick="vbscript:ToggleFrontend()" title="Stop Frontend">
+                        &#9632;
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Browser Control -->
+            <div class="server-card running" id="cardBrowser">
+                <div class="server-info">
+                    <span class="server-name">Web Browser</span>
+                    <span class="server-status status-running" id="statusBrowser">READY</span>
+                </div>
+                <div class="controls">
+                    <button class="btn-toggle btn-play" onclick="vbscript:OpenBrowser()" title="Open Browser">
+                        &#8599;
+                    </button>
+                </div>
+            </div>
+            
+            <div class="message-area" id="message">
+                System initializing...
+            </div>
+        </div>
+    </div>
+
+    <script type="text/vbscript">
+        Dim WshShell, fso, currentDir
+        Dim backendRunning, frontendRunning
+        
+        Set WshShell = CreateObject("WScript.Shell")
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        
+        backendRunning = False
+        frontendRunning = False
+        
+        Sub Window_OnLoad()
+            window.resizeTo 400, 550
+            window.moveTo (screen.width - 400) / 2, (screen.height - 550) / 2
+            
+            Dim htaPath
+            htaPath = Replace(location.pathname, "/", "\")
+            If Left(htaPath, 1) = "\" Then htaPath = Mid(htaPath, 2)
+            currentDir = fso.GetParentFolderName(htaPath)
+            
+            ' Auto Start
+            StartBackend()
+        End Sub
+        
+        Sub ToggleBackend()
+            If backendRunning Then
+                StopBackend()
+            Else
+                StartBackend()
+            End If
+        End Sub
+        
+        Sub ToggleFrontend()
+            If frontendRunning Then
+                StopFrontend()
+            Else
+                StartFrontend()
+            End If
+        End Sub
+        
+        Sub StartBackend()
+            UpdateUI "Backend", "loading", "STARTING..."
+            SetBtn "btnBackend", "stop", True ' Disabled while starting
+            
+            Dim backendDir
+            backendDir = currentDir & "\backend"
+            WshShell.CurrentDirectory = backendDir
+            WshShell.Run "cmd /c npm run dev", 0, False
+            
+            UpdateMessage "Backend starting..."
+            window.setTimeout "CheckBackend", 2000, "VBScript"
+        End Sub
+        
+        Sub StopBackend()
+            If MsgBox("Stop Backend?", vbYesNo + vbQuestion) = vbYes Then
+                On Error Resume Next
+                WshShell.Run "taskkill /f /im node.exe", 0, True
+                On Error GoTo 0
+                
+                backendRunning = False
+                UpdateUI "Backend", "stopped", "STOPPED"
+                SetBtn "btnBackend", "play", False
+                
+                ' Frontend usually dies too if node is killed
+                frontendRunning = False
+                UpdateUI "Frontend", "stopped", "STOPPED"
+                SetBtn "btnFrontend", "play", False
+                
+                UpdateMessage "Servers stopped."
+            End If
+        End Sub
+        
+        Sub CheckBackend()
+            On Error Resume Next
+            Dim objHTTP
+            Set objHTTP = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+            objHTTP.open "GET", "http://localhost:5000", False
+            objHTTP.setTimeOption 2, 1000
+            objHTTP.send
+            
+            If objHTTP.Status = 200 Or objHTTP.Status = 404 Then
+                backendRunning = True
+                UpdateUI "Backend", "running", "RUNNING"
+                SetBtn "btnBackend", "stop", False
+                UpdateMessage "Backend OK. Starting Frontend..."
+                
+                ' Auto start frontend if not running
+                If Not frontendRunning Then StartFrontend()
+            Else
+                ' Keep checking
+                window.setTimeout "CheckBackend", 2000, "VBScript"
+            End If
+        End Sub
+        
+        Sub StartFrontend()
+            UpdateUI "Frontend", "loading", "STARTING..."
+            SetBtn "btnFrontend", "stop", True
+            
+            Dim frontendDir
+            frontendDir = currentDir & "\frontend"
+            WshShell.CurrentDirectory = frontendDir
+            WshShell.Run "cmd /c npm run dev", 0, False
+            
+            window.setTimeout "CheckFrontend", 4000, "VBScript"
+        End Sub
+        
+        Sub StopFrontend()
+            ' Killing node kills both in this setup usually
+            StopBackend()
+        End Sub
+        
+        Sub CheckFrontend()
+            On Error Resume Next
+            Dim objHTTP
+            Set objHTTP = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+            objHTTP.open "GET", "http://localhost:3000", False
+            objHTTP.setTimeOption 2, 1000
+            objHTTP.send
+            
+            If objHTTP.Status = 200 Or objHTTP.Status = 404 Then
+                frontendRunning = True
+                UpdateUI "Frontend", "running", "RUNNING"
+                SetBtn "btnFrontend", "stop", False
+                UpdateMessage "All Systems Go!"
+                OpenBrowser()
+            Else
+                window.setTimeout "CheckFrontend", 2000, "VBScript"
+            End If
+        End Sub
+        
+        Sub OpenBrowser()
+            WshShell.Run "http://localhost:3000", 1, False
+        End Sub
+        
+        Sub UpdateUI(server, status, text)
+            document.getElementById("card" & server).className = "server-card " & status
+            document.getElementById("status" & server).className = "server-status status-" & status
+            document.getElementById("status" & server).innerText = text
+        End Sub
+        
+        Sub SetBtn(id, typeBtn, disabled)
+            Dim btn, icon
+            Set btn = document.getElementById(id)
+            
+            If typeBtn = "play" Then
+                btn.className = "btn-toggle btn-play"
+                btn.innerHTML = "&#9658;" ' Play
+                btn.title = "Start Server"
+            Else
+                btn.className = "btn-toggle btn-stop"
+                btn.innerHTML = "&#9632;" ' Stop
+                btn.title = "Stop Server"
+            End If
+            
+            If disabled Then
+                btn.disabled = True
+                btn.className = btn.className & " btn-disabled"
+            Else
+                btn.disabled = False
+            End If
+        End Sub
+        
+        Sub UpdateMessage(msg)
+            document.getElementById("message").innerText = msg
+        End Sub
+        
+        Sub Window_OnBeforeUnload()
+            If backendRunning Or frontendRunning Then
+                If MsgBox("Server is running. Close anyway?", vbYesNo + vbQuestion) = vbNo Then
+                    window.event.returnValue = False
+                Else
+                    On Error Resume Next
+                    WshShell.Run "taskkill /f /im node.exe", 0, True
+                End If
+            End If
+        End Sub
+</html>
+</body>
+</html>

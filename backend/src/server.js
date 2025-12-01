@@ -40,16 +40,12 @@ app.get('/', (req, res) => {
 // Import routes
 import companyRoutes from './routes/company.routes.js';
 import personnelRoutes from './routes/personnel.routes.js';
-// import documentRoutes from './routes/document.routes.js';
-// import authRoutes from './routes/auth.routes.js';
-// import projectRoutes from './routes/project.routes.js';
+import databaseRoutes from './routes/database.routes.js';
 
 // Use routes
-app.use('/api/company', companyRoutes);
-app.use('/api/personnel', personnelRoutes);
-// app.use('/api/auth', authRoutes);
-// app.use('/api/documents', documentRoutes);
-// app.use('/api/projects', projectRoutes);
+app.use('/api/companies', databaseRoutes); // New unified database routes
+app.use('/api/company', companyRoutes); // Keep for backward compatibility
+app.use('/api/personnel', personnelRoutes); // Keep for backward compatibility
 
 // Error handling middleware
 app.use((err, req, res, next) => {

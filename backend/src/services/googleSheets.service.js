@@ -86,7 +86,7 @@ class GoogleSheetsService {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PROFIL;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       
       // Find tab specific for Company Profile
       const tabs = await this.getSheetTabNames(spreadsheetId);
@@ -146,7 +146,7 @@ class GoogleSheetsService {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PROFIL;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const profilTabName = tabs[0].title;
 
@@ -212,7 +212,7 @@ class GoogleSheetsService {
         throw new Error(`Company with ID ${id} not found`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PROFIL;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       let profilTabName = tabs.find(t => t.title.toLowerCase().includes('profil') || t.title.toLowerCase().includes('company'))?.title;
       
@@ -271,7 +271,7 @@ class GoogleSheetsService {
         throw new Error(`Company with ID ${id} not found`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PROFIL;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const profilTab = tabs[0];
 
@@ -316,7 +316,7 @@ class GoogleSheetsService {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONIL;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       
       // Get second tab if exists, otherwise first
@@ -370,7 +370,7 @@ class GoogleSheetsService {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONIL;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const personilTabName = tabs.length > 1 ? tabs[1].title : tabs[0].title;
 
@@ -435,7 +435,7 @@ class GoogleSheetsService {
         throw new Error(`Personil with ID ${id} not found`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONIL;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const personilTabName = tabs.length > 1 ? tabs[1].title : tabs[0].title;
 
@@ -489,7 +489,7 @@ class GoogleSheetsService {
         throw new Error(`Personil with ID ${id} not found`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONIL;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const personilTab = tabs.length > 1 ? tabs[1] : tabs[0];
 
@@ -520,6 +520,530 @@ class GoogleSheetsService {
       console.error('Error deleting personil:', error);
       throw new Error(`Failed to delete personil: ${error.message}`);
     }
+  }
+
+  // ========================================
+  // NEW DATABASE TABLES - CRUD OPERATIONS
+  // ========================================
+
+  /**
+   * Generic function to get all data from a sheet
+   * @param {string} sheetName - Name of the sheet
+   * @returns {Array} List of data objects
+   */
+  async getSheetData(sheetName) {
+    await this.initialize();
+
+    try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${sheetName}!A1:Z1000`,
+      });
+
+      const rows = response.data.values;
+      if (!rows || rows.length < 2) {
+        return [];
+      }
+
+      const headers = rows[0];
+      const dataRows = rows.slice(1).filter(row => row && row.length > 0 && row[0]);
+
+      return dataRows.map(row => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || '';
+        });
+        return obj;
+      });
+    } catch (error) {
+      throw new Error(`Failed to get data from ${sheetName}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Generic function to add data to a sheet
+   * @param {string} sheetName - Name of the sheet
+   * @param {Array} headers - Array of column headers
+   * @param {Object} data - Data object to add
+   * @returns {Object} Result object
+   */
+  async addSheetData(sheetName, headers, data) {
+    await this.initialize();
+
+    try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const currentData = await this.getSheetData(sheetName);
+      const nextRow = currentData.length + 2;
+
+      const values = headers.map(header => data[header] || '');
+
+      await this.sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `${sheetName}!A${nextRow}`,
+        valueInputOption: 'RAW',
+        resource: { values: [values] },
+      });
+
+      return {
+        success: true,
+        message: `Data added to ${sheetName} successfully`,
+      };
+    } catch (error) {
+      throw new Error(`Failed to add data to ${sheetName}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Generic function to update data in a sheet by ID
+   * @param {string} sheetName - Name of the sheet
+   * @param {Array} headers - Array of column headers
+   * @param {string} idField - Name of the ID field
+   * @param {string} id - ID value to find
+   * @param {Object} data - Updated data
+   * @returns {Object} Result object
+   */
+  async updateSheetData(sheetName, headers, idField, id, data) {
+    await this.initialize();
+
+    try {
+      const allData = await this.getSheetData(sheetName);
+      const index = allData.findIndex(item => item[idField] === id);
+
+      if (index === -1) {
+        throw new Error(`Data with ${idField} = ${id} not found in ${sheetName}`);
+      }
+
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const rowNumber = index + 2;
+
+      const updatedData = { ...allData[index], ...data };
+      const values = headers.map(header => updatedData[header] || '');
+
+      await this.sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${sheetName}!A${rowNumber}`,
+        valueInputOption: 'RAW',
+        resource: { values: [values] },
+      });
+
+      return {
+        success: true,
+        message: `Data in ${sheetName} updated successfully`,
+      };
+    } catch (error) {
+      throw new Error(`Failed to update data in ${sheetName}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Generic function to delete data from a sheet
+   * @param {string} sheetName - Name of the sheet
+   * @param {string} idField - Name of the ID field
+   * @param {string} id - ID value to find
+   * @returns {Object} Result object
+   */
+  async deleteSheetData(sheetName, idField, id) {
+    await this.initialize();
+
+    try {
+      const allData = await this.getSheetData(sheetName);
+      const index = allData.findIndex(item => item[idField] === id);
+
+      if (index === -1) {
+        throw new Error(`Data with ${idField} = ${id} not found in ${sheetName}`);
+      }
+
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const tabs = await this.getSheetTabNames(spreadsheetId);
+      const tab = tabs.find(t => t.title === sheetName);
+
+      if (!tab) {
+        throw new Error(`Sheet ${sheetName} not found`);
+      }
+
+      const rowNumber = index + 1; // +1 because row 1 is header
+
+      await this.sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        resource: {
+          requests: [
+            {
+              deleteDimension: {
+                range: {
+                  sheetId: tab.sheetId,
+                  dimension: 'ROWS',
+                  startIndex: rowNumber,
+                  endIndex: rowNumber + 1,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      return {
+        success: true,
+        message: `Data in ${sheetName} deleted successfully`,
+      };
+    } catch (error) {
+      throw new Error(`Failed to delete data from ${sheetName}: ${error.message}`);
+    }
+  }
+
+  // ========================================
+  // SPECIFIC METHODS FOR EACH TABLE
+  // ========================================
+
+  // --- 1. DB PERUSAHAAN ---
+  async getAllCompanies() {
+    return this.getSheetData('db_perusahaan');
+  }
+
+  async getCompanyById(id) {
+    const companies = await this.getAllCompanies();
+    return companies.find(c => c.id_perusahaan === id) || null;
+  }
+
+  async addCompany(data) {
+    const headers = [
+      'id_perusahaan',
+      'nama_perusahaan',
+      'status_perusahaan',
+      'alamat_kantor_pusat',
+      'no_telp',
+      'no_fax',
+      'email',
+    ];
+    
+    // Generate ID if not provided
+    if (!data.id_perusahaan) {
+      const companies = await this.getAllCompanies();
+      data.id_perusahaan = `COMP${String(companies.length + 1).padStart(3, '0')}`;
+    }
+
+    return this.addSheetData('db_perusahaan', headers, data);
+  }
+
+  async updateCompany(id, data) {
+    const headers = [
+      'id_perusahaan',
+      'nama_perusahaan',
+      'status_perusahaan',
+      'alamat_kantor_pusat',
+      'no_telp',
+      'no_fax',
+      'email',
+    ];
+    return this.updateSheetData('db_perusahaan', headers, 'id_perusahaan', id, data);
+  }
+
+  async deleteCompany(id) {
+    return this.deleteSheetData('db_perusahaan', 'id_perusahaan', id);
+  }
+
+  // --- 2. DB AKTA ---
+  async getAllAkta(idPerusahaan = null) {
+    const allAkta = await this.getSheetData('db_akta');
+    if (idPerusahaan) {
+      return allAkta.filter(a => a.id_perusahaan === idPerusahaan);
+    }
+    return allAkta;
+  }
+
+  async addAkta(data) {
+    const headers = [
+      'id_perusahaan',
+      'jenis_akta',
+      'nomor_akta',
+      'tanggal_akta',
+      'nama_notaris',
+    ];
+    return this.addSheetData('db_akta', headers, data);
+  }
+
+  async updateAkta(nomorAkta, data) {
+    const headers = [
+      'id_perusahaan',
+      'jenis_akta',
+      'nomor_akta',
+      'tanggal_akta',
+      'nama_notaris',
+    ];
+    return this.updateSheetData('db_akta', headers, 'nomor_akta', nomorAkta, data);
+  }
+
+  async deleteAkta(nomorAkta) {
+    return this.deleteSheetData('db_akta', 'nomor_akta', nomorAkta);
+  }
+
+  // --- 3. DB PEJABAT ---
+  async getAllPejabat(idPerusahaan = null) {
+    const allPejabat = await this.getSheetData('db_pejabat');
+    if (idPerusahaan) {
+      return allPejabat.filter(p => p.id_perusahaan === idPerusahaan);
+    }
+    return allPejabat;
+  }
+
+  async addPejabat(data) {
+    const headers = [
+      'id_perusahaan',
+      'nama',
+      'nik',
+      'jabatan',
+      'alamat',
+      'no_telp',
+    ];
+    return this.addSheetData('db_pejabat', headers, data);
+  }
+
+  async updatePejabat(nik, data) {
+    const headers = [
+      'id_perusahaan',
+      'nama',
+      'nik',
+      'jabatan',
+      'alamat',
+      'no_telp',
+    ];
+    return this.updateSheetData('db_pejabat', headers, 'nik', nik, data);
+  }
+
+  async deletePejabat(nik) {
+    return this.deleteSheetData('db_pejabat', 'nik', nik);
+  }
+
+  // --- 4. DB NIB ---
+  async getAllNIB(idPerusahaan = null) {
+    const allNIB = await this.getSheetData('db_nib');
+    if (idPerusahaan) {
+      return allNIB.filter(n => n.id_perusahaan === idPerusahaan);
+    }
+    return allNIB;
+  }
+
+  async addNIB(data) {
+    const headers = [
+      'id_perusahaan',
+      'nomor_nib',
+      'tanggal_nib',
+      'bidang_nib',
+    ];
+    return this.addSheetData('db_nib', headers, data);
+  }
+
+  async updateNIB(nomorNib, data) {
+    const headers = [
+      'id_perusahaan',
+      'nomor_nib',
+      'tanggal_nib',
+      'bidang_nib',
+    ];
+    return this.updateSheetData('db_nib', headers, 'nomor_nib', nomorNib, data);
+  }
+
+  async deleteNIB(nomorNib) {
+    return this.deleteSheetData('db_nib', 'nomor_nib', nomorNib);
+  }
+
+  // --- 5. DB PERSONIL (Updated) ---
+  async getAllPersonilNew(idPerusahaan = null) {
+    const allPersonil = await this.getSheetData('db_personil');
+    if (idPerusahaan) {
+      return allPersonil.filter(p => p.id_perusahaan === idPerusahaan);
+    }
+    return allPersonil;
+  }
+
+  async addPersonilNew(data) {
+    const headers = [
+      'id_perusahaan',
+      'nama',
+      'tempat_lahir',
+      'tanggal_lahir',
+      'strata',
+      'jurusan_pendidikan',
+      'sertifikat_keahlian',
+      'pengalaman_kerja',
+    ];
+    return this.addSheetData('db_personil', headers, data);
+  }
+
+  async updatePersonilNew(nama, data) {
+    const headers = [
+      'id_perusahaan',
+      'nama',
+      'tempat_lahir',
+      'tanggal_lahir',
+      'strata',
+      'jurusan_pendidikan',
+      'sertifikat_keahlian',
+      'pengalaman_kerja',
+    ];
+    return this.updateSheetData('db_personil', headers, 'nama', nama, data);
+  }
+
+  async deletePersonilNew(nama) {
+    return this.deleteSheetData('db_personil', 'nama', nama);
+  }
+
+  // --- 6. DB PENGALAMAN PERUSAHAAN ---
+  async getAllPengalaman(idPerusahaan = null) {
+    const allPengalaman = await this.getSheetData('db_pengalaman_perusahaan');
+    if (idPerusahaan) {
+      return allPengalaman.filter(p => p.id_perusahaan === idPerusahaan);
+    }
+    return allPengalaman;
+  }
+
+  async addPengalaman(data) {
+    const headers = [
+      'id_perusahaan',
+      'nama_pekerjaan',
+      'bidang_pekerjaan',
+      'lokasi',
+      'nama_pemberi_tugas',
+      'alamat_pemberi_tugas',
+      'nomor_kontrak',
+      'nilai_kontrak',
+      'tanggal_selesai_kontrak',
+      'tanggal_BA_selesai_serah_terima',
+    ];
+    return this.addSheetData('db_pengalaman_perusahaan', headers, data);
+  }
+
+  async updatePengalaman(nomorKontrak, data) {
+    const headers = [
+      'id_perusahaan',
+      'nama_pekerjaan',
+      'bidang_pekerjaan',
+      'lokasi',
+      'nama_pemberi_tugas',
+      'alamat_pemberi_tugas',
+      'nomor_kontrak',
+      'nilai_kontrak',
+      'tanggal_selesai_kontrak',
+      'tanggal_BA_selesai_serah_terima',
+    ];
+    return this.updateSheetData('db_pengalaman_perusahaan', headers, 'nomor_kontrak', nomorKontrak, data);
+  }
+
+  async deletePengalaman(nomorKontrak) {
+    return this.deleteSheetData('db_pengalaman_perusahaan', 'nomor_kontrak', nomorKontrak);
+  }
+
+  // --- 7. DB KLBI (KBLI CLASSIFICATION) ---
+  async getAllKBLI() {
+    return this.getSheetData('db_klbi');
+  }
+
+  async getKBLIByKode(kode) {
+    const allKBLI = await this.getAllKBLI();
+    return allKBLI.find(k => k.kode_klbi === kode) || null;
+  }
+
+  async searchKBLI(keyword) {
+    const allKBLI = await this.getAllKBLI();
+    if (!keyword) return allKBLI;
+    
+    const searchTerm = keyword.toLowerCase();
+    return allKBLI.filter(k => 
+      k.kode_klbi.toLowerCase().includes(searchTerm) ||
+      k.nama_klasifikasi.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  async addKBLI(data) {
+    const headers = [
+      'kode_klbi',
+      'nama_klasifikasi'
+    ];
+    return this.addSheetData('db_klbi', headers, data);
+  }
+
+  async updateKBLI(kode, data) {
+    const headers = [
+      'kode_klbi',
+      'nama_klasifikasi'
+    ];
+    return this.updateSheetData('db_klbi', headers, 'kode_klbi', kode, data);
+  }
+
+  async deleteKBLI(kode) {
+    return this.deleteSheetData('db_klbi', 'kode_klbi', kode);
+  }
+
+  // --- 8. DB PROJECT (PROJECTS WITH COMPANY & PERSONIL) ---
+  async getAllProjects() {
+    return this.getSheetData('db_project');
+  }
+
+  async getProjectById(idProject) {
+    const allProjects = await this.getAllProjects();
+    return allProjects.find(p => p.id_project === idProject) || null;
+  }
+
+  async getProjectsByCompany(idPerusahaan) {
+    const allProjects = await this.getAllProjects();
+    return allProjects.filter(p => p.id_perusahaan === idPerusahaan);
+  }
+
+  async getProjectsByPersonil(nik) {
+    const allProjects = await this.getAllProjects();
+    return allProjects.filter(p => p.nik === nik);
+  }
+
+  async addProject(data) {
+    // Auto-generate ID if not provided
+    if (!data.id_project) {
+      const allProjects = await this.getAllProjects();
+      const maxId = allProjects.reduce((max, p) => {
+        const num = parseInt(p.id_project?.replace('PROJ', '') || '0');
+        return num > max ? num : max;
+      }, 0);
+      data.id_project = `PROJ${String(maxId + 1).padStart(3, '0')}`;
+    }
+
+    const headers = [
+      'id_project',
+      'id_perusahaan',
+      'nama_project',
+      'nik'
+    ];
+    return this.addSheetData('db_project', headers, data);
+  }
+
+  async updateProject(idProject, data) {
+    const headers = [
+      'id_project',
+      'id_perusahaan',
+      'nama_project',
+      'nik'
+    ];
+    return this.updateSheetData('db_project', headers, 'id_project', idProject, data);
+  }
+
+  async deleteProject(idProject) {
+    return this.deleteSheetData('db_project', 'id_project', idProject);
+  }
+
+  // Helper: Get personil for a company (through db_project)
+  async getPersonilByCompany(idPerusahaan) {
+    const projects = await this.getProjectsByCompany(idPerusahaan);
+    const allPersonil = await this.getAllPersonilNew();
+    
+    const niks = [...new Set(projects.map(p => p.nik))]; // Unique NIKs
+    return allPersonil.filter(personil => niks.includes(personil.nik));
+  }
+
+  // Helper: Get companies for a personil (through db_project)
+  async getCompaniesByPersonil(nik) {
+    const projects = await this.getProjectsByPersonil(nik);
+    const allCompanies = await this.getAllCompanies();
+    
+    const companyIds = [...new Set(projects.map(p => p.id_perusahaan))]; // Unique IDs
+    return allCompanies.filter(company => companyIds.includes(company.id_perusahaan));
   }
 }
 

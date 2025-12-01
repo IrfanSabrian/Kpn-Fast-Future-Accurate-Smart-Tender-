@@ -8,13 +8,10 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 console.log('Checking Environment Variables...');
-console.log('PROFIL ID:', process.env.GOOGLE_SHEET_ID_PROFIL);
-console.log('PERSONIL ID:', process.env.GOOGLE_SHEET_ID_PERSONIL);
+console.log('SHEET ID:', process.env.GOOGLE_SHEET_ID);
 
-if (process.env.GOOGLE_SHEET_ID_PROFIL === process.env.GOOGLE_SHEET_ID_PERSONIL) {
-  console.log('⚠️ WARNING: Spreadsheet IDs are IDENTICAL!');
-  console.log('You are using the same spreadsheet for both.');
-  console.log('The code currently overwrites the first tab for both.');
+if (process.env.GOOGLE_SHEET_ID) {
+  console.log('✅ GOOGLE_SHEET_ID is set.');
 } else {
-  console.log('✅ Spreadsheet IDs are different.');
+  console.log('❌ GOOGLE_SHEET_ID is missing!');
 }
