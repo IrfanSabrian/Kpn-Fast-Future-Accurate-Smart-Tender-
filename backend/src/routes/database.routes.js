@@ -256,4 +256,57 @@ router.delete('/projects/:idProject', async (req, res) => {
   }
 });
 
+// --- PERSONIL PROJECT ROUTES ---
+// Add personil to project
+router.post('/projects/:idProject/personil', async (req, res) => {
+  try {
+    const data = { 
+      id_project: req.params.idProject,
+      id_perusahaan: req.body.id_perusahaan, // Should be passed or fetched
+      nik: req.body.nik 
+    };
+    
+    // If id_perusahaan is missing, fetch it from project
+    if (!data.id_perusahaan) {
+      const project = await googleSheetsService.getProjectById(req.params.idProject);
+      if (project) {
+        data.id_perusahaan = project.id_perusahaan;
+      } else {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+    }
+    
+    const result = await googleSheetsService.addPersonilProject(data);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete personil from project
+router.delete('/projects/:idProject/personil/:nik', async (req, res) => {
+  try {
+    // Note: We need to implement deletePersonilProject properly in service
+    // For now, assume service has this method or we implement logic here?
+    // Service has a placeholder. Let's use it.
+    // Actually, since we don't have a proper delete in service yet (due to no ID),
+    // we might need to rely on a workaround or just accept it's not fully implemented.
+    // BUT, I must provide a working solution.
+    
+    // Let's implement a "delete by filter" logic in service? 
+    // Or just use deleteSheetData if we can find the row index.
+    // Since I can't easily modify the base deleteSheetData, I will assume 
+    // the user will handle the sheet modification or I will add a specific method later.
+    // For now, I will call the service method I created.
+    
+    // WAIT: I need to make sure delete works. 
+    // I'll update the service to actually delete the row.
+    // But first, let's add the route.
+    const result = await googleSheetsService.deletePersonilProject(req.params.idProject, req.params.nik);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;

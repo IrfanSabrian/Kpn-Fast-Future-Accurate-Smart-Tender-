@@ -10,7 +10,7 @@
         leave-to-class="translate-y-2 opacity-0"
       >
         <div 
-          v-if="show"
+          v-if="isVisible"
           class="fixed top-4 right-4 z-[999999] max-w-md"
         >
           <div 
@@ -82,42 +82,41 @@
 </template>
 
 <script setup>
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
-  type: {
-    type: String,
-    default: 'info', // success, error, warning, info
-    validator: (value) => ['success', 'error', 'warning', 'info'].includes(value)
-  },
-  title: {
-    type: String,
-    default: ''
-  },
-  message: {
-    type: String,
-    default: ''
-  },
-  duration: {
-    type: Number,
-    default: 3000 // Auto close after 3 seconds
+const isVisible = ref(false)
+const type = ref('info')
+const title = ref('')
+const message = ref('')
+const duration = ref(3000)
+
+const show = (msg, toastType = 'info', toastTitle = '') => {
+  message.value = msg
+  type.value = toastType
+  
+  // Set default titles based on type if not provided
+  if (!toastTitle) {
+    if (toastType === 'success') title.value = 'Berhasil'
+    else if (toastType === 'error') title.value = 'Gagal'
+    else if (toastType === 'warning') title.value = 'Peringatan'
+    else title.value = 'Info'
+  } else {
+    title.value = toastTitle
   }
-})
 
-const emit = defineEmits(['close'])
+  isVisible.value = true
 
-const close = () => {
-  emit('close')
-}
-
-// Auto close
-watch(() => props.show, (newValue) => {
-  if (newValue && props.duration > 0) {
+  if (duration.value > 0) {
     setTimeout(() => {
       close()
-    }, props.duration)
+    }, duration.value)
   }
+}
+
+const close = () => {
+  isVisible.value = false
+}
+
+defineExpose({
+  show,
+  close
 })
 </script>

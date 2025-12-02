@@ -178,98 +178,81 @@
       </template>
       <template #body>
         <form @submit.prevent="saveEdit" class="space-y-4">
-          <div v-if="isEditMode">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">ID Perusahaan</label>
-            <input
-              v-model="editForm.id_perusahaan"
-              type="text"
-              disabled
-              class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-            />
-          </div>
+          <FormInput
+            v-if="isEditMode"
+            v-model="editForm.id_perusahaan"
+            label="ID Perusahaan"
+            disabled
+          />
 
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nama Perusahaan *</label>
-            <input
-              v-model="editForm.nama_perusahaan"
-              type="text"
-              required
-              class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Masukkan nama perusahaan"
-            />
-          </div>
+          <FormInput
+            v-model="editForm.nama_perusahaan"
+            label="Nama Perusahaan"
+            placeholder="Masukkan nama perusahaan"
+            required
+          />
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Status</label>
-              <input
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Status Perusahaan
+              </label>
+              <select
                 v-model="editForm.status_perusahaan"
-                type="text"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="e.g., PT, CV"
-              />
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-gray-900 dark:text-white"
+              >
+                <option value="" disabled>-- Pilih Status --</option>
+                <option value="Pusat">Pusat</option>
+                <option value="Cabang">Cabang</option>
+              </select>
             </div>
 
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Email</label>
-              <input
-                v-model="editForm.email"
-                type="email"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="email@perusahaan.com"
-              />
-            </div>
+            <FormInput
+              v-model="editForm.email"
+              label="Email"
+              type="email"
+              placeholder="email@perusahaan.com"
+            />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">No. Telepon</label>
-              <input
-                v-model="editForm.no_telp"
-                type="text"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="08xxx atau 021-xxx"
-              />
-            </div>
+            <FormInput
+              v-model="editForm.no_telp"
+              label="No. Telepon"
+              placeholder="08xxx atau 021-xxx"
+            />
 
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">No. Fax</label>
-              <input
-                v-model="editForm.no_fax"
-                type="text"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                placeholder="021-xxx"
-              />
-            </div>
+            <FormInput
+              v-model="editForm.no_fax"
+              label="No. Fax"
+              placeholder="021-xxx"
+            />
           </div>
 
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Alamat</label>
-            <textarea
-              v-model="editForm.alamat_kantor_pusat"
-              rows="3"
-              class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Masukkan alamat kantor pusat"
-            ></textarea>
-          </div>
-
-          <div class="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              @click="closeEditModal"
-              class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              :disabled="saving"
-              class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {{ saving ? 'Menyimpan...' : (isEditMode ? 'Update' : 'Simpan') }}
-            </button>
-          </div>
+          <FormInput
+            v-model="editForm.alamat_kantor_pusat"
+            label="Alamat"
+            type="textarea"
+            rows="3"
+            placeholder="Masukkan alamat kantor pusat"
+          />
         </form>
+      </template>
+      <template #footer>
+        <button
+          type="button"
+          @click="closeEditModal"
+          class="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+        >
+          Batal
+        </button>
+        <button
+          @click="saveEdit"
+          :disabled="saving"
+          class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ saving ? 'Menyimpan...' : (isEditMode ? 'Update' : 'Simpan') }}
+        </button>
       </template>
     </BaseModal>
 
@@ -304,6 +287,7 @@
 import BaseModal from '~/components/BaseModal.vue'
 import BaseToast from '~/components/BaseToast.vue'
 import ConfirmDialog from '~/components/ConfirmDialog.vue'
+import FormInput from '~/components/FormInput.vue'
 
 definePageMeta({
   layout: 'dashboard'

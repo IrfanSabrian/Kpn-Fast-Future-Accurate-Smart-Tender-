@@ -214,6 +214,126 @@ class GoogleDriveService {
       throw new Error(`Failed to list folders: ${error.message}`);
     }
   }
+
+  /**
+   * Rename a folder in Google Drive
+   * @param {string} oldName - Current folder name (used to find folder)
+   * @param {string} newName - New folder name
+   * @param {string} parentId - Optional parent folder ID
+   * @returns {Object} Updated folder metadata
+   */
+  async renameFolder(oldName, newName, parentId = null) {
+    await this.initialize();
+
+    try {
+      // First, find the folder by old name
+      const folder = await this.findFolderByName(oldName, parentId);
+      
+      if (!folder) {
+        throw new Error(`Folder "${oldName}" not found`);
+      }
+
+      // Rename the folder
+      const response = await this.drive.files.update({
+        fileId: folder.id,
+        requestBody: {
+          name: newName,
+        },
+        fields: 'id, name, webViewLink',
+      });
+
+      console.log(`✅ Folder renamed: "${oldName}" → "${newName}" (ID: ${folder.id})`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error renaming folder "${oldName}":`, error);
+      throw new Error(`Failed to rename folder: ${error.message}`);
+    }
+  }
+
+  /**
+   * Rename a folder by ID
+   * @param {string} folderId - Folder ID
+   * @param {string} newName - New folder name
+   * @returns {Object} Updated folder metadata
+   */
+  async renameFolderById(folderId, newName) {
+    await this.initialize();
+
+    try {
+      const response = await this.drive.files.update({
+        fileId: folderId,
+        requestBody: {
+          name: newName,
+        },
+        fields: 'id, name, webViewLink',
+      });
+
+      console.log(`✅ Folder renamed to: "${newName}" (ID: ${folderId})`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error renaming folder ID ${folderId}:`, error);
+      throw new Error(`Failed to rename folder: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete a folder in Google Drive
+   * @param {string} folderName - Name of the folder to delete
+   * @param {string} parentId - Optional parent folder ID
+   * @returns {Object} Deletion result
+   */
+  async deleteFolder(folderName, parentId = null) {
+    await this.initialize();
+
+    try {
+      // First, find the folder by name
+      const folder = await this.findFolderByName(folderName, parentId);
+      
+      if (!folder) {
+        throw new Error(`Folder "${folderName}" not found`);
+      }
+
+      // Delete the folder
+      await this.drive.files.delete({
+        fileId: folder.id,
+      });
+
+      console.log(`✅ Folder deleted: "${folderName}" (ID: ${folder.id})`);
+      return { 
+        success: true, 
+        message: `Folder "${folderName}" deleted successfully`,
+        folderId: folder.id 
+      };
+    } catch (error) {
+      console.error(`❌ Error deleting folder "${folderName}":`, error);
+      throw new Error(`Failed to delete folder: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete a folder by ID
+   * @param {string} folderId - Folder ID to delete
+   * @returns {Object} Deletion result
+   */
+  async deleteFolderById(folderId) {
+    await this.initialize();
+
+    try {
+      await this.drive.files.delete({
+        fileId: folderId,
+      });
+
+      console.log(`✅ Folder deleted by ID: ${folderId}`);
+      return { 
+        success: true, 
+        message: `Folder deleted successfully`,
+        folderId 
+      };
+    } catch (error) {
+      console.error(`❌ Error deleting folder ID ${folderId}:`, error);
+      throw new Error(`Failed to delete folder: ${error.message}`);
+    }
+  }
 }
 
 // Export singleton instance

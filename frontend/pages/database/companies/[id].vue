@@ -273,28 +273,51 @@
             <div v-if="loadingTab" class="flex justify-center py-8">
               <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
-            <div v-else-if="projects.length > 0" class="space-y-4">
-              <div v-for="item in projects" :key="item.id_project" class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 group hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
-                <div class="flex items-start justify-between">
+            <div v-else-if="groupedProjects.length > 0" class="space-y-4">
+              <div v-for="project in groupedProjects" :key="project.nama_project" class="p-6 rounded-xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all shadow-sm hover:shadow-md">
+                <!-- Project Header -->
+                <div class="flex items-start justify-between mb-4">
                   <div class="flex-1">
-                    <h4 class="font-semibold text-gray-900 dark:text-white mb-2">{{ item.nama_project }}</h4>
-                    <div class="space-y-1 text-sm">
-                      <p class="text-gray-600 dark:text-gray-400">
-                        <i class="fas fa-hashtag w-4"></i> {{ item.id_project }}
-                      </p>
-                      <p class="text-gray-600 dark:text-gray-400">
-                        <i class="fas fa-user w-4"></i> NIK: {{ item.nik }}
-                      </p>
-                    </div>
+                    <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ project.nama_project }}</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      <i class="fas fa-hashtag"></i> {{ project.id_project }}
+                    </p>
                   </div>
                   <!-- Action Buttons -->
-                  <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button @click="openEditModal('projects', item)" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg" title="Edit">
+                  <div class="flex gap-2">
+                    <button @click="openProjectDetailModal(project)" class="px-4 py-2 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium" title="Kelola Personil">
+                      <i class="fas fa-users"></i>
+                      <span>Kelola Personil</span>
+                    </button>
+                    <button @click="openEditProjectModal(project)" class="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg transition-colors" title="Edit Project">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button @click="confirmDelete('projects', item)" class="p-2 text-red-600 hover:bg-red-100 rounded-lg" title="Hapus">
+                    <button @click="confirmDeleteProject(project)" class="p-2 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300 rounded-lg transition-colors" title="Hapus Project">
                       <i class="fas fa-trash"></i>
                     </button>
+                  </div>
+                </div>
+
+                <!-- Personil List -->
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <i class="fas fa-users"></i>
+                    <span>Tim Personil ({{ project.personil.length }})</span>
+                  </h5>
+                  <div v-if="project.personil.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div v-for="person in project.personil" :key="person.nik" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-blue-600 dark:text-blue-400"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="font-medium text-gray-900 dark:text-white truncate">{{ person.nama || 'Unknown' }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">NIK: {{ person.nik }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+                    <i class="fas fa-user-slash opacity-50"></i>
+                    <p>Belum ada personil ditugaskan</p>
                   </div>
                 </div>
               </div>
@@ -537,15 +560,7 @@
                 v-model="formData.nama_project" 
                 type="text" 
                 class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-              >
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">NIK Personil</label>
-              <input 
-                v-model="formData.nik" 
-                type="text" 
-                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" 
-                placeholder="Masukkan NIK Personil"
+                placeholder="Masukkan Nama Project"
               >
             </div>
           </div>
@@ -556,8 +571,74 @@
         <button @click="closeModal" class="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
           Batal
         </button>
-        <button @click="saveItem" :disabled="saving" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+        <button @click="saveItem" :disabled="saving || !isFormValid" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
           {{ saving ? 'Menyimpan...' : (isEditing ? 'Update' : 'Simpan') }}
+        </button>
+      </template>
+    </BaseModal>
+
+    <!-- Project Detail Modal (Kelola Personil) -->
+    <BaseModal :show="showProjectDetailModal" @close="closeProjectDetailModal" max-width="4xl">
+      <template #header>
+        <div>
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Kelola Personil Project</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ selectedProject?.nama_project }}</p>
+        </div>
+      </template>
+      <template #body>
+        <div v-if="selectedProject" class="space-y-6">
+          <!-- Tambah Personil Section -->
+          <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-4">
+            <h4 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <i class="fas fa-user-plus"></i>
+              Tambah Personil ke Project
+            </h4>
+            <div class="flex gap-3">
+              <select v-model="selectedNIK" class="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-gray-900 dark:text-white">
+                <option value="" disabled>-- Pilih Personil --</option>
+                <option v-for="p in availablePersonil" :key="p.nik" :value="p.nik">
+                  {{ p.nama }} (NIK: {{ p.nik }})
+                </option>
+              </select>
+              <button @click="addPersonilToProject" :disabled="!selectedNIK || addingPersonil" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                <i class="fas fa-plus"></i>
+                <span>{{ addingPersonil ? 'Menambah...' : 'Tambah' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Daftar Personil di Project -->
+          <div>
+            <h4 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <i class="fas fa-users"></i>
+              Daftar Tim ({{ selectedProject.personil.length }} orang)
+            </h4>
+            <div v-if="selectedProject.personil.length > 0" class="space-y-2">
+              <div v-for="person in selectedProject.personil" :key="person.nik" class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <i class="fas fa-user text-blue-600 dark:text-blue-400"></i>
+                  </div>
+                  <div>
+                    <p class="font-semibold text-gray-900 dark:text-white">{{ person.nama || 'Unknown' }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">NIK: {{ person.nik }}</p>
+                  </div>
+                </div>
+                <button @click="removePersonilFromProject(person.nik)" class="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="Hapus dari project">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
+              <i class="fas fa-user-slash text-3xl mb-2 opacity-50"></i>
+              <p>Belum ada personil ditugaskan</p>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <button @click="closeProjectDetailModal" class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-colors">
+          Tutup
         </button>
       </template>
     </BaseModal>
@@ -592,6 +673,7 @@ const loading = ref(true)
 const company = ref(null)
 const activeTab = ref('akta')
 const toast = ref(null)
+const config = useRuntimeConfig()
 
 // Data for each tab
 const akta = ref([])
@@ -599,6 +681,13 @@ const pejabat = ref([])
 const nib = ref([])
 const pengalaman = ref([])
 const projects = ref([])
+const allPersonil = ref([])
+
+// Project Detail Modal State
+const showProjectDetailModal = ref(false)
+const selectedProject = ref(null)
+const selectedNIK = ref('')
+const addingPersonil = ref(false)
 
 // Loading state untuk masing-masing tab
 const tabLoading = ref({
@@ -645,6 +734,14 @@ const modalTitle = computed(() => {
   return `${action} ${labels[modalType.value] || 'Item'}`
 })
 
+const isFormValid = computed(() => {
+  if (modalType.value === 'projects') {
+    return !!formData.value.nama_project?.trim()
+  }
+  // Add other validations if needed
+  return true
+})
+
 const deleteMessage = computed(() => {
   return `Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.`
 })
@@ -657,7 +754,7 @@ const getTabLabel = (tabId) => {
 // Fetch company data
 const fetchCompany = async () => {
   try {
-    const response = await fetch(`http://localhost:5000/api/companies/${companyId}`)
+    const response = await fetch(`${config.public.apiBaseUrl}/companies/${companyId}`)
     if (response.ok) {
       company.value = await response.json()
     } else {
@@ -674,7 +771,7 @@ const fetchCompany = async () => {
 const fetchTabData = async (tab) => {
   tabLoading.value[tab] = true
   try {
-    const response = await fetch(`http://localhost:5000/api/companies/${companyId}/${tab}`)
+    const response = await fetch(`${config.public.apiBaseUrl}/companies/${companyId}/${tab}`)
     
     if (response.ok) {
       const data = await response.json()
@@ -706,6 +803,7 @@ onMounted(async () => {
   await fetchCompany()
   if (company.value) {
     await fetchAllTabsData()
+    await fetchAllPersonil()
   }
 })
 
@@ -734,7 +832,7 @@ const saveItem = async () => {
   saving.value = true
   try {
     const type = modalType.value
-    let url = `http://localhost:5000/api`
+    let url = `${config.public.apiBaseUrl}`
     let method = isEditing.value ? 'PUT' : 'POST'
     
     // Construct URL based on type and action
@@ -782,8 +880,28 @@ const deleteItem = async () => {
   try {
     const type = deleteType.value
     const item = itemToDelete.value
-    let url = `http://localhost:5000/api`
+    let url = `${config.public.apiBaseUrl}`
     
+    // Handle Project Group Deletion (Delete all assignments for this project)
+    if (type === 'project_group') {
+      const assignments = item.personil
+      
+      // Delete all assignments sequentially
+      for (const person of assignments) {
+        if (person.assignment_id) {
+          await fetch(`${config.public.apiBaseUrl}/companies/projects/${person.assignment_id}`, {  
+            method: 'DELETE' 
+          })
+        }
+      }
+      
+      // Refresh data
+      await fetchTabData('projects')
+      showDeleteDialog.value = false
+      toast.value.show('Project dan seluruh tim berhasil dihapus', 'success')
+      return
+    }
+
     // Construct Delete URL - menggunakan companies routing
     switch (type) {
       case 'akta': url += `/companies/akta/${item.nomor_akta}`; break
@@ -805,4 +923,165 @@ const deleteItem = async () => {
     toast.value.show('Gagal menghapus data: ' + error.message, 'error')
   }
 }
+
+// --- PROJECT-SPECIFIC FUNCTIONS ---
+
+// Computed: Group projects by nama_project and attach personil info
+const groupedProjects = computed(() => {
+  // Backend now returns projects with nested personil array (NIKs only)
+  // We need to map these NIKs to full personil data
+  
+  return projects.value.map(proj => {
+    const personilWithDetails = (proj.personil || []).map(p => {
+      const details = allPersonil.value.find(ap => ap.nik === p.nik)
+      return {
+        ...p,
+        nama: details ? details.nama : 'Unknown',
+        ...details // Spread all details
+      }
+    })
+
+    return {
+      ...proj,
+      personil: personilWithDetails
+    }
+  })
+})
+
+// Computed: Available personil (not yet in current project)
+const availablePersonil = computed(() => {
+  if (!selectedProject.value) return allPersonil.value
+  
+  const assignedNIKs = selectedProject.value.personil.map(p => p.nik)
+  return allPersonil.value.filter(p => !assignedNIKs.includes(p.nik))
+})
+
+// Fetch all personil
+const fetchAllPersonil = async () => {
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/personnel`)
+    if (response.ok) {
+      const json = await response.json()
+      allPersonil.value = json.data || [] // Access .data property
+    }
+  } catch (error) {
+    console.error('Error fetching personil:', error)
+  }
+}
+
+// Open project detail modal
+const openProjectDetailModal = (project) => {
+  // Clone project to avoid direct mutation
+  selectedProject.value = JSON.parse(JSON.stringify(project))
+  selectedNIK.value = ''
+  showProjectDetailModal.value = true
+}
+
+// Close project detail modal
+const closeProjectDetailModal = () => {
+  showProjectDetailModal.value = false
+  selectedProject.value = null
+  selectedNIK.value = ''
+}
+
+// Add personil to project
+const addPersonilToProject = async () => {
+  if (!selectedNIK.value || !selectedProject.value) return
+  
+  try {
+    addingPersonil.value = true
+    
+    // Use new endpoint for adding personil
+    const response = await fetch(`${config.public.apiBaseUrl}/companies/projects/${selectedProject.value.id_project}/personil`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id_perusahaan: companyId,
+        nik: selectedNIK.value
+      })
+    })
+    
+    if (!response.ok) throw new Error('Gagal menambah personil')
+    
+    // Refresh projects data
+    await fetchTabData('projects')
+    
+    // Update selected project in modal
+    // We need to re-find the project from the updated list
+    // Wait for next tick or just find it in the updated projects.value
+    // Since fetchTabData updates projects.value, and groupedProjects is computed, 
+    // we just need to find the project again.
+    
+    // Small delay to ensure computed updates? Usually not needed if reactive.
+    // But let's find it from the computed list.
+    setTimeout(() => {
+      const updatedProject = groupedProjects.value.find(p => p.id_project === selectedProject.value.id_project)
+      if (updatedProject) {
+        selectedProject.value = JSON.parse(JSON.stringify(updatedProject))
+      }
+    }, 100)
+    
+    selectedNIK.value = ''
+    toast.value.show('Personil berhasil ditambahkan ke project', 'success')
+  } catch (error) {
+    console.error('Error adding personil:', error)
+    toast.value.show('Gagal menambah personil: ' + error.message, 'error')
+  } finally {
+    addingPersonil.value = false
+  }
+}
+
+// Remove personil from project
+const removePersonilFromProject = async (nik) => {
+  if (!selectedProject.value) return
+  
+  try {
+    // Use new endpoint for deleting personil
+    const response = await fetch(`${config.public.apiBaseUrl}/companies/projects/${selectedProject.value.id_project}/personil/${nik}`, {
+      method: 'DELETE'
+    })
+    
+    if (!response.ok) throw new Error('Gagal menghapus personil')
+    
+    // Refresh projects data
+    await fetchTabData('projects')
+    
+    // Update selected project
+    setTimeout(() => {
+      const updatedProject = groupedProjects.value.find(p => p.id_project === selectedProject.value.id_project)
+      if (updatedProject) {
+        selectedProject.value = JSON.parse(JSON.stringify(updatedProject))
+      }
+    }, 100)
+    
+    toast.value.show('Personil berhasil dihapus dari project', 'success')
+  } catch (error) {
+    console.error('Error removing personil:', error)
+    toast.value.show('Gagal menghapus personil: ' + error.message, 'error')
+  }
+}
+
+// Open edit project modal (edit nama project)
+const openEditProjectModal = (project) => {
+  modalType.value = 'projects'
+  isEditing.value = true
+  
+  // For editing, we only need nama_project
+  // We'll use the first entry's id_project to represent the whole group
+  formData.value = {
+    id_project: project.id_project,
+    nama_project: project.nama_project
+  }
+  showModal.value = true
+}
+
+// Confirm delete project (will delete all personil assignments)
+const confirmDeleteProject = (project) => {
+  deleteType.value = 'project_group'
+  itemToDelete.value = project
+  showDeleteDialog.value = true
+}
+
+
 </script>
+
