@@ -7,7 +7,7 @@
           Database Personil
         </h1>
         <p class="text-gray-600 dark:text-gray-400">
-          Kelola data personil perusahaan
+          Kelola data personil perusahaan - Klik baris untuk melihat detail
         </p>
       </div>
       <button
@@ -56,7 +56,8 @@
             <tr
               v-for="person in personil"
               :key="person.nik"
-              class="hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+              @click="viewDetail(person)"
+              class="hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
             >
               <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
                 {{ person.nik || '-' }}
@@ -84,8 +85,15 @@
                   {{ person.sertifikat_keahlian || '-' }}
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-center">
+              <td class="px-6 py-4 whitespace-nowrap text-center" @click.stop>
                 <div class="flex items-center justify-center gap-2">
+                  <button
+                    @click="viewDetail(person)"
+                    class="px-3 py-2 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300 rounded-lg transition-colors text-xs font-medium"
+                    title="Lihat Detail"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
                   <button
                     @click="openEditModal(person)"
                     class="px-3 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg transition-colors text-xs font-medium"
@@ -135,8 +143,42 @@
       </button>
     </div>
 
+    <!-- Detail Modal -->
+    <BaseModal :show="showDetailModal" @close="showDetailModal = false" max-width="3xl">
+      <template #header>
+        <div>
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Detail Personil</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Informasi lengkap personil</p>
+        </div>
+      </template>
+      <template #body>
+        <div v-if="selectedPerson" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div v-for="(value, key) in selectedPerson" :key="key" class="space-y-2">
+              <label class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                {{ formatFieldName(key) }}
+              </label>
+              <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                <p class="text-gray-900 dark:text-white">
+                  {{ formatFieldValue(key, value) || '-' }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <button
+          @click="showDetailModal = false"
+          class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-colors"
+        >
+          Tutup
+        </button>
+      </template>
+    </BaseModal>
+
     <!-- Add/Edit Modal -->
-    <BaseModal v-if="showModal" @close="closeModal">
+    <BaseModal :show="showModal" @close="closeModal" max-width="3xl">
       <template #header>
         <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ isEditMode ? 'Edit Personil' : 'Tambah Personil' }}
@@ -251,51 +293,38 @@
       </template>
     </BaseModal>
 
-    <!-- Delete Confirmation Modal -->
-    <BaseModal v-if="showDeleteModal" @close="showDeleteModal = false">
-      <template #header>
-        <h3 class="text-2xl font-bold text-red-600 dark:text-red-400">
-          Konfirmasi Hapus
-        </h3>
-      </template>
-      <template #body>
-        <div class="text-center py-4">
-          <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-exclamation-triangle text-3xl text-red-600 dark:text-red-400"></i>
-          </div>
-          <p class="text-gray-700 dark:text-gray-300 mb-2">
-            Apakah Anda yakin ingin menghapus personil:
-          </p>
-          <p class="text-lg font-bold text-gray-900 dark:text-white mb-6">
-            {{ personilToDelete?.nama }}
-          </p>
-          <div class="flex justify-center gap-3">
-            <button
-              @click="showDeleteModal = false"
-              class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              @click="deletePersonil"
-              :disabled="deleting"
-              class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span v-if="deleting">
-                <i class="fas fa-spinner fa-spin mr-2"></i>Menghapus...
-              </span>
-              <span v-else>
-                <i class="fas fa-trash mr-2"></i>Hapus
-              </span>
-            </button>
-          </div>
-        </div>
-      </template>
-    </BaseModal>
+    <!-- Confirm Dialog -->
+    <ConfirmDialog
+      :show="showConfirmDialog"
+      type="danger"
+      title="Konfirmasi Hapus"
+      :message="`Apakah Anda yakin ingin menghapus personil: ${personilToDelete?.nama}?`"
+      confirm-text="Hapus"
+      cancel-text="Batal"
+      loading-text="Menghapus..."
+      :loading="deleting"
+      @confirm="deletePersonil"
+      @cancel="showConfirmDialog = false"
+    />
+
+    <!-- Toast Notification -->
+    <BaseToast
+      :show="toast.show"
+      :type="toast.type"
+      :title="toast.title"
+      :message="toast.message"
+      :duration="toast.duration"
+      @close="hideToast"
+    />
   </div>
 </template>
 
 <script setup>
+// Import components explicitly
+import BaseModal from '~/components/BaseModal.vue'
+import BaseToast from '~/components/BaseToast.vue'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
+
 definePageMeta({
   layout: 'dashboard'
 })
@@ -303,11 +332,16 @@ definePageMeta({
 const config = useRuntimeConfig()
 const apiBaseUrl = config.public.apiBaseUrl
 
+// Use toast composable
+const { toast, success, error: showError, hideToast } = useToast()
+
 const loading = ref(true)
 const error = ref(null)
 const personil = ref([])
 const showModal = ref(false)
-const showDeleteModal = ref(false)
+const showConfirmDialog = ref(false)
+const showDetailModal = ref(false)
+const selectedPerson = ref(null)
 const isEditMode = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
@@ -323,83 +357,67 @@ const formData = ref({
   sertifikat_keahlian: ''
 })
 
-// Format date helper
+// Format field name
+const formatFieldName = (key) => {
+  return key.replace(/_/g, ' ')
+}
+
+// Format field value
+const formatFieldValue = (key, value) => {
+  if (key === 'tanggal_lahir' && value) {
+    return formatDate(value)
+  }
+  return value
+}
+
+// View detail
+const viewDetail = (person) => {
+  selectedPerson.value = person
+  showDetailModal.value = true
+}
+
+// Format date
 const formatDate = (dateString) => {
-  if (!dateString) return '-'
+  if (!dateString) return ''
   try {
     const date = new Date(dateString)
-    return date.toLocaleDateString('id-ID', { 
-      day: '2-digit', 
-      month: 'long', 
-      year: 'numeric' 
-    })
-  } catch {
+    return new Intl.DateFormat('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date)
+  } catch (e) {
     return dateString
   }
 }
 
-// Fetch personil data
+// Fetch personil
 const fetchPersonil = async () => {
   try {
     loading.value = true
     error.value = null
     
-    console.log('=== FETCHING PERSONIL DATA ===')
-    console.log('Fetching from:', `${apiBaseUrl}/personnel`)
-    
     const response = await fetch(`${apiBaseUrl}/personnel`)
-    console.log('Response status:', response.status)
-    console.log('Response ok:', response.ok)
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     
-    const rawText = await response.text()
-    console.log('Raw response text:', rawText)
+    const result = await response.json()
     
-    const result = JSON.parse(rawText)
-    console.log('Parsed JSON:', result)
-    console.log('Result type:', typeof result)
-    console.log('Result keys:', Object.keys(result))
-    
-    // Check if data exists
     if (result.success && result.data) {
-      console.log('Data array length:', result.data.length)
-      console.log('First item:', result.data[0])
-      console.log('First item keys:', result.data[0] ? Object.keys(result.data[0]) : 'no data')
-      
       personil.value = result.data
-      console.log('Personil value set:', personil.value)
-      console.log('Personil count:', personil.value.length)
-      
-      // Log each person
-      personil.value.forEach((person, index) => {
-        console.log(`Person ${index}:`, person)
-        console.log(`  - NIK: "${person.nik}"`)
-        console.log(`  - Nama: "${person.nama}"`)
-        console.log(`  - Tempat Lahir: "${person.tempat_lahir}"`)
-        console.log(`  - Tanggal Lahir: "${person.tanggal_lahir}"`)
-      })
     } else if (Array.isArray(result)) {
-      // Response might be array directly
-      console.log('Result is array directly')
       personil.value = result
     } else {
-      console.error('Unexpected response structure:', result)
       throw new Error('Invalid response structure')
     }
   } catch (err) {
-    console.error('=== ERROR FETCHING PERSONIL ===')
-    console.error('Error:', err)
-    console.error('Error message:', err.message)
-    console.error('Error stack:', err.stack)
+    console.error('Error fetching personil:', err)
     error.value = `Gagal memuat data: ${err.message}`
     personil.value = []
   } finally {
     loading.value = false
-    console.log('=== FETCH COMPLETE ===')
-    console.log('Final personil value:', personil.value)
   }
 }
 
@@ -428,31 +446,17 @@ const openEditModal = (person) => {
 // Close modal
 const closeModal = () => {
   showModal.value = false
-  formData.value = {
-    nik: '',
-    nama: '',
-    tempat_lahir: '',
-    tanggal_lahir: '',
-    strata: '',
-    jurusan_pendidikan: '',
-    sertifikat_keahlian: ''
-  }
 }
 
-// Save personil (add or update)
+// Save personil
 const savePersonil = async () => {
   try {
     saving.value = true
-    error.value = null
-    
-    const url = isEditMode.value 
+    const url = isEditMode.value
       ? `${apiBaseUrl}/personnel/${formData.value.nik}`
       : `${apiBaseUrl}/personnel`
     
     const method = isEditMode.value ? 'PUT' : 'POST'
-    
-    console.log('Saving to:', url, 'Method:', method)
-    console.log('Data:', formData.value)
     
     const response = await fetch(url, {
       method,
@@ -461,21 +465,21 @@ const savePersonil = async () => {
       },
       body: JSON.stringify(formData.value)
     })
-
-    const result = await response.json()
-    console.log('Save response:', result)
-
-    if (response.ok && result.success) {
-      alert(isEditMode.value ? 'Data personil berhasil diupdate!' : 'Data personil berhasil ditambahkan!')
+    
+    if (response.ok) {
+      success(
+        'Berhasil!',
+        isEditMode.value ? 'Data personil berhasil diupdate' : 'Data personil berhasil ditambahkan'
+      )
       closeModal()
       await fetchPersonil()
     } else {
-      throw new Error(result.message || 'Unknown error')
+      const errorData = await response.json()
+      showError('Gagal!', errorData.message || 'Terjadi kesalahan saat menyimpan data')
     }
   } catch (err) {
     console.error('Error saving personil:', err)
-    error.value = `Gagal menyimpan data: ${err.message}`
-    alert(`Gagal menyimpan data: ${err.message}`)
+    showError('Error!', err.message || 'Terjadi kesalahan')
   } finally {
     saving.value = false
   }
@@ -484,37 +488,29 @@ const savePersonil = async () => {
 // Confirm delete
 const confirmDelete = (person) => {
   personilToDelete.value = person
-  showDeleteModal.value = true
+  showConfirmDialog.value = true
 }
 
 // Delete personil
 const deletePersonil = async () => {
   try {
     deleting.value = true
-    error.value = null
-    
-    const url = `${apiBaseUrl}/personnel/${personilToDelete.value.nik}`
-    console.log('Deleting:', url)
-    
-    const response = await fetch(url, {
+    const response = await fetch(`${apiBaseUrl}/personnel/${personilToDelete.value.nik}`, {
       method: 'DELETE'
     })
-
-    const result = await response.json()
-    console.log('Delete response:', result)
-
-    if (response.ok && result.success) {
-      alert('Data personil berhasil dihapus!')
-      showDeleteModal.value = false
+    
+    if (response.ok) {
+      success('Berhasil!', 'Data personil berhasil dihapus')
+      showConfirmDialog.value = false
       personilToDelete.value = null
       await fetchPersonil()
     } else {
-      throw new Error(result.message || 'Unknown error')
+      const errorData = await response.json()
+      showError('Gagal!', errorData.message || 'Terjadi kesalahan saat menghapus data')
     }
   } catch (err) {
     console.error('Error deleting personil:', err)
-    error.value = `Gagal menghapus data: ${err.message}`
-    alert(`Gagal menghapus data: ${err.message}`)
+    showError('Error!', err.message || 'Terjadi kesalahan')
   } finally {
     deleting.value = false
   }
@@ -522,8 +518,6 @@ const deletePersonil = async () => {
 
 // Fetch on mount
 onMounted(() => {
-  console.log('Component mounted')
-  console.log('API Base URL:', apiBaseUrl)
   fetchPersonil()
 })
 </script>

@@ -102,18 +102,14 @@ const databaseMenuOpen = ref(false)
 // Initialize theme on mount
 onMounted(() => {
   initTheme()
-  // Auto-open database menu if on database route
+  // Auto-open database menu if on database route (initial load only)
   if (route.path.startsWith('/database')) {
     databaseMenuOpen.value = true
   }
 })
 
-// Watch route changes to keep database menu open
-watch(() => route.path, (newPath) => {
-  if (newPath.startsWith('/database')) {
-    databaseMenuOpen.value = true
-  }
-})
+// Do NOT auto-open dropdown on route change
+// Let user manually control dropdown state
 
 // Toggle database menu
 const toggleDatabaseMenu = () => {

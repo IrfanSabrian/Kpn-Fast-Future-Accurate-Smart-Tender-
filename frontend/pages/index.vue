@@ -8,20 +8,9 @@
         
         <div class="relative z-10">
           <h2 class="text-3xl font-black mb-3">Selamat Datang di KPN FAST! 👋</h2>
-          <p class="text-blue-100 text-base max-w-2xl mb-6 font-medium leading-relaxed">
+          <p class="text-blue-100 text-base max-w-2xl font-medium leading-relaxed">
             Sistem Automasi Dokumen Pengadaan Berbasis AI. Kelola data perusahaan dan personil Anda dengan mudah, cepat, dan akurat.
           </p>
-          
-          <div class="flex flex-wrap gap-3">
-            <NuxtLink to="/perusahaan" class="px-5 py-2.5 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-lg flex items-center gap-2 text-sm">
-              <i class="fas fa-building"></i>
-              Kelola Perusahaan
-            </NuxtLink>
-            <NuxtLink to="/personil" class="px-5 py-2.5 bg-blue-700/50 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors backdrop-blur-sm flex items-center gap-2 text-sm">
-              <i class="fas fa-users"></i>
-              Kelola Personil
-            </NuxtLink>
-          </div>
         </div>
       </div>
 

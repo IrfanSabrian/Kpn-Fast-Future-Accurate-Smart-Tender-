@@ -148,37 +148,50 @@ class GoogleSheetsService {
     try {
       const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
-      const profilTabName = tabs[0].title;
+      // Find tab specific for Company Profile
+      let profilTabName = tabs.find(t => t.title.toLowerCase().includes('profil') || t.title.toLowerCase().includes('company'))?.title;
+      
+      if (!profilTabName) {
+        profilTabName = tabs[0].title;
+      }
+
+      // Get headers from the first row
+      const headerResponse = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${profilTabName}!A1:Z1`, // Assume max 26 columns
+      });
+
+      const headers = headerResponse.data.values?.[0];
+      if (!headers) {
+        throw new Error('Headers not found in the first row');
+      }
 
       // Get current data to find next row
-      const currentData = await this.getAllProfilPerusahaan();
-      const nextRow = currentData.length + 2;
-
-      // Expected headers (with id_perusahaan first)
-      const headers = [
-        'id_perusahaan',
-        'nama_perusahaan',
-        'npwp',
-        'email',
-        'alamat',
-        'direktur',
-        'bidang_usaha',
-        'tahun_berdiri',
-        'sertifikat_sbu',
-      ];
+      const currentDataResponse = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${profilTabName}!A:A`, // Check column A for rows count
+      });
+      const nextRow = (currentDataResponse.data.values?.length || 0) + 1;
 
       // Generate ID if not provided
       if (!data.id_perusahaan) {
-        data.id_perusahaan = `C${String(currentData.length + 1).padStart(3, '0')}`;
+        // Simple ID generation based on timestamp to avoid collision/count issues
+        // Or keep existing logic if preferred, but count based is risky if rows deleted
+        // Let's stick to existing logic for consistency but safer
+        const count = (currentDataResponse.data.values?.length || 1); 
+        data.id_perusahaan = `C${String(count).padStart(3, '0')}`;
       }
 
-      // Prepare values
-      const values = headers.map(header => data[header] || '');
+      // Map data to headers
+      const values = headers.map(header => {
+        const key = header.toLowerCase().replace(/\s+/g, '_');
+        return data[key] || '';
+      });
 
       // Append row
       await this.sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `${profilTabName}!A${nextRow}:I${nextRow}`,
+        range: `${profilTabName}!A${nextRow}`,
         valueInputOption: 'RAW',
         resource: {
           values: [values],
@@ -223,26 +236,30 @@ class GoogleSheetsService {
       // Row number
       const rowNumber = index + 2;
 
-      const headers = [
-        'id_perusahaan',
-        'nama_perusahaan',
-        'npwp',
-        'email',
-        'alamat',
-        'direktur',
-        'bidang_usaha',
-        'tahun_berdiri',
-        'sertifikat_sbu',
-      ];
+      // Get headers from the first row
+      const headerResponse = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${profilTabName}!A1:Z1`, // Assume max 26 columns
+      });
+
+      const headers = headerResponse.data.values?.[0];
+      if (!headers) {
+        throw new Error('Headers not found in the first row');
+      }
 
       // Merge existing data with updates
       const updatedData = { ...allProfiles[index], ...data };
-      const values = headers.map(header => updatedData[header] || '');
+      
+      // Map data to headers
+      const values = headers.map(header => {
+        const key = header.toLowerCase().replace(/\s+/g, '_');
+        return updatedData[key] || '';
+      });
 
       // Update row
       await this.sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${profilTabName}!A${rowNumber}:I${rowNumber}`,
+        range: `${profilTabName}!A${rowNumber}`,
         valueInputOption: 'RAW',
         resource: {
           values: [values],
@@ -257,50 +274,28 @@ class GoogleSheetsService {
   }
 
   /**
-   * Delete company profile by ID
+   * Delete company profile by ID with CASCADE DELETE
    * @param {string} id - Company ID
    */
   async deleteProfilPerusahaan(id) {
-    await this.initialize();
-
     try {
-      const allProfiles = await this.getAllProfilPerusahaan();
-      const index = allProfiles.findIndex(p => p.id_perusahaan === id);
+      // Cascade delete related data from all dependent tables
+      console.log(`Starting cascade delete for company ${id}...`);
+      
+      await this.deleteSheetDataMany('db_akta', 'id_perusahaan', id);
+      await this.deleteSheetDataMany('db_pejabat', 'id_perusahaan', id);
+      await this.deleteSheetDataMany('db_nib', 'id_perusahaan', id);
+      await this.deleteSheetDataMany('db_pengalaman_perusahaan', 'id_perusahaan', id);
+      await this.deleteSheetDataMany('db_project', 'id_perusahaan', id);
+      await this.deleteSheetDataMany('db_personil', 'id_perusahaan', id);
+      
+      console.log(`Cascade delete completed, now deleting company profile ${id}...`);
 
-      if (index === -1) {
-        throw new Error(`Company with ID ${id} not found`);
-      }
-
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-      const tabs = await this.getSheetTabNames(spreadsheetId);
-      const profilTab = tabs[0];
-
-      // Row number to delete
-      const rowNumber = index + 1;
-
-      // Delete row
-      await this.sheets.spreadsheets.batchUpdate({
-        spreadsheetId,
-        resource: {
-          requests: [
-            {
-              deleteDimension: {
-                range: {
-                  sheetId: profilTab.sheetId,
-                  dimension: 'ROWS',
-                  startIndex: rowNumber,
-                  endIndex: rowNumber + 1,
-                },
-              },
-            },
-          ],
-        },
-      });
-
-      return { success: true, message: 'Company profile deleted successfully' };
+      // Finally delete the company profile itself
+      return await this.deleteSheetData('db_perusahaan', 'id_perusahaan', id);
     } catch (error) {
-      console.error('Error deleting profil perusahaan:', error);
-      throw new Error(`Failed to delete profile: ${error.message}`);
+      console.error('Error in deleteProfilPerusahaan:', error);
+      throw new Error(`Failed to delete company profile: ${error.message}`);
     }
   }
 
@@ -632,6 +627,63 @@ class GoogleSheetsService {
       };
     } catch (error) {
       throw new Error(`Failed to update data in ${sheetName}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete MULTIPLE rows from a sheet based on a filter (Cascade Delete Helper)
+   */
+  async deleteSheetDataMany(sheetName, filterField, filterValue) {
+    await this.initialize();
+
+    try {
+      const allData = await this.getSheetData(sheetName);
+      
+      // Find ALL matching indices
+      // We map to original index first
+      const indices = allData
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => item[filterField] === filterValue)
+        .map(({ index }) => index)
+        .sort((a, b) => b - a); // Sort descending is CRITICAL for deletion
+
+      if (indices.length === 0) {
+        return { success: true, message: `No data found in ${sheetName} to delete` };
+      }
+
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const tabs = await this.getSheetTabNames(spreadsheetId);
+      const tab = tabs.find(t => t.title === sheetName);
+
+      if (!tab) {
+        throw new Error(`Sheet ${sheetName} not found`);
+      }
+
+      // Create batch delete requests
+      const requests = indices.map(index => ({
+        deleteDimension: {
+          range: {
+            sheetId: tab.sheetId,
+            dimension: 'ROWS',
+            startIndex: index + 1, // +1 because row 1 is header
+            endIndex: index + 2,
+          },
+        },
+      }));
+
+      await this.sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        resource: { requests },
+      });
+
+      return {
+        success: true,
+        message: `Deleted ${indices.length} rows from ${sheetName}`,
+      };
+    } catch (error) {
+      // Don't throw error here to allow cascade to continue even if one table fails or is empty
+      console.warn(`Warning: Failed to delete from ${sheetName}: ${error.message}`);
+      return { success: false, message: error.message };
     }
   }
 
