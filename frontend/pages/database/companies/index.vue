@@ -266,12 +266,7 @@
               :disabled="saving"
               class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span v-if="saving">
-                <i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...
-              </span>
-              <span v-else>
-                <i class="fas fa-save mr-2"></i>{{ isEditMode ? 'Update' : 'Simpan' }}
-              </span>
+              {{ saving ? 'Menyimpan...' : (isEditMode ? 'Update' : 'Simpan') }}
             </button>
           </div>
         </form>

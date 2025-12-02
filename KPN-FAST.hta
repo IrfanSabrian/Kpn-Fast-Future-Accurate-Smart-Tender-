@@ -127,13 +127,14 @@
         .btn-restart { 
             background: #2e7d32; 
             border-color: #388e3c; 
-            margin-right: 20px; 
+            margin-left: 10px;
+            margin-right: 10px;
         }
         .btn-restart:hover { background: #388e3c; }
         .btn-close { 
             background: #c62828; 
             border-color: #d32f2f; 
-            margin-left: 20px; 
+            margin-left: 10px;
         }
         .btn-close:hover { background: #d32f2f; }
 
@@ -197,8 +198,8 @@
 
         function resizeWindow() {
             // Increased width slightly
-            window.resizeTo(700, 700);
-            window.moveTo((screen.width - 700) / 2, (screen.height - 700) / 2);
+            window.resizeTo(1000, 800);
+            window.moveTo((screen.width - 1000) / 2, (screen.height - 800) / 2);
         }
 
         function updateUI(server, status, text) {
@@ -468,7 +469,7 @@
             <div class="message-area" id="message">Ready...</div>
             
             <div class="footer-controls">
-                <button class="btn-footer" onclick="checkUpdate(false)" style="margin-right: 20px;">Check Update</button>
+                <button class="btn-footer" onclick="checkUpdate(false)" style="margin-right: 10px;">Check Update</button>
                 <button class="btn-footer btn-restart" onclick="startAll()">Restart All</button>
                 <button class="btn-footer btn-close" onclick="window.close()">Close</button>
             </div>

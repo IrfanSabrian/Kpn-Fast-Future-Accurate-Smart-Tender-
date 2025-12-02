@@ -353,7 +353,7 @@ class GoogleSheetsService {
    */
   async getPersonilById(id) {
     const allPersonil = await this.getAllPersonil();
-    return allPersonil.find(p => p.id_personil === id) || null;
+    return allPersonil.find(p => p.nik === id) || null;
   }
 
   /**
@@ -365,28 +365,28 @@ class GoogleSheetsService {
 
     try {
       const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-      const tabs = await this.getSheetTabNames(spreadsheetId);
-      const personilTabName = tabs.length > 1 ? tabs[1].title : tabs[0].title;
+      // Use specific sheet name for personil data  
+      const personilTabName = 'db_personil';
 
       // Get current data to find next row
       const currentData = await this.getAllPersonil();
       const nextRow = currentData.length + 2; // +1 for header, +1 for next empty
 
-      // Expected headers
+      // Expected headers - using actual Google Sheets columns
       const headers = [
-        'id_personil',
+        'nik',
         'nama',
-        'posisi',
-        'pendidikan',
-        'pengalaman_tahun',
-        'sertifikat',
-        'email',
-        'telepon',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'strata',
+        'jurusan_pendidikan',
+        'sertifikat_keahlian',
+        'pengalaman_kerja',
       ];
 
-      // Generate ID if not provided
-      if (!data.id_personil) {
-        data.id_personil = `P${String(currentData.length + 1).padStart(3, '0')}`;
+      // Generate NIK if not provided (basic example, adjust to your NIK format)
+      if (!data.nik) {
+        data.nik = `NIK${Date.now()}`;
       }
 
       // Prepare values
@@ -405,7 +405,7 @@ class GoogleSheetsService {
       return { 
         success: true, 
         message: 'Personil added successfully',
-        data: { id_personil: data.id_personil }
+        data: { nik: data.nik }
       };
     } catch (error) {
       console.error('Error adding personil:', error);
@@ -423,28 +423,28 @@ class GoogleSheetsService {
 
     try {
       const allPersonil = await this.getAllPersonil();
-      const index = allPersonil.findIndex(p => p.id_personil === id);
+      const index = allPersonil.findIndex(p => p.nik === id);
 
       if (index === -1) {
         throw new Error(`Personil with ID ${id} not found`);
       }
 
       const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-      const tabs = await this.getSheetTabNames(spreadsheetId);
-      const personilTabName = tabs.length > 1 ? tabs[1].title : tabs[0].title;
+      // Use specific sheet name for personil data
+      const personilTabName = 'db_personil';
 
       // Row number (index + 2, because index 0 = row 2)
       const rowNumber = index + 2;
 
       const headers = [
-        'id_personil',
+        'nik',
         'nama',
-        'posisi',
-        'pendidikan',
-        'pengalaman_tahun',
-        'sertifikat',
-        'email',
-        'telepon',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'strata',
+        'jurusan_pendidikan',
+        'sertifikat_keahlian',
+        'pengalaman_kerja',
       ];
 
       // Merge existing data with updates
@@ -477,7 +477,7 @@ class GoogleSheetsService {
 
     try {
       const allPersonil = await this.getAllPersonil();
-      const index = allPersonil.findIndex(p => p.id_personil === id);
+      const index = allPersonil.findIndex(p => p.nik === id);
 
       if (index === -1) {
         throw new Error(`Personil with ID ${id} not found`);
@@ -485,7 +485,7 @@ class GoogleSheetsService {
 
       const spreadsheetId = process.env.GOOGLE_SHEET_ID;
       const tabs = await this.getSheetTabNames(spreadsheetId);
-      const personilTab = tabs.length > 1 ? tabs[1] : tabs[0];
+      const personilTab = tabs.find(t => t.title === 'db_personil') || tabs[0];
 
       // Row number to delete
       const rowNumber = index + 1; // +1 because row 1 is header, data starts at row 2

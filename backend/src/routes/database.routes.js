@@ -26,6 +26,36 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Add new company
+router.post('/', async (req, res) => {
+  try {
+    const result = await googleSheetsService.addCompany(req.body);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update company by ID
+router.put('/:id', async (req, res) => {
+  try {
+    const result = await googleSheetsService.updateCompany(req.params.id, req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete company by ID
+router.delete('/:id', async (req, res) => {
+  try {
+    const result = await googleSheetsService.deleteCompany(req.params.id);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- AKTA ROUTES ---
 // Get akta by company ID
 router.get('/:id/akta', async (req, res) => {

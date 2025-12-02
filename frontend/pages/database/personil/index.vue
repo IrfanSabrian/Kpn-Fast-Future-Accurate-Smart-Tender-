@@ -217,10 +217,9 @@
         <button
           @click="savePersonil"
           :disabled="saving"
-          class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span v-if="saving" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-          <span>{{ isEditMode ? 'Update' : 'Simpan' }}</span>
+          {{ saving ? 'Menyimpan...' : (isEditMode ? 'Update' : 'Simpan') }}
         </button>
       </template>
     </BaseModal>

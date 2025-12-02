@@ -335,13 +335,16 @@
           <!-- AKTA FORM -->
           <div v-if="modalType === 'akta'" class="space-y-4">
             <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Jenis Akta</label>
-              <input 
+              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Jenis Akta *</label>
+              <select 
                 v-model="formData.jenis_akta" 
-                type="text" 
-                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" 
-                placeholder="Contoh: Pendirian, Perubahan"
+                required
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-gray-900 dark:text-white"
               >
+                <option value="" disabled selected>-- Pilih Jenis Akta --</option>
+                <option value="Pendirian">Pendirian</option>
+                <option value="Perubahan">Perubahan</option>
+              </select>
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nomor Akta</label>
@@ -553,9 +556,8 @@
         <button @click="closeModal" class="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
           Batal
         </button>
-        <button @click="saveItem" :disabled="saving" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium shadow-lg shadow-blue-600/30">
-          <span v-if="saving" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-          <span>{{ isEditing ? 'Update' : 'Simpan' }}</span>
+        <button @click="saveItem" :disabled="saving" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ saving ? 'Menyimpan...' : (isEditing ? 'Update' : 'Simpan') }}
         </button>
       </template>
     </BaseModal>
@@ -737,13 +739,13 @@ const saveItem = async () => {
     
     // Construct URL based on type and action
     if (isEditing.value) {
-      // Update URLs
+      // Update URLs - menggunakan companies routing
       switch (type) {
-        case 'akta': url += `/akta/${formData.value.nomor_akta}`; break
-        case 'pejabat': url += `/pejabat/${formData.value.nik}`; break
-        case 'nib': url += `/nib/${encodeURIComponent(formData.value.nomor_nib)}`; break
-        case 'pengalaman': url += `/pengalaman/${encodeURIComponent(formData.value.nomor_kontrak)}`; break
-        case 'projects': url += `/projects/${formData.value.id_project}`; break
+        case 'akta': url += `/companies/akta/${formData.value.nomor_akta}`; break
+        case 'pejabat': url += `/companies/pejabat/${formData.value.nik}`; break
+        case 'nib': url += `/companies/nib/${encodeURIComponent(formData.value.nomor_nib)}`; break
+        case 'pengalaman': url += `/companies/pengalaman/${encodeURIComponent(formData.value.nomor_kontrak)}`; break
+        case 'projects': url += `/companies/projects/${formData.value.id_project}`; break
       }
     } else {
       // Create URLs
@@ -782,13 +784,13 @@ const deleteItem = async () => {
     const item = itemToDelete.value
     let url = `http://localhost:5000/api`
     
-    // Construct Delete URL
+    // Construct Delete URL - menggunakan companies routing
     switch (type) {
-      case 'akta': url += `/akta/${item.nomor_akta}`; break
-      case 'pejabat': url += `/pejabat/${item.nik}`; break
-      case 'nib': url += `/nib/${encodeURIComponent(item.nomor_nib)}`; break
-      case 'pengalaman': url += `/pengalaman/${encodeURIComponent(item.nomor_kontrak)}`; break
-      case 'projects': url += `/projects/${item.id_project}`; break
+      case 'akta': url += `/companies/akta/${item.nomor_akta}`; break
+      case 'pejabat': url += `/companies/pejabat/${item.nik}`; break
+      case 'nib': url += `/companies/nib/${encodeURIComponent(item.nomor_nib)}`; break
+      case 'pengalaman': url += `/companies/pengalaman/${encodeURIComponent(item.nomor_kontrak)}`; break
+      case 'projects': url += `/companies/projects/${item.id_project}`; break
     }
 
     const response = await fetch(url, { method: 'DELETE' })
