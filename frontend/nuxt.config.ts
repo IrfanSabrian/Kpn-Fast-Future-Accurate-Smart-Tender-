@@ -15,7 +15,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
+      apiBaseUrl:'http://localhost:5000/api',
       appName: 'KPN FAST',
       appVersion: '1.0.0',
       gdriveViewerUrl: 'https://drive.google.com/file/d/'
