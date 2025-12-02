@@ -1,23 +1,23 @@
 <template>
   <NuxtLayout name="dashboard">
-    <div class="space-y-8 animate-fade-in">
+    <div class="space-y-6 animate-fade-in">
       <!-- Welcome Section -->
-      <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-blue-600 to-violet-600 p-10 text-white shadow-xl">
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 p-8 text-white shadow-lg">
         <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-black/10 rounded-full blur-3xl"></div>
         
         <div class="relative z-10">
-          <h2 class="text-4xl font-black mb-4">Selamat Datang di KPN FAST! 👋</h2>
-          <p class="text-blue-100 text-lg max-w-2xl mb-8 font-medium leading-relaxed">
+          <h2 class="text-3xl font-black mb-3">Selamat Datang di KPN FAST! 👋</h2>
+          <p class="text-blue-100 text-base max-w-2xl mb-6 font-medium leading-relaxed">
             Sistem Automasi Dokumen Pengadaan Berbasis AI. Kelola data perusahaan dan personil Anda dengan mudah, cepat, dan akurat.
           </p>
           
-          <div class="flex flex-wrap gap-4">
-            <NuxtLink to="/perusahaan" class="px-6 py-3 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-lg flex items-center gap-2">
+          <div class="flex flex-wrap gap-3">
+            <NuxtLink to="/perusahaan" class="px-5 py-2.5 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-lg flex items-center gap-2 text-sm">
               <i class="fas fa-building"></i>
               Kelola Perusahaan
             </NuxtLink>
-            <NuxtLink to="/personil" class="px-6 py-3 bg-blue-700/50 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors backdrop-blur-sm flex items-center gap-2">
+            <NuxtLink to="/personil" class="px-5 py-2.5 bg-blue-700/50 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors backdrop-blur-sm flex items-center gap-2 text-sm">
               <i class="fas fa-users"></i>
               Kelola Personil
             </NuxtLink>
@@ -26,49 +26,49 @@
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Company Stats -->
-        <div class="group relative bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+        <div class="group relative bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
           <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-blue-50 dark:bg-blue-900/20 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
           <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-              <div class="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform duration-300">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center text-xl group-hover:rotate-12 transition-transform duration-300">
                 <i class="fas fa-building"></i>
               </div>
-              <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold rounded-full">Active</span>
+              <span class="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold rounded-full">Active</span>
             </div>
-            <p class="text-gray-500 dark:text-gray-400 font-medium mb-1">Total Perusahaan</p>
-            <h3 class="text-4xl font-black text-gray-900 dark:text-white">{{ companyCount }}</h3>
+            <p class="text-gray-500 dark:text-gray-400 font-medium mb-1 text-sm">Total Perusahaan</p>
+            <h3 class="text-3xl font-black text-gray-900 dark:text-white">{{ companyCount }}</h3>
           </div>
         </div>
 
         <!-- Personnel Stats -->
-        <div class="group relative bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+        <div class="group relative bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
           <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-violet-50 dark:bg-violet-900/20 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
           <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-              <div class="w-14 h-14 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-2xl flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform duration-300">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-xl flex items-center justify-center text-xl group-hover:rotate-12 transition-transform duration-300">
                 <i class="fas fa-users"></i>
               </div>
-              <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold rounded-full">Active</span>
+              <span class="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-bold rounded-full">Active</span>
             </div>
-            <p class="text-gray-500 dark:text-gray-400 font-medium mb-1">Total Personil</p>
-            <h3 class="text-4xl font-black text-gray-900 dark:text-white">{{ personnelCount }}</h3>
+            <p class="text-gray-500 dark:text-gray-400 font-medium mb-1 text-sm">Total Personil</p>
+            <h3 class="text-3xl font-black text-gray-900 dark:text-white">{{ personnelCount }}</h3>
           </div>
         </div>
 
         <!-- Documents Stats -->
-        <div class="group relative bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+        <div class="group relative bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
           <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-fuchsia-50 dark:bg-fuchsia-900/20 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
           <div class="relative z-10">
-            <div class="flex items-center justify-between mb-6">
-              <div class="w-14 h-14 bg-fuchsia-100 dark:bg-fuchsia-900/30 text-fuchsia-600 dark:text-fuchsia-400 rounded-2xl flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform duration-300">
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 bg-fuchsia-100 dark:bg-fuchsia-900/30 text-fuchsia-600 dark:text-fuchsia-400 rounded-xl flex items-center justify-center text-xl group-hover:rotate-12 transition-transform duration-300">
                 <i class="fas fa-file-alt"></i>
               </div>
-              <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs font-bold rounded-full">Soon</span>
+              <span class="px-2.5 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs font-bold rounded-full">Soon</span>
             </div>
-            <p class="text-gray-500 dark:text-gray-400 font-medium mb-1">Dokumen Dibuat</p>
-            <h3 class="text-4xl font-black text-gray-900 dark:text-white">0</h3>
+            <p class="text-gray-500 dark:text-gray-400 font-medium mb-1 text-sm">Dokumen Dibuat</p>
+            <h3 class="text-3xl font-black text-gray-900 dark:text-white">0</h3>
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@
     >
       <div 
         v-if="show" 
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
+        class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6"
         role="dialog"
         aria-modal="true"
       >
@@ -35,7 +35,10 @@
           >
             <!-- Header -->
             <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-md z-10 shrink-0">
-              <div>
+              <div v-if="$slots.header">
+                <slot name="header"></slot>
+              </div>
+              <div v-else>
                 <h3 class="text-2xl font-black text-gray-900 dark:text-white">{{ title }}</h3>
                 <p v-if="subtitle" class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ subtitle }}</p>
               </div>
@@ -49,7 +52,8 @@
 
             <!-- Content (Scrollable) -->
             <div class="p-8 overflow-y-auto custom-scrollbar">
-              <slot></slot>
+              <slot name="body" v-if="$slots.body"></slot>
+              <slot v-else></slot>
             </div>
 
             <!-- Footer (Optional) -->

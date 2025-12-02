@@ -317,10 +317,9 @@ class GoogleSheetsService {
 
     try {
       const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-      const tabs = await this.getSheetTabNames(spreadsheetId);
       
-      // Get second tab if exists, otherwise first
-      const personilTabName = tabs.length > 1 ? tabs[1].title : tabs[0].title;
+      // Use specific sheet name for personil data
+      const personilTabName = 'db_personil';
 
       // Read all data - using explicit row limit to ensure all data retrieved
       const response = await this.sheets.spreadsheets.values.get({

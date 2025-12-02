@@ -2,14 +2,14 @@
 <head>
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta charset="UTF-8">
-    <title>KPN FAST Manager</title>
+    <title>KPN FAST Future Accurate Smart Tender</title>
     <HTA:APPLICATION
-        ID="KPN_FAST"
-        APPLICATIONNAME="KPN FAST Manager"
+        ID="KPN_FAST_RELOADED"
+        APPLICATIONNAME="KPN FAST Future Accurate Smart Tender"
         BORDER="dialog"
         BORDERSTYLE="normal"
         CAPTION="yes"
-        ICON="Logo.ico"
+        ICON="icon.ico"
         MAXIMIZEBUTTON="no"
         MINIMIZEBUTTON="yes"
         SHOWINTASKBAR="yes"
@@ -26,7 +26,7 @@
             color: #e0e0e0;
             padding: 0; 
             overflow: hidden; 
-            font-size: 14px; 
+            font-size: 13px; 
         }
         .container { 
             background-color: #1e1e1e; 
@@ -35,11 +35,10 @@
             flex-direction: column; 
         }
         .header { 
-            background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%); 
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); 
             padding: 15px; 
             display: flex; 
             align-items: center; 
-            gap: 15px; 
             color: white; 
             border-bottom: 1px solid #333;
         }
@@ -48,21 +47,22 @@
             height: 50px; 
             background: white; 
             border-radius: 50%; 
-            padding: 3px; 
+            padding: 4px; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.3); 
+            margin-right: 15px;
         }
         .header-text { display: flex; flex-direction: column; }
-        h1 { font-size: 18px; font-weight: 700; margin: 0; color: white; }
-        .subtitle { font-size: 11px; opacity: 0.8; color: #bbdefb; }
+        h1 { font-size: 18px; font-weight: 800; margin: 0; color: white; line-height: 1.2; }
+        .subtitle { font-size: 11px; opacity: 0.9; color: #bbdefb; }
         
-        .content { flex: 1; padding: 15px; overflow-y: auto; }
+        .content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; }
         
         .server-card { 
             background-color: #2d2d2d; 
             border: 1px solid #424242; 
             border-radius: 8px; 
-            padding: 12px; 
-            margin-bottom: 12px; 
+            padding: 10px; 
+            margin-bottom: 10px; 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
@@ -73,14 +73,13 @@
         .server-card.loading { border-left: 4px solid #ff9800; }
         
         .server-info { flex: 1; }
-        .server-name { font-weight: 600; font-size: 14px; color: #ffffff; display: block; margin-bottom: 2px; }
-        .server-status { font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+        .server-name { font-weight: 600; font-size: 14px; color: #ffffff; display: block; margin-bottom: 3px; }
+        .server-status { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; display: inline-block; }
         
         .status-running { background: #1b5e20; color: #a5d6a7; }
         .status-stopped { background: #b71c1c; color: #ffcdd2; }
         .status-loading { background: #e65100; color: #ffe0b2; }
         
-        .controls { display: flex; gap: 8px; }
         .btn-icon { 
             width: 32px; 
             height: 32px; 
@@ -90,22 +89,19 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 14px; 
+            font-size: 16px; 
             transition: all 0.2s; 
+            background: #1565c0; 
+            color: white; 
         }
-        .btn-start { background: #2e7d32; color: white; }
-        .btn-start:hover { background: #388e3c; }
-        .btn-stop { background: #c62828; color: white; }
-        .btn-stop:hover { background: #d32f2f; }
-        .btn-browser { background: #1565c0; color: white; }
-        .btn-browser:hover { background: #1976d2; }
-        
+        .btn-icon:hover { background: #1976d2; }
+
         .message-area { 
-            margin-top: 15px; 
-            padding: 10px; 
+            margin-top: 10px; 
+            padding: 8px; 
             background: #252525; 
             border-radius: 6px; 
-            font-size: 12px; 
+            font-size: 11px; 
             color: #bdbdbd; 
             text-align: center; 
             border: 1px solid #333; 
@@ -116,53 +112,103 @@
             margin-top: 15px;
             display: flex;
             justify-content: center;
-            gap: 10px;
         }
         .btn-footer {
             background: #424242;
             color: white;
             border: 1px solid #616161;
-            padding: 8px 16px;
+            padding: 8px 25px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
+            transition: background 0.2s;
         }
         .btn-footer:hover { background: #616161; }
+        .btn-restart { 
+            background: #2e7d32; 
+            border-color: #388e3c; 
+            margin-right: 20px; 
+        }
+        .btn-restart:hover { background: #388e3c; }
+        .btn-close { 
+            background: #c62828; 
+            border-color: #d32f2f; 
+            margin-left: 20px; 
+        }
+        .btn-close:hover { background: #d32f2f; }
+
+        .terminal-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex: 1;
+            min-height: 150px;
+        }
+        .terminal-box {
+            flex: 1;
+            background-color: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 0; /* Remove padding from container */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Hide overflow */
+        }
+        .terminal-title {
+            color: #888;
+            background: #111;
+            border-bottom: 1px solid #333;
+            padding: 5px 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .terminal-content {
+            flex: 1;
+            padding: 10px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px; /* Increased font size */
+            color: #ccc;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
     
     <script type="text/javascript">
         var shell = new ActiveXObject("WScript.Shell");
+        var fso = new ActiveXObject("Scripting.FileSystemObject");
+        
+        // FORCE SET WORKING DIRECTORY (Fix untuk path relative)
+        try {
+            // Bersihkan path dari format URL (file:///...)
+            var path = location.pathname.replace("file:///", "").replace(/\//g, "\\");
+            path = decodeURIComponent(path); // Handle spasi (%20)
+            var folder = fso.GetParentFolderName(path);
+            shell.CurrentDirectory = folder;
+        } catch(e) {}
         var backendRunning = false;
         var frontendRunning = false;
+        var backendCheckInterval = null;
+        var frontendCheckInterval = null;
+        var logInterval = null;
+        var isFirstRun = true; // Flag for first run
 
         function resizeWindow() {
-            window.resizeTo(400, 550);
-            window.moveTo((screen.width - 400) / 2, (screen.height - 550) / 2);
+            // Increased width slightly
+            window.resizeTo(700, 700);
+            window.moveTo((screen.width - 700) / 2, (screen.height - 700) / 2);
         }
 
         function updateUI(server, status, text) {
             var card = document.getElementById("card" + server);
             var statusSpan = document.getElementById("status" + server);
-            var btn = document.getElementById("btn" + server);
             
             if (card) card.className = "server-card " + status;
             if (statusSpan) {
                 statusSpan.className = "server-status status-" + status;
                 statusSpan.innerText = text;
-            }
-            
-            if (btn) {
-                if (status === "running") {
-                    btn.className = "btn-icon btn-stop";
-                    btn.innerHTML = "&#9632;"; // Square stop icon
-                    btn.title = "Stop " + server;
-                    btn.onclick = function() { toggleServer(server); };
-                } else {
-                    btn.className = "btn-icon btn-start";
-                    btn.innerHTML = "&#9658;"; // Play icon
-                    btn.title = "Start " + server;
-                    btn.onclick = function() { toggleServer(server); };
-                }
             }
         }
 
@@ -170,59 +216,110 @@
             document.getElementById("message").innerText = "> " + msg;
         }
 
-        function toggleServer(server) {
-            if (server === "Backend") {
-                if (backendRunning) stopBackend(); else runBackend();
-            } else if (server === "Frontend") {
-                if (frontendRunning) stopFrontend(); else runFrontend();
-            }
+        function readLogFile(path, elementId) {
+            try {
+                if (fso.FileExists(path)) {
+                    var file = fso.OpenTextFile(path, 1, false);
+                    var content = file.ReadAll();
+                    file.Close();
+                    
+                    content = content.replace(/\x1b\[[0-9;]*m/g, "");
+                    
+                    var el = document.getElementById(elementId);
+                    // Only update if content changed to avoid flickering/scroll jump
+                    if (el.innerText !== content) {
+                        el.innerText = content;
+                        el.scrollTop = el.scrollHeight;
+                    }
+                }
+            } catch(e) {}
         }
 
         function runBackend() {
             try {
-                // Use title to identify window later
-                shell.Run('cmd /c start "KPN FAST - Backend" cmd /k "cd backend && npm run dev"', 1, false);
-                backendRunning = true;
-                updateUI("Backend", "running", "RUNNING");
+                updateMessage("Stopping any existing Backend...");
+                try { shell.Run("taskkill /F /IM node.exe /T", 0, true); } catch(e){}
+
+                var cmd = 'cmd /c "cd backend && npm run dev > ..\\backend.log 2>&1"';
+                shell.Run(cmd, 0, false);
+                
+                updateUI("Backend", "loading", "STARTING...");
                 updateMessage("Backend starting...");
+                
+                if (backendCheckInterval) clearInterval(backendCheckInterval);
+                checkServer("Backend", "http://localhost:5000");
             } catch (e) {
                 updateUI("Backend", "stopped", "ERROR");
                 updateMessage("Error starting Backend: " + e.message);
             }
         }
 
-        function stopBackend() {
-            try {
-                // Kill cmd window with specific title, /T kills child processes (node)
-                shell.Run('taskkill /F /FI "WINDOWTITLE eq KPN FAST - Backend*" /IM cmd.exe /T', 0, false);
-                backendRunning = false;
-                updateUI("Backend", "stopped", "STOPPED");
-                updateMessage("Backend stopped.");
-            } catch (e) {
-                updateMessage("Error stopping Backend: " + e.message);
-            }
-        }
-
         function runFrontend() {
             try {
-                shell.Run('cmd /c start "KPN FAST - Frontend" cmd /k "cd frontend && npm run dev"', 1, false);
-                frontendRunning = true;
-                updateUI("Frontend", "running", "RUNNING");
+                var cmd = 'cmd /c "cd frontend && npm run dev > ..\\frontend.log 2>&1"';
+                shell.Run(cmd, 0, false);
+                
+                updateUI("Frontend", "loading", "STARTING...");
                 updateMessage("Frontend starting...");
+                
+                if (frontendCheckInterval) clearInterval(frontendCheckInterval);
+                checkServer("Frontend", "http://localhost:3000");
             } catch (e) {
                 updateUI("Frontend", "stopped", "ERROR");
                 updateMessage("Error starting Frontend: " + e.message);
             }
         }
 
-        function stopFrontend() {
-            try {
-                shell.Run('taskkill /F /FI "WINDOWTITLE eq KPN FAST - Frontend*" /IM cmd.exe /T', 0, false);
-                frontendRunning = false;
-                updateUI("Frontend", "stopped", "STOPPED");
-                updateMessage("Frontend stopped.");
-            } catch (e) {
-                updateMessage("Error stopping Frontend: " + e.message);
+        function checkServer(server, url) {
+            var attempts = 0;
+            var maxAttempts = 60; 
+            
+            var interval = setInterval(function() {
+                attempts++;
+                try {
+                    var xhr = new ActiveXObject("MSXML2.XMLHTTP");
+                    xhr.open("GET", url, false);
+                    xhr.send();
+                    
+                    if (xhr.status == 200 || xhr.status == 404) {
+                        clearInterval(interval);
+                        if (server === "Backend") {
+                            backendRunning = true;
+                            updateUI("Backend", "running", "RUNNING");
+                            updateMessage("Backend is Ready!");
+                            checkAutoOpen();
+                        } else if (server === "Frontend") {
+                            frontendRunning = true;
+                            updateUI("Frontend", "running", "RUNNING");
+                            updateMessage("Frontend is Ready!");
+                            checkAutoOpen();
+                        }
+                    }
+                } catch(e) { }
+
+                if (attempts >= maxAttempts) {
+                    clearInterval(interval);
+                    updateUI(server, "stopped", "TIMEOUT");
+                    updateMessage(server + " timed out.");
+                }
+            }, 1000);
+
+            if (server === "Backend") backendCheckInterval = interval;
+            if (server === "Frontend") frontendCheckInterval = interval;
+        }
+
+        function checkAutoOpen() {
+            if (backendRunning && frontendRunning) {
+                updateMessage("All systems ready.");
+                document.getElementById("cardBrowser").className = "server-card running";
+                document.getElementById("statusBrowser").className = "server-status status-running";
+                document.getElementById("statusBrowser").innerText = "READY";
+                
+                if (isFirstRun) {
+                    updateMessage("First run: Opening browser...");
+                    setTimeout(openBrowser, 1000);
+                    isFirstRun = false;
+                }
             }
         }
 
@@ -239,74 +336,98 @@
             resizeWindow();
             updateMessage("Initializing...");
             
-            // Start Backend
-            updateUI("Backend", "loading", "STARTING...");
-            setTimeout(function() {
-                runBackend();
-            }, 1000);
+            try { fso.DeleteFile("backend.log"); } catch(e){}
+            try { fso.DeleteFile("frontend.log"); } catch(e){}
+            document.getElementById("termBackend").innerText = "";
+            document.getElementById("termFrontend").innerText = "";
 
-            // Start Frontend after 3 seconds
+            backendRunning = false;
+            frontendRunning = false;
+            
+            runBackend();
             setTimeout(function() {
-                updateUI("Frontend", "loading", "STARTING...");
                 runFrontend();
-            }, 3000);
+            }, 2000);
 
-            // Open Browser after 8 seconds
-            setTimeout(function() {
-                openBrowser();
-                updateMessage("All systems go.");
-            }, 8000);
+            if (logInterval) clearInterval(logInterval);
+            logInterval = setInterval(function() {
+                readLogFile("backend.log", "termBackend");
+                readLogFile("frontend.log", "termFrontend");
+            }, 1000);
         }
+
+        window.onbeforeunload = function(e) {
+            var choice = shell.Popup("Apakah anda yakin ingin keluar?\nServer Backend dan Frontend akan dimatikan.", 0, "Konfirmasi Keluar", 36);
+            if (choice == 6) {
+                try {
+                    shell.Run("taskkill /F /IM node.exe /T", 0, true);
+                } catch(e) {}
+            } else {
+                return "Pembatalan keluar.";
+            }
+        };
+
+        window.onunload = function() {
+            try {
+                shell.Run("taskkill /F /IM node.exe /T", 0, true);
+                // Hapus file log saat keluar agar folder tetap bersih
+                try { fso.DeleteFile("backend.log"); } catch(e){}
+                try { fso.DeleteFile("frontend.log"); } catch(e){}
+            } catch(e) {}
+        };
     </script>
 </head>
 <body onload="startAll()">
     <div class="container">
         <div class="header">
-            <img src="Logo.ico" class="logo">
+            <img src="Logo.png" class="logo">
             <div class="header-text">
                 <h1>KPN FAST</h1>
-                <div class="subtitle">Manager</div>
+                <div class="subtitle">Future Accurate Smart Tender</div>
             </div>
         </div>
         <div class="content">
             <!-- Backend Card -->
-            <div class="server-card loading" id="cardBackend">
+            <div class="server-card stopped" id="cardBackend">
                 <div class="server-info">
                     <span class="server-name">Backend Server</span>
-                    <span class="server-status status-loading" id="statusBackend">WAITING...</span>
-                </div>
-                <div class="controls">
-                    <button class="btn-icon btn-start" id="btnBackend" title="Start Backend" onclick="toggleServer('Backend')">&#9658;</button>
+                    <span class="server-status status-stopped" id="statusBackend">STOPPED</span>
                 </div>
             </div>
 
             <!-- Frontend Card -->
-            <div class="server-card loading" id="cardFrontend">
+            <div class="server-card stopped" id="cardFrontend">
                 <div class="server-info">
                     <span class="server-name">Frontend Server</span>
-                    <span class="server-status status-loading" id="statusFrontend">WAITING...</span>
-                </div>
-                <div class="controls">
-                    <button class="btn-icon btn-start" id="btnFrontend" title="Start Frontend" onclick="toggleServer('Frontend')">&#9658;</button>
+                    <span class="server-status status-stopped" id="statusFrontend">STOPPED</span>
                 </div>
             </div>
 
             <!-- Browser Card -->
-            <div class="server-card running" id="cardBrowser" style="border-left-color: #1976d2;">
+            <div class="server-card stopped" id="cardBrowser" style="border-left-color: #1976d2;">
                 <div class="server-info">
                     <span class="server-name">Web Application</span>
-                    <span class="server-status" style="background: #1565c0; color: white;">http://localhost:3000</span>
+                    <span class="server-status" id="statusBrowser" style="background: #1565c0; color: white;">http://localhost:3000</span>
                 </div>
-                <div class="controls">
-                    <button class="btn-icon btn-browser" title="Open Browser" onclick="openBrowser()">&#8599;</button>
-                </div>
+                <button class="btn-icon" onclick="openBrowser()" title="Open in Browser">&#8599;</button>
             </div>
 
             <div class="message-area" id="message">Ready...</div>
             
             <div class="footer-controls">
-                <button class="btn-footer" onclick="startAll()">Restart All</button>
-                <button class="btn-footer" onclick="window.close()">Close</button>
+                <button class="btn-footer btn-restart" onclick="startAll()">Restart All</button>
+                <button class="btn-footer btn-close" onclick="window.close()">Close</button>
+            </div>
+
+            <div class="terminal-container">
+                <div class="terminal-box">
+                    <div class="terminal-title">Frontend Log</div>
+                    <div class="terminal-content" id="termFrontend"></div>
+                </div>
+                <div class="terminal-box">
+                    <div class="terminal-title">Backend Log</div>
+                    <div class="terminal-content" id="termBackend"></div>
+                </div>
             </div>
         </div>
     </div>

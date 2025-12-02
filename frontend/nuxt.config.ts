@@ -12,30 +12,29 @@ export default defineNuxtConfig({
     '~/assets/css/tailwind.css',
     '@fortawesome/fontawesome-free/css/all.css'
   ],
-  // Trigger rebuild
 
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api',
-      appName: process.env.NUXT_PUBLIC_APP_NAME || 'KPN FAST',
-      appVersion: process.env.NUXT_PUBLIC_APP_VERSION || '1.0.0',
-      gdriveViewerUrl: process.env.NUXT_PUBLIC_GDRIVE_VIEWER_URL || 'https://drive.google.com/file/d/'
+      apiBaseUrl: 'http://localhost:5000/api',
+      appName: 'KPN FAST',
+      appVersion: '1.0.0',
+      gdriveViewerUrl: 'https://drive.google.com/file/d/'
     }
   },
 
   app: {
     head: {
-      title: 'KPN FAST - Fast And Smart Technology',
+      title: 'KPN FAST - Future Accurate Smart Tender',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { 
           name: 'description', 
-          content: 'Sistem Automasi Dokumen Pengadaan dengan AI - KPN FAST (Fast And Smart Technology)' 
+          content: 'KPN FAST (Future Accurate Smart Tender) - Sistem Automasi Dokumen Pengadaan dengan AI' 
         }
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'icon', type: 'image/x-icon', href: '/icon.ico' },
         { 
           rel: 'stylesheet', 
           href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap' 

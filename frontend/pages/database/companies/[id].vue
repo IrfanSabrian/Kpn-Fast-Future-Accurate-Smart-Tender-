@@ -21,46 +21,39 @@
         <!-- Background Pattern -->
         <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
         
-        <div class="relative flex items-start justify-between gap-6">
-          <div class="flex items-start gap-6">
-            <div class="w-20 h-20 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-lg border border-white/20">
-              <i class="fas fa-building text-4xl"></i>
-            </div>
-            <div class="flex-1">
-              <h1 class="text-3xl font-bold mb-2">{{ company.nama_perusahaan }}</h1>
-              <div class="flex flex-wrap gap-4 text-sm text-blue-100">
-                <span class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
-                  <i class="fas fa-id-card"></i>
-                  {{ company.id_perusahaan }}
-                </span>
-                <span v-if="company.status_perusahaan" class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
-                  <i class="fas fa-tag"></i>
-                  {{ company.status_perusahaan }}
-                </span>
-                <span v-if="company.email" class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
-                  <i class="fas fa-envelope"></i>
-                  {{ company.email }}
-                </span>
-              </div>
-            </div>
+        <div class="relative flex items-start gap-6">
+          <div class="w-20 h-20 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-lg border border-white/20">
+            <i class="fas fa-building text-4xl"></i>
           </div>
-          
-          <!-- Actions -->
-          <div class="flex items-center gap-3">
-            <button 
-              @click="handleEdit"
-              class="px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-            >
-              <i class="fas fa-edit"></i>
-              Edit
-            </button>
-            <button 
-              @click="handleDelete"
-              class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm rounded-lg text-sm font-medium transition-colors text-red-100 hover:text-white flex items-center gap-2"
-            >
-              <i class="fas fa-trash-alt"></i>
-              Hapus
-            </button>
+          <div class="flex-1">
+            <h1 class="text-3xl font-bold mb-2">{{ company.nama_perusahaan }}</h1>
+            <div class="flex flex-wrap gap-3 text-sm text-blue-100">
+              <!-- Row 1: ID & No Telp -->
+              <span class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                <i class="fas fa-id-card"></i>
+                {{ company.id_perusahaan }}
+              </span>
+              <span v-if="company.no_telp" class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                <i class="fas fa-phone"></i>
+                {{ company.no_telp }}
+              </span>
+              
+              <!-- Row 2: Status & Fax -->
+              <span v-if="company.status_perusahaan" class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                <i class="fas fa-tag"></i>
+                {{ company.status_perusahaan }}
+              </span>
+              <span v-if="company.no_fax" class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                <i class="fas fa-fax"></i>
+                {{ company.no_fax }}
+              </span>
+              
+              <!-- Row 3: Email -->
+              <span v-if="company.email" class="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
+                <i class="fas fa-envelope"></i>
+                {{ company.email }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -178,40 +171,6 @@
             </div>
           </div>
 
-          <!-- Personil -->
-          <div v-if="activeTab === 'personil'">
-            <div v-if="loadingTab" class="flex justify-center py-8">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-            <div v-else-if="personil.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div v-for="item in personil" :key="item.nama" class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-                <div class="flex items-start gap-3">
-                  <div class="w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center text-violet-600 dark:text-violet-400 flex-shrink-0">
-                    <i class="fas fa-user"></i>
-                  </div>
-                  <div class="flex-1">
-                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ item.nama }}</h4>
-                    <p class="text-sm text-violet-600 dark:text-violet-400 mb-2">{{ item.strata }} {{ item.jurusan_pendidikan }}</p>
-                    <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
-                      <p v-if="item.tempat_lahir && item.tanggal_lahir">
-                        <i class="fas fa-birthday-cake w-4"></i> {{ item.tempat_lahir }}, {{ item.tanggal_lahir }}
-                      </p>
-                      <p v-if="item.sertifikat_keahlian">
-                        <i class="fas fa-certificate w-4"></i> {{ item.sertifikat_keahlian }}
-                      </p>
-                      <p v-if="item.pengalaman_kerja">
-                        <i class="fas fa-briefcase w-4"></i> {{ item.pengalaman_kerja }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
-              <i class="fas fa-users text-4xl mb-4 opacity-50"></i>
-              <p>Belum ada data personil</p>
-            </div>
-          </div>
 
           <!-- Pengalaman -->
           <div v-if="activeTab === 'pengalaman'">
@@ -313,7 +272,6 @@ const route = useRoute()
 const companyId = route.params.id
 
 const loading = ref(true)
-const loadingTab = ref(false)
 const company = ref(null)
 const activeTab = ref('akta')
 
@@ -321,16 +279,26 @@ const activeTab = ref('akta')
 const akta = ref([])
 const pejabat = ref([])
 const nib = ref([])
-const personil = ref([])
 const pengalaman = ref([])
 const projects = ref([])
 
-// Tabs configuration
+// Loading state untuk masing-masing tab
+const tabLoading = ref({
+  akta: false,
+  pejabat: false,
+  nib: false,
+  pengalaman: false,
+  projects: false
+})
+
+// Check if current tab is still loading
+const loadingTab = computed(() => tabLoading.value[activeTab.value])
+
+// Tabs configuration - REMOVED PERSONIL TAB
 const tabs = computed(() => [
   { id: 'akta', label: 'Akta', icon: 'fas fa-file-alt', count: akta.value.length },
   { id: 'pejabat', label: 'Pejabat', icon: 'fas fa-user-tie', count: pejabat.value.length },
   { id: 'nib', label: 'NIB', icon: 'fas fa-certificate', count: nib.value.length },
-  { id: 'personil', label: 'Personil', icon: 'fas fa-users', count: personil.value.length },
   { id: 'pengalaman', label: 'Pengalaman', icon: 'fas fa-project-diagram', count: pengalaman.value.length },
   { id: 'projects', label: 'Project', icon: 'fas fa-tasks', count: projects.value.length }
 ])
@@ -351,9 +319,9 @@ const fetchCompany = async () => {
   }
 }
 
-// Fetch tab data based on active tab
+// Fetch data untuk satu tab
 const fetchTabData = async (tab) => {
-  loadingTab.value = true
+  tabLoading.value[tab] = true
   try {
     const response = await fetch(`http://localhost:5000/api/companies/${companyId}/${tab}`)
     
@@ -363,30 +331,39 @@ const fetchTabData = async (tab) => {
         case 'akta': akta.value = data; break
         case 'pejabat': pejabat.value = data; break
         case 'nib': nib.value = data; break
-        case 'personil': personil.value = data; break
         case 'pengalaman': pengalaman.value = data; break
         case 'projects': projects.value = data; break
       }
+      console.log(`Loaded ${tab}:`, data.length, 'items')
     } else {
       console.error(`Failed to fetch ${tab}:`, response.status)
     }
   } catch (error) {
     console.error(`Error fetching ${tab}:`, error)
   } finally {
-    loadingTab.value = false
+    tabLoading.value[tab] = false
   }
 }
 
-// Watch active tab changes
-watch(activeTab, (newTab) => {
-  fetchTabData(newTab)
-})
+// Fetch semua tab data sekaligus
+const fetchAllTabsData = async () => {
+  console.log('Fetching all tabs data...')
+  const allTabs = ['akta', 'pejabat', 'nib', 'pengalaman', 'projects']
+  
+  // Fetch semua tab secara parallel
+  await Promise.all(allTabs.map(tab => fetchTabData(tab)))
+  
+  console.log('All tabs data loaded!')
+}
 
 // Fetch data on mount
 onMounted(async () => {
+  // Fetch company data dulu
   await fetchCompany()
+  
+  // Jika company berhasil di-load, fetch semua tab data
   if (company.value) {
-    await fetchTabData(activeTab.value)
+    await fetchAllTabsData()
   }
 })
 
