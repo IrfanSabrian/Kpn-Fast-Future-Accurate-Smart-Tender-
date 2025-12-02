@@ -332,6 +332,50 @@
             }
         }
 
+        function initApp() {
+            resizeWindow();
+            checkUpdate(true);
+        }
+
+        function checkUpdate(autoProceed) {
+            updateUI("Update", "loading", "CHECKING...");
+            updateMessage("Checking for updates...");
+            
+            setTimeout(function() {
+                try {
+                    var cmd = 'cmd /c "git pull > update.log 2>&1"';
+                    shell.Run(cmd, 0, true);
+                    
+                    if (fso.FileExists("update.log")) {
+                        var file = fso.OpenTextFile("update.log", 1);
+                        var content = file.ReadAll();
+                        file.Close();
+                        
+                        if (content.indexOf("Already up to date") !== -1) {
+                            updateUI("Update", "running", "UP TO DATE");
+                            updateMessage("System is up to date.");
+                        } else if (content.indexOf("Updating") !== -1 || content.indexOf("Fast-forward") !== -1) {
+                            updateUI("Update", "running", "UPDATED");
+                            updateMessage("System updated successfully.");
+                        } else {
+                            updateUI("Update", "running", "CHECKED");
+                            updateMessage("Update check completed.");
+                        }
+                    } else {
+                         // Fallback if log not found
+                         updateUI("Update", "stopped", "UNKNOWN");
+                    }
+                } catch(e) {
+                    updateUI("Update", "stopped", "ERROR");
+                    updateMessage("Update check failed: " + e.message);
+                }
+                
+                if (autoProceed) {
+                    setTimeout(startAll, 1000);
+                }
+            }, 100);
+        }
+
         function startAll() {
             resizeWindow();
             updateMessage("Initializing...");
@@ -373,11 +417,12 @@
                 // Hapus file log saat keluar agar folder tetap bersih
                 try { fso.DeleteFile("backend.log"); } catch(e){}
                 try { fso.DeleteFile("frontend.log"); } catch(e){}
+                try { fso.DeleteFile("update.log"); } catch(e){}
             } catch(e) {}
         };
     </script>
 </head>
-<body onload="startAll()">
+<body onload="initApp()">
     <div class="container">
         <div class="header">
             <img src="Logo.png" class="logo">
@@ -387,6 +432,14 @@
             </div>
         </div>
         <div class="content">
+            <!-- Update Status Card -->
+            <div class="server-card loading" id="cardUpdate">
+                <div class="server-info">
+                    <span class="server-name">System Update</span>
+                    <span class="server-status status-loading" id="statusUpdate">CHECKING...</span>
+                </div>
+            </div>
+
             <!-- Backend Card -->
             <div class="server-card stopped" id="cardBackend">
                 <div class="server-info">
@@ -415,6 +468,7 @@
             <div class="message-area" id="message">Ready...</div>
             
             <div class="footer-controls">
+                <button class="btn-footer" onclick="checkUpdate(false)" style="margin-right: 20px;">Check Update</button>
                 <button class="btn-footer btn-restart" onclick="startAll()">Restart All</button>
                 <button class="btn-footer btn-close" onclick="window.close()">Close</button>
             </div>

@@ -31,11 +31,11 @@
             leave-to-class="opacity-0 scale-95 translate-y-4"
           >
             <div 
-              class="relative w-full bg-white dark:bg-gray-800 rounded-[2rem] shadow-2xl border border-white/20 dark:border-gray-700 flex flex-col max-h-[90vh] overflow-hidden transform transition-all"
+              class="relative w-full bg-white dark:bg-gray-800 rounded-[2rem] shadow-2xl border border-white/20 dark:border-gray-700 flex flex-col max-h-[90vh] transform transition-all overflow-hidden"
               :class="maxWidthClass"
             >
               <!-- Header -->
-              <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-md z-10 shrink-0">
+              <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-md z-10 flex-shrink-0 rounded-t-[2rem]">
                 <div v-if="$slots.header">
                   <slot name="header"></slot>
                 </div>
@@ -51,14 +51,14 @@
                 </button>
               </div>
 
-              <!-- Content (Scrollable) -->
-              <div class="p-8 overflow-y-auto custom-scrollbar">
+              <!-- Content (Scrollable) - flex-grow memungkinkan mengambil sisa ruang -->
+              <div class="flex-grow overflow-y-auto custom-scrollbar px-8 py-6">
                 <slot name="body" v-if="$slots.body"></slot>
                 <slot v-else></slot>
               </div>
 
-              <!-- Footer (Optional) -->
-              <div v-if="$slots.footer" class="px-8 py-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 shrink-0 flex justify-end gap-4">
+              <!-- Footer (Always Visible at Bottom) -->
+              <div v-if="$slots.footer" class="px-8 py-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex-shrink-0 flex justify-end gap-4 rounded-b-[2rem]">
                 <slot name="footer"></slot>
               </div>
             </div>

@@ -7,7 +7,7 @@
           Database Personil
         </h1>
         <p class="text-gray-600 dark:text-gray-400">
-          Kelola data personil perusahaan - Klik baris untuk melihat detail
+          Kelola data personil perusahaan - Klik card untuk melihat aksi lebih lanjut
         </p>
       </div>
       <button
@@ -38,87 +38,24 @@
       </div>
     </div>
 
-    <!-- Personil Table -->
-    <div v-else-if="personil.length > 0" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg">
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gradient-to-r from-blue-50 to-violet-50 dark:from-gray-700 dark:to-gray-700">
-            <tr>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">NIK</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Nama</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Tempat/Tgl Lahir</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Pendidikan</th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Sertifikat</th>
-              <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Aksi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-            <tr
-              v-for="person in personil"
-              :key="person.nik"
-              @click="viewDetail(person)"
-              class="hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-            >
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
-                {{ person.nik || '-' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 font-medium">
-                {{ person.nama || '-' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                <span v-if="person.tempat_lahir && person.tanggal_lahir">
-                  {{ person.tempat_lahir }}, {{ formatDate(person.tanggal_lahir) }}
-                </span>
-                <span v-else-if="person.tempat_lahir">{{ person.tempat_lahir }}</span>
-                <span v-else-if="person.tanggal_lahir">{{ formatDate(person.tanggal_lahir) }}</span>
-                <span v-else>-</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                <span v-if="person.strata && person.jurusan_pendidikan">
-                  {{ person.strata }} - {{ person.jurusan_pendidikan }}
-                </span>
-                <span v-else-if="person.strata">{{ person.strata }}</span>
-                <span v-else>-</span>
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                <div class="max-w-xs truncate" :title="person.sertifikat_keahlian">
-                  {{ person.sertifikat_keahlian || '-' }}
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-center" @click.stop>
-                <div class="flex items-center justify-center gap-2">
-                  <button
-                    @click="viewDetail(person)"
-                    class="px-3 py-2 bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300 rounded-lg transition-colors text-xs font-medium"
-                    title="Lihat Detail"
-                  >
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button
-                    @click="openEditModal(person)"
-                    class="px-3 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg transition-colors text-xs font-medium"
-                    title="Edit"
-                  >
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button
-                    @click="confirmDelete(person)"
-                    class="px-3 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300 rounded-lg transition-colors text-xs font-medium"
-                    title="Hapus"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Personil Grid (KTP Style) -->
+    <div v-else-if="personil.length > 0">
+      <!-- Grid Container -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+        <PersonilCard
+          v-for="person in personil"
+          :key="person.nik"
+          :person="person"
+          @view="viewDetail"
+          @edit="openEditModal"
+          @delete="confirmDelete"
+        />
       </div>
-      
-      <!-- Table Footer -->
-      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Total: <span class="font-semibold">{{ personil.length }}</span> personil
+
+      <!-- Footer Info -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+        <p class="text-sm text-gray-600 dark:text-gray-400 text-center">
+          Total: <span class="font-semibold text-gray-900 dark:text-white">{{ personil.length }}</span> personil
         </p>
       </div>
     </div>
@@ -185,8 +122,8 @@
         </h3>
       </template>
       <template #body>
-        <form @submit.prevent="savePersonil" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form @submit.prevent="savePersonil" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">NIK *</label>
               <input
@@ -194,7 +131,7 @@
                 type="text"
                 required
                 :disabled="isEditMode"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none disabled:bg-gray-100 dark:disabled:bg-gray-800"
                 placeholder="Masukkan NIK"
               />
             </div>
@@ -204,19 +141,19 @@
                 v-model="formData.nama"
                 type="text"
                 required
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                 placeholder="Masukkan nama lengkap"
               />
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tempat Lahir</label>
               <input
                 v-model="formData.tempat_lahir"
                 type="text"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                 placeholder="Masukkan tempat lahir"
               />
             </div>
@@ -225,17 +162,17 @@
               <input
                 v-model="formData.tanggal_lahir"
                 type="date"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
               />
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Strata Pendidikan</label>
               <select
                 v-model="formData.strata"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
               >
                 <option value="">Pilih Strata</option>
                 <option value="SD">SD</option>
@@ -252,7 +189,7 @@
               <input
                 v-model="formData.jurusan_pendidikan"
                 type="text"
-                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
                 placeholder="Masukkan jurusan"
               />
             </div>
@@ -262,34 +199,29 @@
             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Sertifikat Keahlian</label>
             <textarea
               v-model="formData.sertifikat_keahlian"
-              rows="3"
-              class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              rows="4"
+              class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
               placeholder="Masukkan sertifikat keahlian"
             ></textarea>
           </div>
-
-          <div class="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              @click="closeModal"
-              class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-colors"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              :disabled="saving"
-              class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span v-if="saving">
-                <i class="fas fa-spinner fa-spin mr-2"></i>Menyimpan...
-              </span>
-              <span v-else>
-                <i class="fas fa-save mr-2"></i>{{ isEditMode ? 'Update' : 'Simpan' }}
-              </span>
-            </button>
-          </div>
         </form>
+      </template>
+      <template #footer>
+        <button
+          type="button"
+          @click="closeModal"
+          class="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
+        >
+          Batal
+        </button>
+        <button
+          @click="savePersonil"
+          :disabled="saving"
+          class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span v-if="saving" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+          <span>{{ isEditMode ? 'Update' : 'Simpan' }}</span>
+        </button>
       </template>
     </BaseModal>
 

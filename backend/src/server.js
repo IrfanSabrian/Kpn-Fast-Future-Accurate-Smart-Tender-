@@ -33,7 +33,40 @@ app.get('/', (req, res) => {
   res.json({
     message: 'KPN FAST - Fast And Smart Technology API',
     version: '1.0.0',
-    status: 'running'
+    status: 'running',
+    services: {
+      database: {
+        status: 'connected',
+        type: 'Google Sheets',
+        url: `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID}`
+      },
+      storage: {
+        status: 'connected',
+        type: 'Google Drive',
+        url: `https://drive.google.com/drive/folders/${process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID}`
+      }
+    }
+  });
+});
+
+// API root endpoint (same as /)
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'KPN FAST - Fast And Smart Technology API',
+    version: '1.0.0',
+    status: 'running',
+    services: {
+      database: {
+        status: 'connected',
+        type: 'Google Sheets',
+        url: `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID}`
+      },
+      storage: {
+        status: 'connected',
+        type: 'Google Drive',
+        url: `https://drive.google.com/drive/folders/${process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID}`
+      }
+    }
   });
 });
 
