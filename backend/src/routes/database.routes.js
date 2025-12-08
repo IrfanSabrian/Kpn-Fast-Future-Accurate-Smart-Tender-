@@ -256,8 +256,8 @@ router.delete('/projects/:idProject', async (req, res) => {
   }
 });
 
-// --- PERSONIL PROJECT ROUTES ---
-// Add personil to project
+// --- PERSONEL PROJECT ROUTES ---
+// Add personel to project
 router.post('/projects/:idProject/personil', async (req, res) => {
   try {
     const data = { 
@@ -276,17 +276,17 @@ router.post('/projects/:idProject/personil', async (req, res) => {
       }
     }
     
-    const result = await googleSheetsService.addPersonilProject(data);
+    const result = await googleSheetsService.addPersonelProject(data);
     res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Delete personil from project
-router.delete('/projects/:idProject/personil/:nik', async (req, res) => {
+// Delete personel from project
+router.delete('/projects/:idProject/personel/:nik', async (req, res) => {
   try {
-    // Note: We need to implement deletePersonilProject properly in service
+    // Note: We need to implement deletePersonelProject properly in service
     // For now, assume service has this method or we implement logic here?
     // Service has a placeholder. Let's use it.
     // Actually, since we don't have a proper delete in service yet (due to no ID),
@@ -302,7 +302,7 @@ router.delete('/projects/:idProject/personil/:nik', async (req, res) => {
     // WAIT: I need to make sure delete works. 
     // I'll update the service to actually delete the row.
     // But first, let's add the route.
-    const result = await googleSheetsService.deletePersonilProject(req.params.idProject, req.params.nik);
+    const result = await googleSheetsService.deletePersonelProject(req.params.idProject, req.params.nik);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });

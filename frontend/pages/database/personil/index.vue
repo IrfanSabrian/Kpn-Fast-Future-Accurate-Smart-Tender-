@@ -4,11 +4,17 @@
     <div class="mb-8 flex items-center justify-between">
       <div>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Database Personil
+          Database Personil (Tenaga Ahli)
         </h1>
         <p class="text-gray-600 dark:text-gray-400">
-          Kelola data personil perusahaan - Klik card untuk melihat aksi lebih lanjut
+          Kelola data personil perusahaan - Data ini juga digunakan sebagai Tenaga Ahli dalam dokumen penawaran project
         </p>
+        <div class="mt-2 inline-flex items-center px-3 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span class="text-xs text-blue-700 dark:text-blue-300 font-medium">Personil = Tenaga Ahli (Data yang sama)</span>
+        </div>
       </div>
       <button
         @click="openAddModal"
