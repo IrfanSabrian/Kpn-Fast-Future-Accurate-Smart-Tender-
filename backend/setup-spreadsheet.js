@@ -132,30 +132,38 @@ const dataPerusahaan = {
   
   db_sbu: [
     ['id_sbu', 'id_perusahaan', 'id_nib', 'nomor_pb_umku', 'jenis_usaha', 'asosiasi', 'pjbu', 'pjtbu', 'nomor_registrasi_lpjk', 'tanggal_terbit', 'masa_berlaku', 'kualifikasi', 'kode_subklasifikasi', 'sifat', 'kode_kbli', 'nama_pjskbu', 'pelaksana_sertifikasi', 'sbu_url', 'tanggal_input'],
-    ['SBU001', 'COMP001', 'NIB001', '121600032198100040001', 'Jasa Konsultansi Konstruksi', 'PERKONINDO', 'KAMARULLAH', 'KAMARULLAH / F 1993 109976 2023 0213407 SI 03', 'F.3.01.RK.K.16.2024.0070025', '2024-05-20', '2027-05-19', 'Kecil', 'RK001', 'Umum', '71102', 'RUKIAH F 1993 111290 2023 0216117 SI 01', 'PERKONINDO KONSULTAN KONSTRUKSI MANDIRI', 'https://drive.google.com/file/d/1jOe0aZ5YdT5dT5dT5dT5dT5dT5dT5dT5/view?usp=drive_link', '2024-05-20 10:00:00']
+    ['SBU001', 'COMP001', 'NIB001', '121600032198100040001', 'Jasa Konsultansi Konstruksi', 'PERKONINDO', 'KAMARULLAH', 'KAMARULLAH / F 1993 109976 2023 0213407 SI 03', 'F.3.01.RK.K.16.2024.0070025', '2024-05-20', '2027-05-19', 'Kecil', 'RK001', 'Umum', '71102', 'RUKIAH F 1993 111290 2023 0216117 SI 01', 'PERKONINDO KONSULTAN KONSTRUKSI MANDIRI', 'https://drive.google.com/file/d/1R3e5HoGQzvFHEp46WkHzUwrudNYROA0F/view?usp=drive_link', '2024-05-20 10:00:00']
   ],
   
   db_nib: [
-    ['id_nib', 'id_perusahaan', 'nomor_nib', 'tanggal_terbit', 'status_penanaman_modal', 'skala_usaha', 'nib_url', 'status', 'tanggal_input'],
-    ['NIB001', 'COMP001', '1216000321981', '2021-03-18', 'PMDN', 'Usaha Mikro', 'https://drive.google.com/file/d/1nib_example_link/view?usp=drive_link', 'Active', '2021-03-18 10:00:00']
+    ['id_nib', 'id_perusahaan', 'nomor_nib', 'tanggal_terbit', 'status_penanaman_modal', 'skala_usaha', 'nib_url', 'tanggal_input'],
+    ['NIB001', 'COMP001', '1216000321981', '2021-03-18', 'PMDN', 'Usaha Mikro', 'https://drive.google.com/file/d/1IYKSyzvck2FlOErY7BP160Hv1DGRsdFn/view?usp=drive_link', '2021-03-18 10:00:00']
   ],
   
-  db_pengalaman: [
-    ['id_pengalaman', 'id_perusahaan', 'no', 'nama_pekerjaan', 'bidang_pekerjaan', 'lokasi', 'pemberi_tugas_nama', 'pemberi_tugas_alamat', 'no_kontrak', 'tanggal_kontrak', 'nilai_kontrak', 'tanggal_selesai', 'tanggal_bast', 'file_pengalaman_url', 'tanggal_input'],
-    ['PENG001', 'COMP001', '1', 'Pembangunan Jembatan Merah', 'Konstruksi Jalan & Jembatan', 'Jakarta Utara', 'Dinas PU Kota Jakarta', 'Jl. Sudirman No. 1, Jakarta', 'K/001/2022', '2022-03-01', '5000000000', '2022-12-30', '2023-01-05', 'https://drive.google.com/', '2024-01-15 10:30:00'],
-    ['PENG002', 'COMP002', '1', 'Renovasi Gedung Perkantoran', 'Konstruksi Gedung', 'Jakarta Selatan', 'PT Maju Jaya', 'Jl. Gatot Subroto No. 10', 'K/002/2023', '2023-05-10', '3000000000', '2023-11-30', '2023-12-05', 'https://drive.google.com/', '2024-01-20 14:15:00']
+  db_kta: [
+    ['id_kta', 'id_perusahaan', 'nomor_anggota', 'nama_asosiasi', 'penanggung_jawab', 'jenis_usaha', 'status_keanggotaan', 'tanggal_terbit', 'kta_url', 'status', 'tanggal_input'],
+    ['KTA001', 'COMP001', '00021593', 'PERKONINDO', 'KAMARULLAH', 'Jasa Konsultasi Konstruksi', 'ANGGOTA BIASA', '2023-12-07', 'https://drive.google.com/file/d/1HE05Ynf2QiRr9wnFqO_lcr-Lsbc75C2j/view?usp=drive_link', 'Active', '2023-12-07 10:00:00']
   ],
   
-  db_project: [
-    ['id_project', 'folder_number', 'nama_project', 'deskripsi', 'pemilik_project', 'tahun', 'folder_drive_url', 'folder_drive_id', 'status'],
-    ['PRJ001', '01', 'Infrastruktur Jawa 2024', 'Program pembangunan infrastruktur Jawa', 'Kementerian PUPR', '2024', 'https://drive.google.com/', 'abc123', 'Active'],
-    ['PRJ002', '02', 'Pembangunan Jalan Raya', 'Pembangunan dan perbaikan jalan raya nasional', 'Kementerian PUPR', '2024', 'https://drive.google.com/', 'def456', 'Active']
+  db_sertifikat_standar: [
+    ['id_sertifikat_standar', 'id_perusahaan', 'id_nib', 'nomor_sertifikat', 'kode_kbli', 'klasifikasi_risiko', 'status_pemenuhan', 'lembaga_verifikasi', 'tanggal_terbit', 'sertifikat_standar_url', 'tanggal_input'],
+    ['SERT001', 'COMP001', 'NIB001', '12160003219810002', '71102', 'Menengah Tinggi', 'Disetujui secara otomatis oleh sistem OSS (fiktif positif)', 'Kementerian Pekerjaan Umum dan Perumahan Rakyat', '2024-05-22', 'https://drive.google.com/file/d/1fqVkl6qJVoL_Ow8uABSXKfOt5K4F5bSC/view?usp=drive_link', '2024-05-22 10:00:00'],
+    ['SERT002', 'COMP001', 'NIB001', '12160003219810001', '78421', 'Menengah Tinggi', 'Belum terverifikasi', 'Pemerintah Kota Pontianak', '2022-11-14', 'https://drive.google.com/file/d/1fqVkl6qJVoL_Ow8uABSXKfOt5K4F5bSC/view?usp=drive_link', '2022-11-14 10:00:00']
   ],
   
-  db_project_perusahaan: [
-    ['id_project_perusahaan', 'id_project', 'id_perusahaan', 'kode_urutan', 'nama_bagian', 'peran', 'nilai_kontrak', 'nomor_kontrak', 'file_kak_url', 'file_hps_url', 'file_hps_v2_url', 'folder_kontrak_url', 'folder_laporan_url', 'status_penawaran', 'status_invoice', 'status_laporan', 'status'],
-    ['PRJC001', 'PRJ001', 'COMP001', '01', 'Project Jembatan Jakarta', 'Kontraktor Utama', '50000000000', 'SPK/001/2024', '', '', '', 'https://drive.google.com/', 'https://drive.google.com/', 'Draft', 'Belum', 'Belum', 'Active'],
-    ['PRJC002', 'PRJ002', 'COMP002', '01', 'Jalan Tol Surabaya', 'Sub Kontraktor', '30000000000', 'SPK/002/2024', '', '', '', 'https://drive.google.com/', 'https://drive.google.com/', 'Draft', 'Belum', 'Belum', 'Active']
+  db_npwp_perusahaan: [
+    ['id_npwp_perusahaan', 'id_perusahaan', 'nomor_npwp', 'nama_wajib_pajak', 'alamat_npwp', 'kpp', 'tanggal_terdaftar', 'npwp_perusahaan_url', 'status', 'tanggal_input'],
+    ['NPWP001', 'COMP001', '96.730.481.7-707.000', 'CV. VERUS CONSULTANT ENGINEERING', 'JL TANJUNG RAYA 2 GG SAIGON UTAMA 1 NO. 77 RT. 004 RW. 017', 'KPP PRATAMA PONTIANAK TIMUR', '2020-12-02', 'https://drive.google.com/file/d/1NJx_8dq5HoaUNKiKB667FF1jucyYbQg7/view?usp=drive_link', 'Active', '2020-12-02 10:00:00']
+  ],
+  
+  db_kswp: [
+    ['id_kswp', 'id_perusahaan', 'nik_npwp15', 'npwp16', 'nama_wp', 'alamat', 'status_kswp', 'kswp_url', 'tanggal_input'],
+    ['KSWP001', 'COMP001', '0967304817707000', '967304817707000', 'VERUS CONSULTANT ENGINEERING', 'JL TANJUNG RAYA 2 GG SAIGON UTAMA 1 - KOTA PONTIANAK', 'Valid', 'https://drive.google.com/file/d/1Qt5VlY87dKLgqcD06jLNqNbOr1UNxt29/view?usp=drive_link', '2024-01-01 10:00:00']
+  ],
+  
+  db_spt: [
+    ['id_spt', 'id_perusahaan', 'nama_wp', 'npwp', 'nitku', 'tahun_pajak', 'masa_pajak', 'jenis_spt', 'pembetulan_ke', 'status_spt', 'nominal', 'tanggal_penyampaian', 'nomor_tanda_terima', 'spt_url', 'tanggal_input'],
+    ['SPT001', 'COMP001', 'VERUS CONSULTANT ENGINEERING', '967304817707000 / 0967304817707000', '096730481770700000000', '2024', '01/12', '1771', '0', 'Nihil', '0', '2025-02-18', '818172065832569188821', 'https://drive.google.com/file/d/1aRT3ESOcHuQJEFhpuekfgvmw8CUcbUSf/view?usp=drive_link', '2025-02-18 10:00:00']
   ]
 };
 
@@ -256,23 +264,27 @@ async function setupSpreadsheets() {
   console.log('✅ SETUP COMPLETED SUCCESSFULLY!');
   console.log('✅ ========================================\n');
   console.log('📋 Summary:');
-  console.log(`   - PERUSAHAAN: 9 sheets (db_profil, db_perusahaan_kbli, db_akta, db_pejabat, db_sbu, db_nib, db_pengalaman, db_project, db_project_perusahaan)`);
-  console.log(`   - db_profil: COMP001 (CV. VERUS CONSULTANT ENGINEERING)`);
-  console.log(`   - db_nib: NIB 1216000321981 (PMDN, Usaha Mikro)`);
-  console.log(`   - db_sbu: SBU Certificate with reference to NIB`);
+  console.log(`   - PERUSAHAAN: 12 sheets`);
+  console.log(`     • db_profil, db_perusahaan_kbli, db_akta, db_pejabat`);
+  console.log(`     • db_sbu, db_nib, db_kta, db_sertifikat_standar`);
+  console.log(`     • db_npwp_perusahaan, db_kswp, db_spt, db_pengalaman`);
+  console.log(`   - COMP001: CV. VERUS CONSULTANT ENGINEERING`);
+  console.log(`   - NIB: 1216000321981 (PMDN, Usaha Mikro)`);
+  console.log(`   - SBU: 121600032198100040001 (Kecil, PERKONINDO)`);
+  console.log(`   - KTA: 00021593 (PERKONINDO, Anggota Biasa)`);
+  console.log(`   - NPWP: 96.730.481.7-707.000 (KPP Pratama Pontianak Timur)`);
+  console.log(`   - KSWP: Valid (Konfirmasi Status WP)`);
+  console.log(`   - SPT: Tahun 2024 - Status Nihil (Tersampaikan)`);
+  console.log(`   - Sertifikat Standar: 2 certificates (71102, 78421)`);
   console.log(`   - PERSONEL: 2 sheets (db_personel, db_personel_project)`);
-  console.log(`   - KBLI: 1 sheet with 19 classifications (Construction + Consulting)`);
-  console.log('\n💡 KBLI Relationship:');
-  console.log('   COMP001 (CV. VERUS) has 9 KBLI codes:');
-  console.log('     - 71102 (Aktivitas Keinsinyuran dan Konsultasi Teknis YBDI) ⭐ Primary');
-  console.log('     - 70202 (Aktivitas Konsultasi Transportasi)');
-  console.log('     - 71101 (Aktivitas Arsitektur)');
-  console.log('     - 74202 (Aktivitas Angkutan Udara Khusus)');
-  console.log('     - 82110 (Aktivitas Penyedia Gabungan Jasa Administrasi)');
-  console.log('     - 78300 (Penyediaan Sumber Daya Manusia)');
-  console.log('     - 78432 (Pelatihan Kerja TI)');
-  console.log('     - 78421 (Pelatihan Kerja Teknik)');
-  console.log('     - 70209 (Aktivitas Konsultasi Manajemen)');
+  console.log(`   - KBLI: 19 classifications`);
+  console.log('\n💡 Document Hierarchy:');
+  console.log('   Profil → NPWP → KSWP → SPT');
+  console.log('              ↓');
+  console.log('            NIB → SBU');
+  console.log('              ↓      ↓');
+  console.log('            KTA   Sertifikat Standar (2x)');
+  console.log('   All linked via 9 KBLI codes (71102 as Primary)');
   console.log('\n🔄 Next steps:');
   console.log('   1. Restart backend: npm run dev');
   console.log('   2. Test API: http://localhost:5000/api/companies');
