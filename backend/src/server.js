@@ -74,11 +74,13 @@ app.get('/api', (req, res) => {
 import personnelRoutes from './routes/personnel.routes.js';
 import databaseRoutes from './routes/database.routes.js';
 import driveRoutes from './routes/drive.routes.js';
+import kbliRoutes from './routes/kbli.routes.js';
 
 // Use routes
 app.use('/api/companies', databaseRoutes); // Unified database routes for companies
 app.use('/api/personnel', personnelRoutes); // Personnel management
 app.use('/api/drive', driveRoutes); // Google Drive folder management
+app.use('/api/kbli', kbliRoutes); // KBLI master data and company KBLI
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -25,6 +25,8 @@ export const getAllCompanies = async (req, res) => {
 export const getCompanyById = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // 1. Get Main Profile
     const company = await googleSheetsService.getProfilPerusahaanById(id);
     
     if (!company) {
@@ -35,10 +37,74 @@ export const getCompanyById = async (req, res) => {
       });
     }
 
+    // 2. Fetch all related sub-modules in parallel for efficiency
+    const [
+      aktaData,
+      pejabatData,
+      nibData,
+      sbuData,
+      ktaData,
+      sertifikatData,
+      npwpData,
+      kswpData,
+      sptData,
+      pkpData,
+      kontrakData,
+      kbliRelData,
+      masterKbliData
+    ] = await Promise.all([
+      googleSheetsService.getSheetData('db_akta'),
+      googleSheetsService.getSheetData('db_pejabat'),
+      googleSheetsService.getSheetData('db_nib'),
+      googleSheetsService.getSheetData('db_sbu'),
+      googleSheetsService.getSheetData('db_kta'),
+      googleSheetsService.getSheetData('db_sertifikat_standar'),
+      googleSheetsService.getSheetData('db_npwp_perusahaan'),
+      googleSheetsService.getSheetData('db_kswp'),
+      googleSheetsService.getSheetData('db_spt'),
+      googleSheetsService.getSheetData('db_pkp'),
+      googleSheetsService.getSheetData('db_kontrak_pengalaman'),
+      googleSheetsService.getSheetData('db_perusahaan_kbli'),
+      googleSheetsService.getKbliMasterData() // Fetch Master KBLI from KBLI Spreadsheet
+    ]);
+
+    // 3. Attach filtered data to the response object
+    // Note: We attach them as separate keys or a 'sub_modules' object. 
+    // Attaching directly to root for easier access in frontend logic if preferred, 
+    // or grouped under 'relations'. Let's group to keep it clean.
+    
+    // Map KBLI codes to descriptions
+    const companyKbli = kbliRelData.filter(item => item.id_perusahaan === id);
+    const enrichedKbli = companyKbli.map(item => {
+        const master = masterKbliData.find(m => m.kode_kbli === item.kode_kbli);
+        return {
+            ...item,
+            nama_klasifikasi: master ? master.nama_klasifikasi : 'Unknown KBLI'
+        };
+    });
+    
+    const fullData = {
+      ...company,
+      relations: {
+        akta: aktaData.filter(item => item.id_perusahaan === id),
+        pejabat: pejabatData.filter(item => item.id_perusahaan === id),
+        nib: nibData.filter(item => item.id_perusahaan === id),
+        sbu: sbuData.filter(item => item.id_perusahaan === id),
+        kta: ktaData.filter(item => item.id_perusahaan === id),
+        sertifikat: sertifikatData.filter(item => item.id_perusahaan === id),
+        npwp: npwpData.filter(item => item.id_perusahaan === id),
+        kswp: kswpData.filter(item => item.id_perusahaan === id),
+        spt: sptData.filter(item => item.id_perusahaan === id),
+        pkp: pkpData.filter(item => item.id_perusahaan === id),
+        kontrak: kontrakData.filter(item => item.id_perusahaan === id),
+        kbli: enrichedKbli // Searchable/Enriched KBLI
+      }
+    };
+
     res.json({
       success: true,
-      message: 'Company profile retrieved successfully',
-      data: company,
+      message: 'Company profile and relations retrieved successfully',
+      data: fullData,
     });
   } catch (error) {
     console.error('Error in getCompanyById:', error);

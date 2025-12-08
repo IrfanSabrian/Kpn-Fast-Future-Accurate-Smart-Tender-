@@ -9,11 +9,6 @@
     <div class="relative z-10 max-w-7xl mx-auto mb-8">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold tracking-wider uppercase border border-blue-200 dark:border-blue-800">
-              KPN-FAST SYSTEM
-            </span>
-          </div>
           <h1 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             Database <span class="text-blue-600">Perusahaan</span>
           </h1>
@@ -50,31 +45,31 @@
       <div
         v-for="company in companies"
         :key="company.id_perusahaan"
-        class="group relative bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col overflow-hidden"
+        class="group relative bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col overflow-hidden cursor-pointer"
         @click="navigateToDetail(company.id_perusahaan)"
       >
         <!-- Top Accent Line -->
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-200 to-slate-100 dark:from-slate-700 dark:to-slate-800 group-hover:from-blue-500 group-hover:to-cyan-400 transition-all duration-300"></div>
 
-        <div class="p-5 flex flex-col h-full">
+        <div class="p-5 flex flex-col h-full relative">
           <!-- Card Header layout -->
-          <div class="flex items-start gap-3 mb-4">
+          <div class="flex items-start gap-4 mb-4">
             <!-- Compact Logo -->
-            <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600 flex items-center justify-center overflow-hidden">
+            <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 flex items-center justify-center overflow-hidden shadow-sm p-1">
               <img 
                 v-if="shouldShowLogo(company)"
                 :src="getCompanyLogoUrl(company)" 
                 :alt="company.nama_perusahaan"
-                class="w-full h-full object-contain p-1"
+                class="w-full h-full object-contain"
                 @error="(e) => handleImageError(e, company)"
               />
-              <div v-else class="w-full h-full bg-slate-800 dark:bg-slate-700 flex items-center justify-center">
-                 <span class="text-xs font-bold text-white tracking-tighter">{{ getInitials(company.nama_perusahaan) }}</span>
+              <div v-else class="w-full h-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center rounded-lg">
+                 <span class="text-xs font-bold text-slate-400 tracking-tighter">{{ getInitials(company.nama_perusahaan) }}</span>
               </div>
             </div>
 
-            <div class="flex-grow min-w-0">
-               <div class="flex items-center justify-between mb-0.5">
+            <div class="flex-grow min-w-0 pt-0.5">
+               <div class="flex items-center gap-2 mb-1">
                   <span 
                     class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border"
                     :class="company.status === 'Pusat' 
@@ -83,57 +78,35 @@
                   >
                     {{ company.status || 'PUSAT' }}
                   </span>
-                  <div class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-blue-500 transition-colors"></div>
                </div>
-               <h3 class="text-sm font-bold text-slate-800 dark:text-gray-100 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors" :title="company.nama_perusahaan">
+               <h3 class="text-base font-bold text-slate-800 dark:text-gray-100 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors" :title="company.nama_perusahaan">
                 {{ company.nama_perusahaan }}
               </h3>
             </div>
           </div>
 
           <!-- Compact Details -->
-          <div class="space-y-2 mb-4 flex-grow">
+          <div class="space-y-2.5 flex-grow">
             <!-- Email -->
-            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-               <i class="fas fa-envelope w-3 text-center text-slate-300 group-hover:text-blue-400 transition-colors"></i>
-               <span class="truncate">{{ company.email || '-' }}</span>
+            <div class="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+               <div class="w-5 flex justify-center"><i class="fas fa-envelope text-slate-400"></i></div>
+               <span class="truncate font-medium">{{ company.email || '-' }}</span>
             </div>
              <!-- Phone -->
-            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-               <i class="fas fa-phone w-3 text-center text-slate-300 group-hover:text-blue-400 transition-colors"></i>
-               <span class="truncate">{{ company.no_telp || '-' }}</span>
+            <div class="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+               <div class="w-5 flex justify-center"><i class="fas fa-phone text-slate-400"></i></div>
+               <span class="truncate font-medium">{{ company.no_telp || '-' }}</span>
             </div>
              <!-- Est -->
-            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-               <i class="fas fa-history w-3 text-center text-slate-300 group-hover:text-blue-400 transition-colors"></i>
-               <span class="truncate">Est. {{ company.tahun_berdiri || 'N/A' }}</span>
+            <div class="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+               <div class="w-5 flex justify-center"><i class="fas fa-history text-slate-400"></i></div>
+               <span class="truncate font-medium">Est. {{ company.tahun_berdiri || 'N/A' }}</span>
             </div>
           </div>
 
-          <!-- Quick Actions Footer -->
-          <div class="flex items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-700/50">
-             <button
-              v-if="company.profile_perusahaan_url"
-              @click.stop="viewProfileDocument(company)"
-              class="flex-1 px-2 py-1.5 bg-slate-50 hover:bg-red-50 dark:bg-slate-700/30 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-[11px] font-bold rounded border border-slate-200 dark:border-slate-600/50 hover:border-red-200 transition-all flex items-center justify-center gap-1.5"
-            >
-              <i class="fas fa-file-pdf"></i>
-              PROFIL
-            </button>
-             <button
-              v-else
-              disabled
-              class="flex-1 px-2 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-300 text-[11px] font-bold rounded border border-slate-100 dark:border-slate-700 cursor-not-allowed flex items-center justify-center gap-1.5"
-            >
-              <i class="fas fa-times"></i>
-              NO DATA
-            </button>
-
-            <button 
-              class="px-2 py-1.5 text-slate-400 hover:text-blue-600 bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-            >
-              <i class="fas fa-arrow-right text-xs"></i>
-            </button>
+          <!-- Hover Indicator (Arrow) -->
+          <div class="absolute bottom-5 right-5 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+             <i class="fas fa-arrow-right text-blue-500 text-lg"></i>
           </div>
         </div>
       </div>
@@ -252,43 +225,6 @@
       </template>
     </BaseModal>
 
-    <!-- Profile Viewer Modal (Clean) -->
-    <BaseModal 
-      :show="showProfileModal" 
-      @close="showProfileModal = false" 
-      max-width="5xl"
-      :title="selectedCompany?.nama_perusahaan"
-      subtitle="PREVIEW DOKUMEN PROFIL"
-    >
-      <template #body>
-         <div v-if="selectedCompany?.profile_perusahaan_url" class="relative bg-slate-900 rounded-lg overflow-hidden shadow-inner w-full h-[70vh]">
-          <iframe 
-            :src="getGoogleDrivePreviewUrl(selectedCompany.profile_perusahaan_url)" 
-            class="w-full h-full"
-            frameborder="0"
-          ></iframe>
-        </div>
-        <div v-else class="h-40 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
-          <i class="fas fa-file-excel text-3xl mb-2 opacity-50"></i>
-          <p class="text-sm font-medium">File offline / tidak tersedia</p>
-        </div>
-      </template>
-      <template #footer>
-          <div class="flex items-center gap-2">
-             <span class="text-xs text-slate-400 mr-2">EXTERNAL VIEWER:</span>
-             <a
-              v-if="selectedCompany?.profile_perusahaan_url"
-              :href="selectedCompany.profile_perusahaan_url"
-              target="_blank"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded flex items-center gap-2 transition-colors"
-            >
-              <i class="fas fa-external-link-alt"></i>
-              GOOGLE DRIVE
-            </a>
-          </div>
-      </template>
-    </BaseModal>
-
     <!-- Toast Notification -->
     <BaseToast
       :show="toast.show"
@@ -320,8 +256,6 @@ const { toast, success, error: showError, hideToast } = useToast()
 const loading = ref(true)
 const companies = ref([])
 const showEditModal = ref(false)
-const showProfileModal = ref(false)
-const selectedCompany = ref(null)
 const editingCompany = ref(null)
 const isEditMode = ref(false)
 const saving = ref(false)
@@ -343,7 +277,6 @@ const editForm = ref({
 
 const getInitials = (name) => {
   if (!name) return '?'
-  // Ambil 2 huruf pertama dari 2 kata pertama
   const words = name.replace(/[^\w\s]/gi, '').split(/\s+/).filter(w => w.length > 0)
   if (words.length >= 2) {
       return (words[0][0] + words[1][0]).toUpperCase()
@@ -351,51 +284,86 @@ const getInitials = (name) => {
   return name.slice(0, 2).toUpperCase()
 }
 
-// === LOGO HANDLER (NEW FEATURE) ===
-// Converts raw Google Drive links to usable image URLs
+// === LOGO HANDLER (Hybrid: Local First, Google Drive Fallback) ===
 const getCompanyLogoUrl = (company) => {
-  const url = company.logo_url
-  if (!url) return '' // Return empty string to trigger fallback
+  console.log('🔍 DEBUG Logo for', company.nama_perusahaan)
+  console.log('  - lokal_logo:', company.lokal_logo)
+  console.log('  - logo_perusahaan:', company.logo_perusahaan)
+  console.log('  - logo_url:', company.logo_url)
   
+  // PRIORITY 1: Local asset (fastest & most reliable)
+  if (company.lokal_logo) {
+    // Ensure path starts with /
+    const localPath = company.lokal_logo.startsWith('/') 
+      ? company.lokal_logo 
+      : '/' + company.lokal_logo
+    console.log('  ✅ Using local asset (Priority 1):', localPath)
+    return localPath
+  }
+  
+  // PRIORITY 2: Google Drive URL or logo_perusahaan
+  const url = company.logo_perusahaan || company.logo_url
+  
+  if (!url) {
+    console.log('  ❌ No URL found, trying default fallback')
+    const localPath = `/assets/logos/${company.id_perusahaan}.svg`
+    console.log('  🔄 Fallback to default:', localPath)
+    return localPath
+  }
+  
+  // If URL starts with /, it's a local path - use as is
+  if (url.startsWith('/')) {
+    console.log('  ✅ Using local path from logo_perusahaan:', url)
+    return url
+  }
+  
+  // If it's a Google Drive URL, convert it
   if (url.includes('drive.google.com')) {
-    // Try to extract ID
     let id = ''
     const parts = url.split('/')
-    
-    // Case 1: .../d/ID/...
     const dIndex = parts.indexOf('d')
     if (dIndex !== -1 && parts[dIndex + 1]) {
       id = parts[dIndex + 1]
-    } 
-    // Case 2: ...id=ID...
-    else if (url.includes('id=')) {
+    } else if (url.includes('id=')) {
       id = url.split('id=')[1].split('&')[0]
     }
-
+    
     if (id) {
-      // Use Google Drive Export endpoint for images
-      return `https://drive.google.com/uc?export=view&id=${id}`
+      const finalUrl = `https://drive.google.com/uc?export=download&id=${id}`
+      console.log('  ⚠️ Using Google Drive (Priority 2):', finalUrl)
+      return finalUrl
     }
   }
   
+  console.log('  ⚠️ Using original URL:', url)
   return url
 }
 
 const shouldShowLogo = (company) => {
-  if (!company.logo_url) return false
-  if (imageErrors.value[company.id_perusahaan]) return false
+  // Always try to show logo - we have fallback now
+  if (imageErrors.value[company.id_perusahaan]) {
+    console.log('  ⚠️ Image error cached for', company.nama_perusahaan, '- will try fallback')
+    // Don't return false - let it try fallback
+  }
   return true
 }
 
 const handleImageError = (e, company) => {
-  // Mark this company as having a broken image to show fallback
+  console.error('❌ Image load error for', company.nama_perusahaan)
+  
+  // If current src is Google Drive, try local fallback
+  const currentSrc = e.target.src
+  if (currentSrc.includes('drive.google.com')) {
+    console.log('  🔄 Google Drive failed, trying local fallback...')
+    const localPath = `/assets/logos/${company.id_perusahaan}.svg`
+    e.target.src = localPath
+    // Don't mark as error yet, give local a chance
+    return
+  }
+  
+  // If local also failed, mark as error and show initials
+  console.log('  ❌ All sources failed, showing initials')
   imageErrors.value[company.id_perusahaan] = true
-}
-
-const getGoogleDrivePreviewUrl = (url) => {
-  if (!url) return ''
-  if (url.includes('/view')) return url.replace('/view', '/preview')
-  return url
 }
 
 // === Navigation ===
@@ -408,25 +376,26 @@ const navigateToDetail = (id) => {
 
 const fetchCompanies = async () => {
   loading.value = true
-  // Reset image errors on refresh
   imageErrors.value = {}
-  
   try {
-    const response = await fetch(`${apiBaseUrl}/companies`) // Update endpoint
+    const response = await fetch(`${apiBaseUrl}/companies`)
     if (!response.ok) throw new Error('Failed to fetch data')
     
     const result = await response.json()
-    // Handle wrapped response
     companies.value = Array.isArray(result) ? result : (result.data || [])
     
-    // Check if we need to correct image URLs in memory
-    companies.value.forEach(c => {
-       // Debugging purposes
-       if(c.logo_url) console.log(`Loaded logo for ${c.nama_perusahaan}:`, c.logo_url)
-    })
+    console.log('📊 API Response:', result)
+    console.log('📊 Total companies:', companies.value.length)
+    
+    // Log first company for debugging
+    if (companies.value.length > 0) {
+      console.log('📊 First company data:', companies.value[0])
+      console.log('📊 Fields available:', Object.keys(companies.value[0]))
+    }
     
   } catch (err) {
     showError('Gagal memuat data perusahaan: ' + err.message)
+    console.error('❌ Fetch error:', err)
   } finally {
     loading.value = false
   }
@@ -450,13 +419,6 @@ const openAddModal = () => {
   showEditModal.value = true
 }
 
-const openEditModal = (company) => { // Currently not called from grid but ready
-  isEditMode.value = true
-  editingCompany.value = company
-  editForm.value = { ...company }
-  showEditModal.value = true
-}
-
 const closeEditModal = () => {
   showEditModal.value = false
   editingCompany.value = null
@@ -473,9 +435,7 @@ const saveEdit = async () => {
     
     const response = await fetch(url, {
       method,
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(editForm.value)
     })
 
@@ -490,11 +450,6 @@ const saveEdit = async () => {
   } finally {
     saving.value = false
   }
-}
-
-const viewProfileDocument = (company) => {
-  selectedCompany.value = company
-  showProfileModal.value = true
 }
 
 onMounted(() => {

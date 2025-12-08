@@ -541,6 +541,41 @@ class GoogleSheetsService {
   }
 
   /**
+   * Get KBLI Master Data from KBLI Spreadsheet
+   * @returns {Array} List of KBLI classifications
+   */
+  async getKbliMasterData() {
+    await this.initialize();
+
+    try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_KBLI;
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `KBLI!A1:Z2000`, // Increased to 2000 rows to fetch all KBLI data
+      });
+
+      const rows = response.data.values;
+      if (!rows || rows.length < 2) {
+        return [];
+      }
+
+      const headers = rows[0];
+      const dataRows = rows.slice(1).filter(row => row && row.length > 0 && row[0]);
+
+      return dataRows.map(row => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || '';
+        });
+        return obj;
+      });
+    } catch (error) {
+      console.error('Failed to get KBLI master data:', error);
+      return []; // Return empty array instead of throwing to prevent 500 error
+    }
+  }
+
+  /**
    * Generic function to add data to a sheet
    * @param {string} sheetName - Name of the sheet
    * @param {Array} headers - Array of column headers

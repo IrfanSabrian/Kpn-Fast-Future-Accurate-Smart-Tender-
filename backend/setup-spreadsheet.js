@@ -101,8 +101,8 @@ async function insertData(sheets, spreadsheetId, sheetName, data) {
 // SPREADSHEET 1: PERUSAHAAN
 const dataPerusahaan = {
   db_profil: [
-    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'npwp', 'status', 'profile_perusahaan_url', 'tanggal_input'],
-    ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', '96.730.481.7-707.000', 'Pusat', 'https://drive.google.com/file/d/1h2iwwLjjmieDP7AvsVd2Qq0MnWCcccuK/view?usp=drive_link', '2025-12-25 10:30:00']
+    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'npwp', 'status', 'profil_perusahaan_url', 'logo_perusahaan', 'kop_perusahaan', 'lokal_logo', 'tanggal_input'],
+    ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', '96.730.481.7-707.000', 'Pusat', 'https://drive.google.com/file/d/1X5rd7URsWMQeI7RR6H5wq2kB20EvZ0l2/view?usp=drive_link', 'https://drive.google.com/file/d/1Gssm8bTZqVHPb_V0ZsT_Y8cseeANUjH1/view?usp=drive_link', 'https://drive.google.com/file/d/1Qga2ikIWx3Drz0uoPOxeVGYp-EXsSOBO/view?usp=drive_link', '/assets/logo/Logo CV. VERUS CONSULTANT ENGINEERING.png', '2025-12-25 10:30:00']
   ],
   
   db_perusahaan_kbli: [
@@ -152,8 +152,8 @@ const dataPerusahaan = {
   ],
   
   db_npwp_perusahaan: [
-    ['id_npwp_perusahaan', 'id_perusahaan', 'nomor_npwp', 'nama_wajib_pajak', 'alamat_npwp', 'kpp', 'tanggal_terdaftar', 'npwp_perusahaan_url', 'status', 'tanggal_input'],
-    ['NPWP001', 'COMP001', '96.730.481.7-707.000', 'CV. VERUS CONSULTANT ENGINEERING', 'JL TANJUNG RAYA 2 GG SAIGON UTAMA 1 NO. 77 RT. 004 RW. 017', 'KPP PRATAMA PONTIANAK TIMUR', '2020-12-02', 'https://drive.google.com/file/d/1NJx_8dq5HoaUNKiKB667FF1jucyYbQg7/view?usp=drive_link', 'Active', '2020-12-02 10:00:00']
+    ['id_npwp_perusahaan', 'id_perusahaan', 'nomor_npwp', 'nama_wajib_pajak', 'alamat_npwp', 'kpp', 'tanggal_terdaftar', 'npwp_perusahaan_url', 'tanggal_input'],
+    ['NPWP001', 'COMP001', '96.730.481.7-707.000', 'CV. VERUS CONSULTANT ENGINEERING', 'JL TANJUNG RAYA 2 GG SAIGON UTAMA 1 NO. 77 RT. 004 RW. 017', 'KPP PRATAMA PONTIANAK TIMUR', '2020-12-02', 'https://drive.google.com/file/d/1NJx_8dq5HoaUNKiKB667FF1jucyYbQg7/view?usp=drive_link', '2020-12-02 10:00:00']
   ],
   
   db_kswp: [
@@ -164,6 +164,17 @@ const dataPerusahaan = {
   db_spt: [
     ['id_spt', 'id_perusahaan', 'nama_wp', 'npwp', 'nitku', 'tahun_pajak', 'masa_pajak', 'jenis_spt', 'pembetulan_ke', 'status_spt', 'nominal', 'tanggal_penyampaian', 'nomor_tanda_terima', 'spt_url', 'tanggal_input'],
     ['SPT001', 'COMP001', 'VERUS CONSULTANT ENGINEERING', '967304817707000 / 0967304817707000', '096730481770700000000', '2024', '01/12', '1771', '0', 'Nihil', '0', '2025-02-18', '818172065832569188821', 'https://drive.google.com/file/d/1aRT3ESOcHuQJEFhpuekfgvmw8CUcbUSf/view?usp=drive_link', '2025-02-18 10:00:00']
+  ],
+  
+  db_kontrak_pengalaman: [
+    ['id_kontrak', 'id_perusahaan', 'nama_pekerjaan', 'bidang_pekerjaan', 'sub_bidang_pekerjaan', 'lokasi', 'nama_pemberi_tugas', 'alamat_pemberi_tugas', 'telepon_pemberi_tugas', 'nomor_kontrak', 'tanggal_kontrak', 'nilai_kontrak', 'tanggal_selesai_kontrak', 'tanggal_ba_serah_terima', 'kontrak_url', 'tanggal_input'],
+    // Real data from CV VERUS
+    ['KONTR001', 'COMP001', 'Konsultansi Perencanaan Rehabilitasi Ruang Laboratorium IPA', 'Konsultansi', 'Perencanaan Teknik', 'Kabupaten Mempawah', 'Dinas Pendidikan, Pemuda, Olahraga Dan Pariwisata', 'Jl. Ratusan Mempawah (0561) 6711 Nomor (0561) Pos 78912', '0561-6711', '400.3.13/260/SP.K/DIKPORA/R-B Tanggal: 09 Mei 2023', '2023-05-09', '30705000.00', '2023-05-09', '2023-05-23', 'https://drive.google.com/file/d/1_kgv67j2oh6mNJj4OYveyySCjpy2RK1Y/view?usp=drive_link', '2023-05-09 10:00:00']
+  ],
+  
+  db_pkp: [
+    ['id_pkp', 'id_perusahaan', 'id_npwp_perusahaan', 'url_pkp', 'tanggal_input'],
+    ['PKP001', 'COMP001', 'NPWP001', 'https://drive.google.com/file/d/1xe17aWHiRxGMeLQOmSUVcpnhF8reeIYY/view?usp=drive_link', '2020-12-02 10:00:00']
   ]
 };
 

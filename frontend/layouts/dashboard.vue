@@ -12,7 +12,6 @@
           </div>
           <div>
             <h1 class="text-lg font-black text-slate-800 dark:text-white tracking-tight leading-none mb-1">KPN FAST</h1>
-            <p class="text-[10px] uppercase font-mono text-slate-500 tracking-widest bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded inline-block">System v2.0</p>
           </div>
         </div>
       </div>
