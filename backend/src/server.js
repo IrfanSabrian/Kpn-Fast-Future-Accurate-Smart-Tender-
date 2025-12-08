@@ -71,15 +71,13 @@ app.get('/api', (req, res) => {
 });
 
 // Import routes
-import companyRoutes from './routes/company.routes.js';
 import personnelRoutes from './routes/personnel.routes.js';
 import databaseRoutes from './routes/database.routes.js';
 import driveRoutes from './routes/drive.routes.js';
 
 // Use routes
-app.use('/api/companies', databaseRoutes); // New unified database routes
-app.use('/api/company', companyRoutes); // Keep for backward compatibility
-app.use('/api/personnel', personnelRoutes); // Keep for backward compatibility
+app.use('/api/companies', databaseRoutes); // Unified database routes for companies
+app.use('/api/personnel', personnelRoutes); // Personnel management
 app.use('/api/drive', driveRoutes); // Google Drive folder management
 
 // Error handling middleware

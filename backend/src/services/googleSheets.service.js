@@ -87,22 +87,19 @@ class GoogleSheetsService {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       
-      // Find tab specific for Company Profile
-      const tabs = await this.getSheetTabNames(spreadsheetId);
-      let profilTabName = tabs.find(t => t.title.toLowerCase().includes('profil') || t.title.toLowerCase().includes('company'))?.title;
-      
-      // If not found, use the first one but log warning
-      if (!profilTabName) {
-        console.warn('⚠️ Specific "Profil" tab not found, using first tab:', tabs[0].title);
-        profilTabName = tabs[0].title;
+      if (!spreadsheetId) {
+        throw new Error('GOOGLE_SHEET_ID_PERUSAHAAN not configured in environment variables');
       }
+
+      // Use the correct sheet name directly
+      const profilTabName = 'db_profil';
 
       // Read all data
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${profilTabName}!A1:I1000`,
+        range: `${profilTabName}!A1:Z1000`,
       });
 
       const rows = response.data.values;
@@ -118,9 +115,7 @@ class GoogleSheetsService {
       return dataRows.map(row => {
         const profil = {};
         headers.forEach((header, index) => {
-          // Normalize header: lowercase and replace spaces with underscores
-          const key = header.toLowerCase().replace(/\s+/g, '_');
-          profil[key] = row[index] || '';
+          profil[header] = row[index] || '';
         });
         return profil;
       });
@@ -147,14 +142,8 @@ class GoogleSheetsService {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-      const tabs = await this.getSheetTabNames(spreadsheetId);
-      // Find tab specific for Company Profile
-      let profilTabName = tabs.find(t => t.title.toLowerCase().includes('profil') || t.title.toLowerCase().includes('company'))?.title;
-      
-      if (!profilTabName) {
-        profilTabName = tabs[0].title;
-      }
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
+      const profilTabName = 'db_profil';
 
       // Get headers from the first row
       const headerResponse = await this.sheets.spreadsheets.values.get({
@@ -226,13 +215,8 @@ class GoogleSheetsService {
         throw new Error(`Company with ID ${id} not found`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-      const tabs = await this.getSheetTabNames(spreadsheetId);
-      let profilTabName = tabs.find(t => t.title.toLowerCase().includes('profil') || t.title.toLowerCase().includes('company'))?.title;
-      
-      if (!profilTabName) {
-        profilTabName = tabs[0].title;
-      }
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
+      const profilTabName = 'db_profil';
 
       // Row number
       const rowNumber = index + 2;
@@ -530,7 +514,7 @@ class GoogleSheetsService {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId,
         range: `${sheetName}!A1:Z1000`,

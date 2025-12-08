@@ -1,274 +1,293 @@
 <template>
-  <div>
-    <!-- Header -->
-    <div class="mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Database Perusahaan
-        </h1>
-        <p class="text-gray-600 dark:text-gray-400">
-          Pilih perusahaan untuk melihat detail database - Klik untuk detail lengkap
-        </p>
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 font-sans">
+    <!-- Background Tech Grid Pattern -->
+    <div class="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" 
+         style="background-image: radial-gradient(#475569 1px, transparent 1px); background-size: 24px 24px;">
+    </div>
+
+    <!-- Header Section -->
+    <div class="relative z-10 max-w-7xl mx-auto mb-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-bold tracking-wider uppercase border border-blue-200 dark:border-blue-800">
+              KPN-FAST SYSTEM
+            </span>
+          </div>
+          <h1 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Database <span class="text-blue-600">Perusahaan</span>
+          </h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium max-w-xl">
+            Sistem manajemen data legalitas & profil perusahaan terintegrasi.
+          </p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+           <div class="hidden md:block text-right mr-2">
+            <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Data</div>
+            <div class="text-xl font-mono font-bold text-slate-700 dark:text-slate-200">{{ companies.length }}</div>
+          </div>
+          <button
+            @click="openAddModal"
+            class="group relative px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex items-center gap-2"
+          >
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-overlay"></div>
+            <i class="fas fa-plus text-xs"></i>
+            <span>ENTRI BARU</span>
+          </button>
+        </div>
       </div>
-      <button
-        @click="openAddModal"
-        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
-      >
-        <i class="fas fa-plus"></i>
-        <span>Tambah Perusahaan</span>
-      </button>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <div v-if="loading" class="flex flex-col items-center justify-center py-20 relative z-10">
+      <div class="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+      <p class="mt-4 text-slate-400 text-xs font-mono animate-pulse">SYNCING DATABASE...</p>
     </div>
 
-    <!-- Companies Grid -->
-    <div v-else-if="companies.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Companies Grid (Compact Mode) -->
+    <div v-else-if="companies.length > 0" class="relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
       <div
         v-for="company in companies"
         :key="company.id_perusahaan"
-        class="group h-full"
+        class="group relative bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col overflow-hidden"
+        @click="navigateToDetail(company.id_perusahaan)"
       >
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg transition-all duration-300 h-full flex flex-col relative">
-          <!-- Action Buttons -->
-          <div class="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-            <button
-              @click.stop="viewDetail(company)"
-              class="w-8 h-8 rounded-lg bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 text-green-700 dark:text-green-300 flex items-center justify-center transition-colors shadow-sm"
-              title="Lihat Detail"
-            >
-              <i class="fas fa-eye text-sm"></i>
-            </button>
-            <button
-              @click.stop="handleEdit(company)"
-              class="w-8 h-8 rounded-lg bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 flex items-center justify-center transition-colors shadow-sm"
-              title="Edit"
-            >
-              <i class="fas fa-edit text-sm"></i>
-            </button>
-            <button
-              @click.stop="confirmDelete(company)"
-              class="w-8 h-8 rounded-lg bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-700 dark:text-red-300 flex items-center justify-center transition-colors shadow-sm"
-              title="Hapus"
-            >
-              <i class="fas fa-trash text-sm"></i>
-            </button>
+        <!-- Top Accent Line -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-200 to-slate-100 dark:from-slate-700 dark:to-slate-800 group-hover:from-blue-500 group-hover:to-cyan-400 transition-all duration-300"></div>
+
+        <div class="p-5 flex flex-col h-full">
+          <!-- Card Header layout -->
+          <div class="flex items-start gap-3 mb-4">
+            <!-- Compact Logo -->
+            <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600 flex items-center justify-center overflow-hidden">
+              <img 
+                v-if="shouldShowLogo(company)"
+                :src="getCompanyLogoUrl(company)" 
+                :alt="company.nama_perusahaan"
+                class="w-full h-full object-contain p-1"
+                @error="(e) => handleImageError(e, company)"
+              />
+              <div v-else class="w-full h-full bg-slate-800 dark:bg-slate-700 flex items-center justify-center">
+                 <span class="text-xs font-bold text-white tracking-tighter">{{ getInitials(company.nama_perusahaan) }}</span>
+              </div>
+            </div>
+
+            <div class="flex-grow min-w-0">
+               <div class="flex items-center justify-between mb-0.5">
+                  <span 
+                    class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border"
+                    :class="company.status === 'Pusat' 
+                      ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800' 
+                      : 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-700/30 dark:text-slate-400 dark:border-slate-600'"
+                  >
+                    {{ company.status || 'PUSAT' }}
+                  </span>
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-blue-500 transition-colors"></div>
+               </div>
+               <h3 class="text-sm font-bold text-slate-800 dark:text-gray-100 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors" :title="company.nama_perusahaan">
+                {{ company.nama_perusahaan }}
+              </h3>
+            </div>
           </div>
 
-          <!-- Company Icon -->
-          <NuxtLink
-            :to="`/database/companies/${company.id_perusahaan}`"
-            class="flex flex-col h-full"
-          >
-            <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-              <i class="fas fa-building text-xl text-white"></i>
+          <!-- Compact Details -->
+          <div class="space-y-2 mb-4 flex-grow">
+            <!-- Email -->
+            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+               <i class="fas fa-envelope w-3 text-center text-slate-300 group-hover:text-blue-400 transition-colors"></i>
+               <span class="truncate">{{ company.email || '-' }}</span>
             </div>
-
-            <!-- Company Info -->
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 min-h-[3.5rem]">
-              {{ company.nama_perusahaan }}
-            </h3>
-            
-            <div class="space-y-2 text-sm flex-grow">
-              <!-- Row 1: ID & No Telp -->
-              <div class="grid grid-cols-2 gap-2">
-                <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <i class="fas fa-id-card w-4 flex-shrink-0"></i>
-                  <span class="truncate text-xs">{{ company.id_perusahaan }}</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <i class="fas fa-phone w-4 flex-shrink-0"></i>
-                  <span class="truncate text-xs">{{ company.no_telp || '-' }}</span>
-                </div>
-              </div>
-              
-              <!-- Row 2: Status & Fax -->
-              <div class="grid grid-cols-2 gap-2">
-                <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <i class="fas fa-tag w-4 flex-shrink-0"></i>
-                  <span class="truncate text-xs">{{ company.status_perusahaan || '-' }}</span>
-                </div>
-                <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <i class="fas fa-fax w-4 flex-shrink-0"></i>
-                  <span class="truncate text-xs">{{ company.no_fax || '-' }}</span>
-                </div>
-              </div>
-
-              <!-- Row 3: Email (full width) -->
-              <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                <i class="fas fa-envelope w-4 flex-shrink-0"></i>
-                <span class="truncate text-xs">{{ company.email || '-' }}</span>
-              </div>
+             <!-- Phone -->
+            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+               <i class="fas fa-phone w-3 text-center text-slate-300 group-hover:text-blue-400 transition-colors"></i>
+               <span class="truncate">{{ company.no_telp || '-' }}</span>
             </div>
-
-            <!-- View Details Button -->
-            <div class="mt-4 flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-              <span class="text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline">
-                Lihat Detail
-              </span>
-              <i class="fas fa-arrow-right text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform"></i>
+             <!-- Est -->
+            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+               <i class="fas fa-history w-3 text-center text-slate-300 group-hover:text-blue-400 transition-colors"></i>
+               <span class="truncate">Est. {{ company.tahun_berdiri || 'N/A' }}</span>
             </div>
-          </NuxtLink>
+          </div>
+
+          <!-- Quick Actions Footer -->
+          <div class="flex items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-700/50">
+             <button
+              v-if="company.profile_perusahaan_url"
+              @click.stop="viewProfileDocument(company)"
+              class="flex-1 px-2 py-1.5 bg-slate-50 hover:bg-red-50 dark:bg-slate-700/30 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-[11px] font-bold rounded border border-slate-200 dark:border-slate-600/50 hover:border-red-200 transition-all flex items-center justify-center gap-1.5"
+            >
+              <i class="fas fa-file-pdf"></i>
+              PROFIL
+            </button>
+             <button
+              v-else
+              disabled
+              class="flex-1 px-2 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-300 text-[11px] font-bold rounded border border-slate-100 dark:border-slate-700 cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <i class="fas fa-times"></i>
+              NO DATA
+            </button>
+
+            <button 
+              class="px-2 py-1.5 text-slate-400 hover:text-blue-600 bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+            >
+              <i class="fas fa-arrow-right text-xs"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Empty State -->
-    <div v-else class="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center border border-gray-200 dark:border-gray-700">
-      <div class="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center mx-auto mb-6">
-        <i class="fas fa-building text-4xl text-gray-400"></i>
+    <!-- Empty Tech State -->
+    <div v-else class="relative z-10 max-w-sm mx-auto mt-20 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-10">
+      <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-400">
+        <i class="fas fa-database text-2xl"></i>
       </div>
-      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-        Belum Ada Data Perusahaan
-      </h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">
-        Silakan tambahkan data perusahaan terlebih dahulu
-      </p>
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Database Kosong</h3>
+      <p class="text-sm text-slate-500 mb-6">Belum ada entitas perusahaan terdaftar dalam sistem.</p>
       <button
         @click="openAddModal"
-        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center gap-2"
+        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 w-full"
       >
         <i class="fas fa-plus"></i>
-        <span>Tambah Perusahaan</span>
+        Input Data
       </button>
     </div>
 
-    <!-- Detail Modal -->
-    <BaseModal :show="showDetailModal" @close="showDetailModal = false" max-width="3xl">
-      <template #header>
-        <div>
-          <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Detail Perusahaan</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Informasi lengkap perusahaan</p>
-        </div>
-      </template>
+    <!-- Modals (Re-used) -->
+    <BaseModal 
+      :show="showEditModal" 
+      @close="closeEditModal" 
+      :title="isEditMode ? 'Edit Data Perusahaan' : 'Registrasi Perusahaan Baru'"
+      subtitle="Pastikan data sesuai dengan dokumen legalitas."
+      max-width="3xl"
+    >
       <template #body>
-        <div v-if="selectedCompany" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div v-for="(value, key) in selectedCompany" :key="key" class="space-y-2">
-              <label class="text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                {{ formatFieldName(key) }}
-              </label>
-              <div class="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                <p class="text-gray-900 dark:text-white">
-                  {{ value || '-' }}
-                </p>
+        <form @submit.prevent="saveEdit" class="space-y-5">
+           <!-- Form content similar but with updated styling -->
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="space-y-4">
+              <FormInput
+                v-if="isEditMode"
+                v-model="editForm.id_perusahaan"
+                label="SYSTEM ID"
+                disabled
+                class="font-mono text-sm"
+              />
+              <FormInput
+                v-model="editForm.nama_perusahaan"
+                label="NAMA ENTITAS BADAN USAHA"
+                placeholder="PT. / CV."
+                required
+                class="font-bold"
+              />
+               <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                  Status Kantor
+                </label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" v-model="editForm.status" value="Pusat" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Pusat</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" v-model="editForm.status" value="Cabang" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Cabang</span>
+                  </label>
+                </div>
               </div>
             </div>
-          </div>
+
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                 <FormInput
+                  v-model="editForm.tahun_berdiri"
+                  label="TAHUN BERDIRI"
+                  type="number"
+                  placeholder="YYYY"
+                />
+                <FormInput
+                  v-model="editForm.npwp"
+                  label="NPWP"
+                  placeholder="XX.XXX.XXX.X"
+                />
+              </div>
+               <FormInput
+                v-model="editForm.email"
+                label="EMAIL RESMI"
+                type="email"
+              />
+               <FormInput
+                v-model="editForm.no_telp"
+                label="NO. TELEPON"
+              />
+            </div>
+           </div>
+           
+           <FormInput
+              v-model="editForm.alamat"
+              label="ALAMAT LENGKAP"
+              type="textarea"
+              rows="2"
+            />
+        </form>
+      </template>
+
+      <template #footer>
+        <button 
+          @click="closeEditModal"
+          class="px-5 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-colors"
+        >
+          BATAL
+        </button>
+        <button 
+          @click="saveEdit" 
+          :disabled="saving"
+          class="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2"
+        >
+          <i v-if="saving" class="fas fa-circle-notch animate-spin"></i>
+          {{ saving ? 'SAVING...' : 'SIMPAN DATA' }}
+        </button>
+      </template>
+    </BaseModal>
+
+    <!-- Profile Viewer Modal (Clean) -->
+    <BaseModal 
+      :show="showProfileModal" 
+      @close="showProfileModal = false" 
+      max-width="5xl"
+      :title="selectedCompany?.nama_perusahaan"
+      subtitle="PREVIEW DOKUMEN PROFIL"
+    >
+      <template #body>
+         <div v-if="selectedCompany?.profile_perusahaan_url" class="relative bg-slate-900 rounded-lg overflow-hidden shadow-inner w-full h-[70vh]">
+          <iframe 
+            :src="getGoogleDrivePreviewUrl(selectedCompany.profile_perusahaan_url)" 
+            class="w-full h-full"
+            frameborder="0"
+          ></iframe>
+        </div>
+        <div v-else class="h-40 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+          <i class="fas fa-file-excel text-3xl mb-2 opacity-50"></i>
+          <p class="text-sm font-medium">File offline / tidak tersedia</p>
         </div>
       </template>
       <template #footer>
-        <button
-          @click="showDetailModal = false"
-          class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-colors"
-        >
-          Tutup
-        </button>
+          <div class="flex items-center gap-2">
+             <span class="text-xs text-slate-400 mr-2">EXTERNAL VIEWER:</span>
+             <a
+              v-if="selectedCompany?.profile_perusahaan_url"
+              :href="selectedCompany.profile_perusahaan_url"
+              target="_blank"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded flex items-center gap-2 transition-colors"
+            >
+              <i class="fas fa-external-link-alt"></i>
+              GOOGLE DRIVE
+            </a>
+          </div>
       </template>
     </BaseModal>
-
-    <!-- Add/Edit Modal -->
-    <BaseModal :show="showEditModal" @close="closeEditModal" max-width="3xl">
-      <template #header>
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ isEditMode ? 'Edit Perusahaan' : 'Tambah Perusahaan' }}
-        </h3>
-      </template>
-      <template #body>
-        <form @submit.prevent="saveEdit" class="space-y-4">
-          <FormInput
-            v-if="isEditMode"
-            v-model="editForm.id_perusahaan"
-            label="ID Perusahaan"
-            disabled
-          />
-
-          <FormInput
-            v-model="editForm.nama_perusahaan"
-            label="Nama Perusahaan"
-            placeholder="Masukkan nama perusahaan"
-            required
-          />
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Status Perusahaan
-              </label>
-              <select
-                v-model="editForm.status_perusahaan"
-                class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-gray-900 dark:text-white"
-              >
-                <option value="" disabled>-- Pilih Status --</option>
-                <option value="Pusat">Pusat</option>
-                <option value="Cabang">Cabang</option>
-              </select>
-            </div>
-
-            <FormInput
-              v-model="editForm.email"
-              label="Email"
-              type="email"
-              placeholder="email@perusahaan.com"
-            />
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <FormInput
-              v-model="editForm.no_telp"
-              label="No. Telepon"
-              placeholder="08xxx atau 021-xxx"
-            />
-
-            <FormInput
-              v-model="editForm.no_fax"
-              label="No. Fax"
-              placeholder="021-xxx"
-            />
-          </div>
-
-          <FormInput
-            v-model="editForm.alamat_kantor_pusat"
-            label="Alamat"
-            type="textarea"
-            rows="3"
-            placeholder="Masukkan alamat kantor pusat"
-          />
-        </form>
-      </template>
-      <template #footer>
-        <button
-          type="button"
-          @click="closeEditModal"
-          class="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl transition-colors"
-        >
-          Batal
-        </button>
-        <button
-          @click="saveEdit"
-          :disabled="saving"
-          class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ saving ? 'Menyimpan...' : (isEditMode ? 'Update' : 'Simpan') }}
-        </button>
-      </template>
-    </BaseModal>
-
-    <!-- Confirm Dialog -->
-    <ConfirmDialog
-      :show="showConfirmDialog"
-      type="danger"
-      title="Konfirmasi Hapus"
-      :message="`Apakah Anda yakin ingin menghapus perusahaan: ${companyToDelete?.nama_perusahaan}?`"
-      confirm-text="Hapus"
-      cancel-text="Batal"
-      loading-text="Menghapus..."
-      :loading="deleting"
-      @confirm="handleDelete"
-      @cancel="showConfirmDialog = false"
-    />
 
     <!-- Toast Notification -->
     <BaseToast
@@ -283,10 +302,8 @@
 </template>
 
 <script setup>
-// Import components explicitly
 import BaseModal from '~/components/BaseModal.vue'
 import BaseToast from '~/components/BaseToast.vue'
-import ConfirmDialog from '~/components/ConfirmDialog.vue'
 import FormInput from '~/components/FormInput.vue'
 
 definePageMeta({
@@ -295,6 +312,7 @@ definePageMeta({
 
 const config = useRuntimeConfig()
 const apiBaseUrl = config.public.apiBaseUrl
+const router = useRouter()
 
 // Use toast composable
 const { toast, success, error: showError, hideToast } = useToast()
@@ -302,100 +320,155 @@ const { toast, success, error: showError, hideToast } = useToast()
 const loading = ref(true)
 const companies = ref([])
 const showEditModal = ref(false)
-const showDetailModal = ref(false)
-const showConfirmDialog = ref(false)
+const showProfileModal = ref(false)
 const selectedCompany = ref(null)
 const editingCompany = ref(null)
-const companyToDelete = ref(null)
 const isEditMode = ref(false)
 const saving = ref(false)
-const deleting = ref(false)
+const imageErrors = ref({})
 
 const editForm = ref({
   id_perusahaan: '',
   nama_perusahaan: '',
-  status_perusahaan: '',
+  status: 'Pusat',
   email: '',
   no_telp: '',
   no_fax: '',
-  alamat_kantor_pusat: ''
+  npwp: '',
+  tahun_berdiri: '',
+  alamat: ''
 })
 
-// Format field name
-const formatFieldName = (key) => {
-  return key.replace(/_/g, ' ')
+// === Helpers ===
+
+const getInitials = (name) => {
+  if (!name) return '?'
+  // Ambil 2 huruf pertama dari 2 kata pertama
+  const words = name.replace(/[^\w\s]/gi, '').split(/\s+/).filter(w => w.length > 0)
+  if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
 }
 
-// View detail
-const viewDetail = (company) => {
-  selectedCompany.value = company
-  showDetailModal.value = true
-}
-
-// Fetch companies on mount
-const fetchCompanies = async (silent = false) => {
-  try {
-    if (!silent) loading.value = true
-    const response = await fetch(`${apiBaseUrl}/companies`)
-    if (response.ok) {
-      companies.value = await response.json()
-    } else {
-      console.error('Failed to fetch companies:', response.status)
-      if (!silent) showError('Gagal!', 'Tidak dapat memuat data perusahaan')
+// === LOGO HANDLER (NEW FEATURE) ===
+// Converts raw Google Drive links to usable image URLs
+const getCompanyLogoUrl = (company) => {
+  const url = company.logo_url
+  if (!url) return '' // Return empty string to trigger fallback
+  
+  if (url.includes('drive.google.com')) {
+    // Try to extract ID
+    let id = ''
+    const parts = url.split('/')
+    
+    // Case 1: .../d/ID/...
+    const dIndex = parts.indexOf('d')
+    if (dIndex !== -1 && parts[dIndex + 1]) {
+      id = parts[dIndex + 1]
+    } 
+    // Case 2: ...id=ID...
+    else if (url.includes('id=')) {
+      id = url.split('id=')[1].split('&')[0]
     }
-  } catch (error) {
-    console.error('Error fetching companies:', error)
-    if (!silent) showError('Error!', error.message || 'Terjadi kesalahan')
+
+    if (id) {
+      // Use Google Drive Export endpoint for images
+      return `https://drive.google.com/uc?export=view&id=${id}`
+    }
+  }
+  
+  return url
+}
+
+const shouldShowLogo = (company) => {
+  if (!company.logo_url) return false
+  if (imageErrors.value[company.id_perusahaan]) return false
+  return true
+}
+
+const handleImageError = (e, company) => {
+  // Mark this company as having a broken image to show fallback
+  imageErrors.value[company.id_perusahaan] = true
+}
+
+const getGoogleDrivePreviewUrl = (url) => {
+  if (!url) return ''
+  if (url.includes('/view')) return url.replace('/view', '/preview')
+  return url
+}
+
+// === Navigation ===
+
+const navigateToDetail = (id) => {
+  router.push(`/database/companies/${id}`)
+}
+
+// === Data Fetching ===
+
+const fetchCompanies = async () => {
+  loading.value = true
+  // Reset image errors on refresh
+  imageErrors.value = {}
+  
+  try {
+    const response = await fetch(`${apiBaseUrl}/companies`) // Update endpoint
+    if (!response.ok) throw new Error('Failed to fetch data')
+    
+    const result = await response.json()
+    // Handle wrapped response
+    companies.value = Array.isArray(result) ? result : (result.data || [])
+    
+    // Check if we need to correct image URLs in memory
+    companies.value.forEach(c => {
+       // Debugging purposes
+       if(c.logo_url) console.log(`Loaded logo for ${c.nama_perusahaan}:`, c.logo_url)
+    })
+    
+  } catch (err) {
+    showError('Gagal memuat data perusahaan: ' + err.message)
   } finally {
-    if (!silent) loading.value = false
+    loading.value = false
   }
 }
 
-// Open add modal
+// === CRUD Actions ===
+
 const openAddModal = () => {
   isEditMode.value = false
   editForm.value = {
     id_perusahaan: '',
     nama_perusahaan: '',
-    status_perusahaan: '',
+    status: 'Pusat',
     email: '',
     no_telp: '',
     no_fax: '',
-    alamat_kantor_pusat: ''
+    npwp: '',
+    tahun_berdiri: '',
+    alamat: ''
   }
   showEditModal.value = true
 }
 
-// Handle edit - Show modal
-const handleEdit = (company) => {
+const openEditModal = (company) => { // Currently not called from grid but ready
   isEditMode.value = true
   editingCompany.value = company
-  editForm.value = {
-    id_perusahaan: company.id_perusahaan,
-    nama_perusahaan: company.nama_perusahaan,
-    status_perusahaan: company.status_perusahaan || '',
-    email: company.email || '',
-    no_telp: company.no_telp || '',
-    no_fax: company.no_fax || '',
-    alamat_kantor_pusat: company.alamat_kantor_pusat || ''
-  }
+  editForm.value = { ...company }
   showEditModal.value = true
 }
 
-// Close edit modal
 const closeEditModal = () => {
   showEditModal.value = false
   editingCompany.value = null
 }
 
-// Save edited company
 const saveEdit = async () => {
+  saving.value = true
   try {
-    saving.value = true
-    const url = isEditMode.value
+    const url = isEditMode.value 
       ? `${apiBaseUrl}/companies/${editForm.value.id_perusahaan}`
       : `${apiBaseUrl}/companies`
-    
+      
     const method = isEditMode.value ? 'PUT' : 'POST'
     
     const response = await fetch(url, {
@@ -405,72 +478,26 @@ const saveEdit = async () => {
       },
       body: JSON.stringify(editForm.value)
     })
+
+    if (!response.ok) throw new Error('Gagal menyimpan data')
+
+    success(isEditMode.value ? 'Data berhasil diperbarui' : 'Perusahaan baru ditambahkan')
+    closeEditModal()
+    await fetchCompanies()
     
-    if (response.ok) {
-      success(
-        'Berhasil!',
-        isEditMode.value ? 'Data perusahaan berhasil diupdate' : 'Data perusahaan berhasil ditambahkan'
-      )
-      closeEditModal()
-      await fetchCompanies()
-    } else {
-      const error = await response.json()
-      showError('Gagal!', error.message || 'Terjadi kesalahan saat menyimpan data')
-    }
-  } catch (error) {
-    console.error('Error updating company:', error)
-    showError('Error!', error.message || 'Terjadi kesalahan')
+  } catch (err) {
+    showError(err.message)
   } finally {
     saving.value = false
   }
 }
 
-// Confirm delete
-const confirmDelete = (company) => {
-  companyToDelete.value = company
-  showConfirmDialog.value = true
+const viewProfileDocument = (company) => {
+  selectedCompany.value = company
+  showProfileModal.value = true
 }
 
-// Handle delete with confirmation
-const handleDelete = async () => {
-  try {
-    deleting.value = true
-    const response = await fetch(`${apiBaseUrl}/companies/${companyToDelete.value.id_perusahaan}`, {
-      method: 'DELETE'
-    })
-    
-    if (response.ok) {
-      success('Berhasil!', 'Data perusahaan berhasil dihapus')
-      showConfirmDialog.value = false
-      companyToDelete.value = null
-      await fetchCompanies()
-    } else {
-      const error = await response.json()
-      showError('Gagal!', error.message || 'Terjadi kesalahan saat menghapus data')
-    }
-  } catch (error) {
-    console.error('Error deleting company:', error)
-    showError('Error!', error.message || 'Terjadi kesalahan')
-  } finally {
-    deleting.value = false
-  }
-}
-
-// Auto refresh interval
-let refreshInterval = null
-
-// Fetch on mount
 onMounted(() => {
   fetchCompanies()
-  
-  // Auto refresh every 5 seconds
-  refreshInterval = setInterval(() => {
-    fetchCompanies(true)
-  }, 5000)
-})
-
-// Clean up interval
-onUnmounted(() => {
-  if (refreshInterval) clearInterval(refreshInterval)
 })
 </script>

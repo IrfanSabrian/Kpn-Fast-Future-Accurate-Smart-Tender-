@@ -2,10 +2,10 @@
   <ClientOnly>
     <Teleport to="body">
       <Transition
-        enter-active-class="transition duration-300 ease-out"
+        enter-active-class="transition duration-200 ease-out"
         enter-from-class="opacity-0"
         enter-to-class="opacity-100"
-        leave-active-class="transition duration-200 ease-in"
+        leave-active-class="transition duration-150 ease-in"
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
@@ -15,9 +15,9 @@
           role="dialog"
           aria-modal="true"
         >
-          <!-- Backdrop with Blur -->
+          <!-- Backdrop (Reduced blur for performance) -->
           <div 
-            class="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity" 
+            class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" 
             @click="$emit('close')"
           ></div>
 
@@ -31,34 +31,34 @@
             leave-to-class="opacity-0 scale-95 translate-y-4"
           >
             <div 
-              class="relative w-full bg-white dark:bg-gray-800 rounded-[2rem] shadow-2xl border border-white/20 dark:border-gray-700 flex flex-col max-h-[90vh] transform transition-all overflow-hidden"
+              class="relative w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl flex flex-col max-h-[90vh] transition-all transform overflow-hidden"
               :class="maxWidthClass"
             >
               <!-- Header -->
-              <div class="px-8 py-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-md z-10 flex-shrink-0 rounded-t-[2rem]">
+              <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 z-10 flex-shrink-0">
                 <div v-if="$slots.header">
                   <slot name="header"></slot>
                 </div>
                 <div v-else>
-                  <h3 class="text-2xl font-black text-gray-900 dark:text-white">{{ title }}</h3>
-                  <p v-if="subtitle" class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ subtitle }}</p>
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ title }}</h3>
+                  <p v-if="subtitle" class="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{{ subtitle }}</p>
                 </div>
                 <button 
                   @click="$emit('close')" 
-                  class="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  class="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center justify-center transition-colors outline-none"
                 >
-                  <i class="fas fa-times"></i>
+                  <i class="fas fa-times text-sm"></i>
                 </button>
               </div>
 
-              <!-- Content (Scrollable) - flex-grow memungkinkan mengambil sisa ruang -->
-              <div class="flex-grow overflow-y-auto custom-scrollbar px-8 py-6">
+              <!-- Content (Scrollable) -->
+              <div class="flex-grow overflow-y-auto custom-scrollbar px-6 py-6">
                 <slot name="body" v-if="$slots.body"></slot>
                 <slot v-else></slot>
               </div>
 
               <!-- Footer (Always Visible at Bottom) -->
-              <div v-if="$slots.footer" class="px-8 py-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex-shrink-0 flex justify-end gap-4 rounded-b-[2rem]">
+              <div v-if="$slots.footer" class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex-shrink-0 flex justify-end gap-3">
                 <slot name="footer"></slot>
               </div>
             </div>
@@ -109,18 +109,16 @@ const maxWidthClass = computed(() => {
 
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.5);
-  border-radius: 20px;
-  border: 3px solid transparent;
-  background-clip: content-box;
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(107, 114, 128, 0.8);
+  background-color: rgba(107, 114, 128, 0.6);
 }
 </style>

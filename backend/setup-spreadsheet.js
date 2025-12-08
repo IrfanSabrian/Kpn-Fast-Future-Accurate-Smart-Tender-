@@ -101,7 +101,7 @@ async function insertData(sheets, spreadsheetId, sheetName, data) {
 // SPREADSHEET 1: PERUSAHAAN
 const dataPerusahaan = {
   db_profil: [
-    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'npwp', 'status', 'profile_perusahaan', 'tanggal_input'],
+    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'npwp', 'status', 'profile_perusahaan_url', 'tanggal_input'],
     ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', '96.730.481.7-707.000', 'Pusat', 'https://drive.google.com/file/d/1h2iwwLjjmieDP7AvsVd2Qq0MnWCcccuK/view?usp=drive_link', '2025-12-25 10:30:00']
   ],
   

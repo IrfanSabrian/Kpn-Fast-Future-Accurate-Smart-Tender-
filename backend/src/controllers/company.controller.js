@@ -9,19 +9,15 @@ import googleSheetsService from '../services/googleSheets.service.js';
 export const getAllCompanies = async (req, res) => {
   try {
     const companies = await googleSheetsService.getAllProfilPerusahaan();
-
-    res.json({
-      success: true,
-      message: 'Company profiles retrieved successfully',
-      data: companies,
-      count: companies.length,
-    });
+    
+    // Return array directly for frontend compatibility
+    res.json(companies);
   } catch (error) {
     console.error('Error in getAllCompanies:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to get company profiles',
-      data: null,
+      error: error.stack
     });
   }
 };

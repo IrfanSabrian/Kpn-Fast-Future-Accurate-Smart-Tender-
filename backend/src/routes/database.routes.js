@@ -6,9 +6,10 @@ const router = express.Router();
 // Get all companies
 router.get('/', async (req, res) => {
   try {
-    const companies = await googleSheetsService.getAllCompanies();
+    const companies = await googleSheetsService.getAllProfilPerusahaan();
     res.json(companies);
   } catch (error) {
+    console.error('Error fetching companies:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -16,12 +17,13 @@ router.get('/', async (req, res) => {
 // Get company by ID
 router.get('/:id', async (req, res) => {
   try {
-    const company = await googleSheetsService.getCompanyById(req.params.id);
+    const company = await googleSheetsService.getProfilPerusahaanById(req.params.id);
     if (!company) {
       return res.status(404).json({ error: 'Company not found' });
     }
     res.json(company);
   } catch (error) {
+    console.error('Error fetching company:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -29,9 +31,10 @@ router.get('/:id', async (req, res) => {
 // Add new company
 router.post('/', async (req, res) => {
   try {
-    const result = await googleSheetsService.addCompany(req.body);
+    const result = await googleSheetsService.addProfilPerusahaan(req.body);
     res.status(201).json(result);
   } catch (error) {
+    console.error('Error adding company:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -39,9 +42,10 @@ router.post('/', async (req, res) => {
 // Update company by ID
 router.put('/:id', async (req, res) => {
   try {
-    const result = await googleSheetsService.updateCompany(req.params.id, req.body);
+    const result = await googleSheetsService.updateProfilPerusahaan(req.params.id, req.body);
     res.json(result);
   } catch (error) {
+    console.error('Error updating company:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -49,9 +53,10 @@ router.put('/:id', async (req, res) => {
 // Delete company by ID
 router.delete('/:id', async (req, res) => {
   try {
-    const result = await googleSheetsService.deleteCompany(req.params.id);
+    const result = await googleSheetsService.deleteProfilPerusahaan(req.params.id);
     res.json(result);
   } catch (error) {
+    console.error('Error deleting company:', error);
     res.status(500).json({ error: error.message });
   }
 });

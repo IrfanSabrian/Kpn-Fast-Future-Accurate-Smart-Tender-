@@ -2,55 +2,62 @@
   <div>
     <label 
       v-if="label" 
-      class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+      class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 ml-1"
     >
       {{ label }}
-      <span v-if="required" class="text-red-500">*</span>
+      <span v-if="required" class="text-blue-500">*</span>
     </label>
     
     <!-- Text Input -->
-    <input
-      v-if="type !== 'textarea' && type !== 'select'"
-      :type="type"
-      :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
-      :placeholder="placeholder"
-      :required="required"
-      :disabled="disabled"
-      class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400"
-    />
-    
-    <!-- Textarea -->
-    <textarea
-      v-else-if="type === 'textarea'"
-      :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
-      :rows="rows || 3"
-      :placeholder="placeholder"
-      :required="required"
-      :disabled="disabled"
-      class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-gray-900 dark:text-white resize-none"
-    ></textarea>
-    
-    <!-- Select -->
-    <select
-      v-else-if="type === 'select'"
-      :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
-      :required="required"
-      :disabled="disabled"
-      class="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-gray-900 dark:text-white"
-    >
-      <option 
-        v-if="placeholder" 
-        value="" 
-        disabled 
-        :selected="!modelValue"
-      >
-        {{ placeholder }}
-      </option>
-      <slot name="options"></slot>
-    </select>
+    <div class="relative group">
+      <input
+        v-if="type !== 'textarea' && type !== 'select'"
+        :type="type"
+        :value="modelValue"
+        @input="$emit('update:modelValue', $event.target.value)"
+        :placeholder="placeholder"
+        :required="required"
+        :disabled="disabled"
+        class="w-full px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed transition-all"
+        :class="{ 'font-mono': type === 'number' || type === 'date' || label?.toLowerCase().includes('id') || label?.toLowerCase().includes('npwp') || label?.toLowerCase().includes('kontrak') || label?.toLowerCase().includes('nik') }"
+      />
+      
+      <!-- Textarea -->
+      <textarea
+        v-else-if="type === 'textarea'"
+        :value="modelValue"
+        @input="$emit('update:modelValue', $event.target.value)"
+        :rows="rows || 3"
+        :placeholder="placeholder"
+        :required="required"
+        :disabled="disabled"
+        class="w-full px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 transition-all resize-none"
+      ></textarea>
+      
+      <!-- Select -->
+      <div v-else-if="type === 'select'" class="relative">
+        <select
+          :value="modelValue"
+          @input="$emit('update:modelValue', $event.target.value)"
+          :required="required"
+          :disabled="disabled"
+          class="w-full px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-60 transition-all appearance-none cursor-pointer"
+        >
+          <option 
+            v-if="placeholder" 
+            value="" 
+            disabled 
+            :selected="!modelValue"
+          >
+            {{ placeholder }}
+          </option>
+          <slot name="options"></slot>
+        </select>
+        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
+          <i class="fas fa-chevron-down text-xs"></i>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 

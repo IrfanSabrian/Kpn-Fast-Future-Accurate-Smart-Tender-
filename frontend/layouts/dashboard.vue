@@ -1,92 +1,107 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-    <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 z-40 h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-colors duration-300">
-      <!-- Logo -->
-      <div class="h-16 flex items-center justify-center px-6 border-b border-gray-200 dark:border-gray-700 gap-3 bg-gradient-to-br from-blue-50 to-violet-50 dark:from-gray-800 dark:to-gray-900">
-        <img src="/Logo.png" alt="KPN FAST" class="h-12 w-auto object-contain drop-shadow-lg" />
-        <h1 class="text-xl font-black tracking-tight">
-          <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600">KPN - Fast</span>
-        </h1>
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors duration-300 font-sans">
+    
+    <!-- ENGINEERING SIDEBAR (Control Panel) -->
+    <aside class="fixed left-0 top-0 z-50 h-screen w-[280px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col text-slate-600 dark:text-slate-300 shadow-xl transition-colors duration-300">
+      
+      <!-- Brand Header -->
+      <div class="h-24 flex items-center px-6 border-b border-slate-100 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 flex-shrink-0 bg-white dark:bg-slate-800 rounded-lg p-1 border border-slate-100 dark:border-slate-700 shadow-sm">
+             <img src="/Logo.png" alt="KPN Logo" class="w-full h-full object-contain" />
+          </div>
+          <div>
+            <h1 class="text-lg font-black text-slate-800 dark:text-white tracking-tight leading-none mb-1">KPN FAST</h1>
+            <p class="text-[10px] uppercase font-mono text-slate-500 tracking-widest bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded inline-block">System v2.0</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Navigation -->
-      <nav class="p-3 space-y-1">
-        <NuxtLink
-          to="/"
-          class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-violet-50 dark:hover:from-gray-700 dark:hover:to-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 text-sm font-medium group"
-          active-class="bg-gradient-to-r from-blue-50 to-violet-50 dark:from-gray-700 dark:to-gray-700 text-blue-600 dark:text-blue-400 font-bold shadow-sm ring-1 ring-blue-100 dark:ring-gray-600"
-        >
-          <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-gray-700 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-            <i class="fas fa-th-large text-xs"></i>
-          </div>
-          <span>Dashboard</span>
-        </NuxtLink>
-
-        <!-- Database Menu with Sub-items -->
+      <!-- Main Navigation -->
+      <nav class="flex-1 overflow-y-auto px-4 py-8 space-y-8 custom-scrollbar">
+        
+        <!-- Section: GENERAL -->
         <div>
-          <button
-            @click="toggleDatabaseMenu"
-            class="w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-violet-50 dark:hover:from-gray-700 dark:hover:to-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 text-sm font-medium group"
-            :class="{ 'bg-gradient-to-r from-blue-50 to-violet-50 dark:from-gray-700 dark:to-gray-700 text-blue-600 dark:text-blue-400 font-bold ring-1 ring-blue-100 dark:ring-gray-600': isDatabaseActive }"
-          >
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-lg bg-violet-100 dark:bg-gray-700 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                <i class="fas fa-database text-xs"></i>
-              </div>
-              <span>Database</span>
-            </div>
-            <i class="fas fa-chevron-down transition-transform text-xs" :class="{ 'rotate-180': databaseMenuOpen }"></i>
-          </button>
-          
-          <!-- Sub Menu -->
-          <div v-show="databaseMenuOpen" class="ml-11 mt-1 space-y-0.5">
-            <NuxtLink
-              to="/database/companies"
-              class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-medium group"
-              active-class="bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400 font-semibold ring-1 ring-blue-100 dark:ring-gray-600"
-            >
-              <i class="fas fa-building w-4 text-center group-hover:scale-110 transition-transform"></i>
-              <span>Perusahaan</span>
-            </NuxtLink>
-            
-            <NuxtLink
-              to="/database/personil"
-              class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-all font-medium group"
-              active-class="bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-blue-400 font-semibold ring-1 ring-blue-100 dark:ring-gray-600"
-            >
-              <i class="fas fa-users w-4 text-center group-hover:scale-110 transition-transform"></i>
-              <span>Personil</span>
-            </NuxtLink>
+          <h3 class="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-4 px-3">General</h3>
+          <div class="space-y-1">
+             <NuxtLink to="/" 
+               class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold transition-all group hover:bg-slate-50 dark:hover:bg-slate-800"
+               active-class="bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shadow-sm"
+             >
+               <i class="fas fa-th-large w-5 text-center group-hover:text-blue-500 transition-colors"></i>
+               <span>Dashboard</span>
+             </NuxtLink>
+             <div class="opacity-50 pointer-events-none flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium">
+               <i class="fas fa-chart-pie w-5 text-center"></i>
+               <span>Analytics</span>
+               <span class="ml-auto text-[9px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 font-mono">SOON</span>
+             </div>
           </div>
         </div>
+
+        <!-- Section: DATABASE -->
+        <div>
+          <h3 class="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-4 px-3">Master Data</h3>
+          <div class="space-y-1">
+             <NuxtLink to="/database/companies" 
+               class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold transition-all group hover:bg-slate-50 dark:hover:bg-slate-800"
+               active-class="bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shadow-sm"
+             >
+               <i class="fas fa-building w-5 text-center group-hover:text-blue-500 transition-colors"></i>
+               <span>Perusahaan</span>
+             </NuxtLink>
+             <NuxtLink to="/database/personil" 
+               class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold transition-all group hover:bg-slate-50 dark:hover:bg-slate-800"
+               active-class="bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shadow-sm"
+             >
+               <i class="fas fa-users w-5 text-center group-hover:text-blue-500 transition-colors"></i>
+               <span>Personil Ahli</span>
+             </NuxtLink>
+             <div class="opacity-50 pointer-events-none flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium">
+               <i class="fas fa-folder-open w-5 text-center"></i>
+               <span>Proyek</span>
+               <span class="ml-auto text-[9px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 font-mono">DEV</span>
+             </div>
+          </div>
+        </div>
+
       </nav>
+
+      <!-- User Profile / Footer -->
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+        <div class="flex items-center gap-3 group cursor-pointer" @click="editProfile" title="Klik untuk edit profil">
+           <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border border-slate-300 dark:border-slate-600 shadow-sm relative">
+             <img v-if="userProfile.photo" :src="userProfile.photo" class="w-full h-full object-cover" @error="userProfile.photo = null" />
+             <span v-else class="text-xs font-bold text-slate-600 dark:text-slate-300">{{ getInitials(userProfile.name) }}</span>
+             
+             <!-- Edit overlay on hover -->
+             <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+               <i class="fas fa-pen text-white text-[10px]"></i>
+             </div>
+           </div>
+           
+           <div class="flex-1 min-w-0">
+             <h4 class="text-sm font-bold text-slate-800 dark:text-white truncate" :title="userProfile.name">{{ userProfile.name }}</h4>
+             <p class="text-[10px] text-slate-500 font-mono truncate" :title="userProfile.email">{{ userProfile.email }}</p>
+           </div>
+           
+           <button @click.stop="toggleTheme" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
+              <i class="fas" :class="isDark ? 'fa-sun' : 'fa-moon'"></i>
+           </button>
+        </div>
+      </div>
+
     </aside>
 
-    <!-- Main Content -->
-    <div class="ml-64 transition-all duration-300">
-      <!-- Top Bar -->
-      <header class="h-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-8 sticky top-0 z-30 transition-colors duration-300">
-        <div>
-          <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ pageTitle }}</h2>
-        </div>
-        <div class="flex items-center gap-6">
-          <!-- Theme Toggle -->
-          <button 
-            @click="toggleTheme" 
-            class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all flex items-center justify-center focus:outline-none"
-            :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-          >
-            <i class="fas" :class="isDark ? 'fa-sun' : 'fa-moon'"></i>
-          </button>
-        </div>
-      </header>
-
-      <!-- Page Content -->
-      <main class="p-8">
-        <slot />
-      </main>
+    <!-- Main Content Area -->
+    <div class="ml-[280px] flex-1 flex flex-col min-h-screen transition-all duration-300">
+       <main class="flex-1 relative">
+          <!-- Optional top fade for seamless scroll feeling -->
+          <div class="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-slate-50 to-transparent dark:from-slate-950 z-10 pointer-events-none"></div>
+          <slot />
+       </main>
     </div>
+
   </div>
 </template>
 
@@ -96,48 +111,70 @@ import { useTheme } from '~/composables/useTheme'
 const route = useRoute()
 const { isDark, toggleTheme, initTheme } = useTheme()
 
-// Database menu state
-const databaseMenuOpen = ref(false)
-
-// Initialize theme on mount
-onMounted(() => {
-  initTheme()
-  // Auto-open database menu if on database route (initial load only)
-  if (route.path.startsWith('/database')) {
-    databaseMenuOpen.value = true
-  }
+// User Profile Logic
+const userProfile = ref({
+  name: 'Administrator',
+  email: 'admin@kpn.co.id',
+  photo: null
 })
 
-// Do NOT auto-open dropdown on route change
-// Let user manually control dropdown state
-
-// Toggle database menu
-const toggleDatabaseMenu = () => {
-  databaseMenuOpen.value = !databaseMenuOpen.value
+const getInitials = (name) => {
+  return name ? name.substring(0, 2).toUpperCase() : 'AD'
 }
 
-// Check if database route is active
-const isDatabaseActive = computed(() => {
-  return route.path.startsWith('/database')
-})
-
-// Computed properties
-const pageTitle = computed(() => {
-  const titles = {
-    '/': 'Dashboard',
-    '/database': 'Database',
-    '/database/companies': 'Database Perusahaan',
-    '/database/personil': 'Database Personil',
-    '/database/projects': 'Database Project'
+const editProfile = () => {
+  // Simple prompt to allow customization
+  const newName = prompt("Masukkan Nama Lengkap Anda:", userProfile.value.name)
+  if (newName !== null) { // Check for cancel
+    const newEmail = prompt("Masukkan Email Anda:", userProfile.value.email)
+    // Optional photo
+    const newPhoto = prompt("URL Foto Profil (Optional - Kosongkan jika tidak ada):", userProfile.value.photo || '')
+    
+    if (newName && newEmail) {
+      userProfile.value = {
+        name: newName,
+        email: newEmail,
+        photo: newPhoto || null
+      }
+      // Save to storage
+      if (process.client) {
+         localStorage.setItem('kpn_user_profile', JSON.stringify(userProfile.value))
+      }
+    }
   }
-  
-  // Handle dynamic company detail routes
-  if (route.path.startsWith('/database/companies/') && route.params.id) {
-    return 'Detail Perusahaan'
-  }
-  
-  return titles[route.path] || 'KPN FAST'
-})
+}
 
-const userEmail = computed(() => 'admin@kpn.co.id')
+// Initialize theme & profile
+onMounted(() => {
+  initTheme()
+  
+  if (process.client) {
+    // Load profile from storage
+    const savedProfile = localStorage.getItem('kpn_user_profile')
+    if (savedProfile) {
+      try {
+        userProfile.value = JSON.parse(savedProfile)
+      } catch (e) { console.error('Error parsing profile', e) }
+    }
+  }
+})
 </script>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.5);
+  border-radius: 20px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.8);
+}
+</style>
