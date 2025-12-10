@@ -29,9 +29,9 @@ export const getAllPersonnel = async (req, res) => {
 export const getPersonnelById = async (req, res) => {
   try {
     const { id } = req.params;
-    const personil = await googleSheetsService.getPersonilById(id);
+    const personel = await googleSheetsService.getPersonilById(id);
 
-    if (!personil) {
+    if (!personel) {
       return res.status(404).json({
         success: false,
         message: `Personnel with ID ${id} not found`,
@@ -42,7 +42,7 @@ export const getPersonnelById = async (req, res) => {
     res.json({
       success: true,
       message: 'Personnel retrieved successfully',
-      data: personil,
+      data: personel,
     });
   } catch (error) {
     console.error('Error in getPersonnelById:', error);

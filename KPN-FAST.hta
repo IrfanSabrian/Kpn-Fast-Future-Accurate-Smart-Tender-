@@ -230,7 +230,6 @@
                     // Only update if content changed to avoid flickering/scroll jump
                     if (el.innerText !== content) {
                         el.innerText = content;
-                        el.scrollTop = el.scrollHeight;
                     }
                 }
             } catch(e) {}

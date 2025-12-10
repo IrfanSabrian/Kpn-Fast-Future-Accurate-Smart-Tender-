@@ -37,13 +37,44 @@ app.get('/', (req, res) => {
     services: {
       database: {
         status: 'connected',
-        type: 'Google Sheets',
-        url: `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID}`
+        type: 'Google Sheets (Multiple Spreadsheets)',
+        spreadsheets: {
+          perusahaan: {
+            name: 'PERUSAHAAN',
+            description: '12 sheets (Perusahaan, Akta, Pejabat, NIB, Pengalaman, Project, dll)',
+            url: process.env.GOOGLE_SHEET_ID_PERUSAHAAN 
+              ? `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID_PERUSAHAAN}`
+              : 'Not configured'
+          },
+          personel: {
+            name: 'PERSONEL',
+            description: '2 sheets (Personel, Personil_Project)',
+            url: process.env.GOOGLE_SHEET_ID_PERSONEL 
+              ? `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID_PERSONEL}`
+              : 'Not configured'
+          },
+          kbli: {
+            name: 'KBLI',
+            description: '1 sheet (Klasifikasi Lapangan Usaha Indonesia)',
+            url: process.env.GOOGLE_SHEET_ID_KBLI 
+              ? `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID_KBLI}`
+              : 'Not configured'
+          },
+          proyek: {
+            name: 'PROYEK',
+            description: 'Project management data',
+            url: process.env.GOOGLE_SHEET_ID_PROYEK 
+              ? `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID_PROYEK}`
+              : 'Not configured'
+          }
+        }
       },
       storage: {
         status: 'connected',
         type: 'Google Drive',
-        url: `https://drive.google.com/drive/folders/${process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID}`
+        url: process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
+          ? `https://drive.google.com/drive/folders/${process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID}`
+          : 'Not configured'
       }
     }
   });
@@ -58,13 +89,44 @@ app.get('/api', (req, res) => {
     services: {
       database: {
         status: 'connected',
-        type: 'Google Sheets',
-        url: `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID}`
+        type: 'Google Sheets (Multiple Spreadsheets)',
+        spreadsheets: {
+          perusahaan: {
+            name: 'PERUSAHAAN',
+            description: '12 sheets (Perusahaan, Akta, Pejabat, NIB, Pengalaman, Project, dll)',
+            url: process.env.GOOGLE_SHEET_ID_PERUSAHAAN 
+              ? `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID_PERUSAHAAN}`
+              : 'Not configured'
+          },
+          personel: {
+            name: 'PERSONEL',
+            description: '2 sheets (Personel, Personil_Project)',
+            url: process.env.GOOGLE_SHEET_ID_PERSONEL 
+              ? `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID_PERSONEL}`
+              : 'Not configured'
+          },
+          kbli: {
+            name: 'KBLI',
+            description: '1 sheet (Klasifikasi Lapangan Usaha Indonesia)',
+            url: process.env.GOOGLE_SHEET_ID_KBLI 
+              ? `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID_KBLI}`
+              : 'Not configured'
+          },
+          proyek: {
+            name: 'PROYEK',
+            description: 'Project management data',
+            url: process.env.GOOGLE_SHEET_ID_PROYEK 
+              ? `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID_PROYEK}`
+              : 'Not configured'
+          }
+        }
       },
       storage: {
         status: 'connected',
         type: 'Google Drive',
-        url: `https://drive.google.com/drive/folders/${process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID}`
+        url: process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
+          ? `https://drive.google.com/drive/folders/${process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID}`
+          : 'Not configured'
       }
     }
   });

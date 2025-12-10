@@ -10,8 +10,19 @@ export const getAllCompanies = async (req, res) => {
   try {
     const companies = await googleSheetsService.getAllProfilPerusahaan();
     
-    // Return array directly for frontend compatibility
-    res.json(companies);
+    // Return only summary fields for list view (performance optimization)
+    const summary = companies.map(company => ({
+      id_perusahaan: company.id_perusahaan,
+      nama_perusahaan: company.nama_perusahaan,
+      no_telp: company.no_telp,
+      email: company.email,
+      tahun_berdiri: company.tahun_berdiri,
+      status: company.status,
+      lokal_logo: company.lokal_logo,
+      logo_perusahaan: company.logo_perusahaan
+    }));
+    
+    res.json(summary);
   } catch (error) {
     console.error('Error in getAllCompanies:', error);
     res.status(500).json({
@@ -22,97 +33,193 @@ export const getAllCompanies = async (req, res) => {
   }
 };
 
+// ========================================
+// COMPANY OVERVIEW - Main Profile Only
+// ========================================
 export const getCompanyById = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('🔍 GET /api/companies/' + id + ' (Overview Only)');
     
-    // 1. Get Main Profile
     const company = await googleSheetsService.getProfilPerusahaanById(id);
     
     if (!company) {
       return res.status(404).json({
         success: false,
         message: `Company with ID ${id} not found`,
-        data: null,
       });
     }
 
-    // 2. Fetch all related sub-modules in parallel for efficiency
-    const [
-      aktaData,
-      pejabatData,
-      nibData,
-      sbuData,
-      ktaData,
-      sertifikatData,
-      npwpData,
-      kswpData,
-      sptData,
-      pkpData,
-      kontrakData,
-      kbliRelData,
-      masterKbliData
-    ] = await Promise.all([
-      googleSheetsService.getSheetData('db_akta'),
-      googleSheetsService.getSheetData('db_pejabat'),
-      googleSheetsService.getSheetData('db_nib'),
-      googleSheetsService.getSheetData('db_sbu'),
-      googleSheetsService.getSheetData('db_kta'),
-      googleSheetsService.getSheetData('db_sertifikat_standar'),
-      googleSheetsService.getSheetData('db_npwp_perusahaan'),
-      googleSheetsService.getSheetData('db_kswp'),
-      googleSheetsService.getSheetData('db_spt'),
-      googleSheetsService.getSheetData('db_pkp'),
-      googleSheetsService.getSheetData('db_kontrak_pengalaman'),
-      googleSheetsService.getSheetData('db_perusahaan_kbli'),
-      googleSheetsService.getKbliMasterData() // Fetch Master KBLI from KBLI Spreadsheet
-    ]);
-
-    // 3. Attach filtered data to the response object
-    // Note: We attach them as separate keys or a 'sub_modules' object. 
-    // Attaching directly to root for easier access in frontend logic if preferred, 
-    // or grouped under 'relations'. Let's group to keep it clean.
-    
-    // Map KBLI codes to descriptions
-    const companyKbli = kbliRelData.filter(item => item.id_perusahaan === id);
-    const enrichedKbli = companyKbli.map(item => {
-        const master = masterKbliData.find(m => m.kode_kbli === item.kode_kbli);
-        return {
-            ...item,
-            nama_klasifikasi: master ? master.nama_klasifikasi : 'Unknown KBLI'
-        };
-    });
-    
-    const fullData = {
-      ...company,
-      relations: {
-        akta: aktaData.filter(item => item.id_perusahaan === id),
-        pejabat: pejabatData.filter(item => item.id_perusahaan === id),
-        nib: nibData.filter(item => item.id_perusahaan === id),
-        sbu: sbuData.filter(item => item.id_perusahaan === id),
-        kta: ktaData.filter(item => item.id_perusahaan === id),
-        sertifikat: sertifikatData.filter(item => item.id_perusahaan === id),
-        npwp: npwpData.filter(item => item.id_perusahaan === id),
-        kswp: kswpData.filter(item => item.id_perusahaan === id),
-        spt: sptData.filter(item => item.id_perusahaan === id),
-        pkp: pkpData.filter(item => item.id_perusahaan === id),
-        kontrak: kontrakData.filter(item => item.id_perusahaan === id),
-        kbli: enrichedKbli // Searchable/Enriched KBLI
-      }
-    };
-
-    res.json({
-      success: true,
-      message: 'Company profile and relations retrieved successfully',
-      data: fullData,
-    });
+    // Return only main company profile (overview data)
+    res.json(company);
   } catch (error) {
     console.error('Error in getCompanyById:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to get company profile',
-      data: null,
     });
+  }
+};
+
+// ========================================
+// SUB-MODULE ENDPOINTS - Lazy Loading
+// ========================================
+
+// GET /api/companies/:id/akta
+export const getCompanyAkta = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const aktaData = await googleSheetsService.getSheetData('db_akta');
+    const filtered = aktaData.filter(item => item.id_perusahaan === id);
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanyAkta:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/companies/:id/pejabat
+export const getCompanyPejabat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Fetch pejabat and personel data in parallel
+    const [pejabatData, personelData] = await Promise.all([
+      googleSheetsService.getSheetData('db_pejabat'),
+      googleSheetsService.getAllPersonil()
+    ]);
+    
+    // Filter pejabat for this company and join with personel data
+    const filtered = pejabatData
+      .filter(item => item.id_perusahaan === id)
+      .map(pejabat => {
+        // Find matching personel by id_personel
+        const personel = personelData.find(p => p.id_personel === pejabat.id_personel);
+        
+        return {
+          ...pejabat,
+          // Add only nama_lengkap from personel data
+          nama_lengkap: personel?.nama_lengkap || pejabat.id_personel || 'Unknown'
+        };
+      });
+    
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanyPejabat:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/companies/:id/nib
+export const getCompanyNib = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const nibData = await googleSheetsService.getSheetData('db_nib');
+    const filtered = nibData.filter(item => item.id_perusahaan === id);
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanyNib:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/companies/:id/sbu
+export const getCompanySbu = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sbuData = await googleSheetsService.getSheetData('db_sbu');
+    const filtered = sbuData.filter(item => item.id_perusahaan === id);
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanySbu:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/companies/:id/kta
+export const getCompanyKta = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const ktaData = await googleSheetsService.getSheetData('db_kta');
+    const filtered = ktaData.filter(item => item.id_perusahaan === id);
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanyKta:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/companies/:id/sertifikat
+export const getCompanySertifikat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sertifikatData = await googleSheetsService.getSheetData('db_sertifikat_standar');
+    const filtered = sertifikatData.filter(item => item.id_perusahaan === id);
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanySertifikat:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/companies/:id/pajak - Combined tax data
+export const getCompanyPajak = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [npwpData, kswpData, sptData, pkpData] = await Promise.all([
+      googleSheetsService.getSheetData('db_npwp_perusahaan'),
+      googleSheetsService.getSheetData('db_kswp'),
+      googleSheetsService.getSheetData('db_spt'),
+      googleSheetsService.getSheetData('db_pkp')
+    ]);
+    
+    res.json({
+      npwp: npwpData.filter(item => item.id_perusahaan === id),
+      kswp: kswpData.filter(item => item.id_perusahaan === id),
+      spt: sptData.filter(item => item.id_perusahaan === id),
+      pkp: pkpData.filter(item => item.id_perusahaan === id)
+    });
+  } catch (error) {
+    console.error('Error in getCompanyPajak:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/companies/:id/pengalaman
+export const getCompanyPengalaman = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const kontrakData = await googleSheetsService.getSheetData('db_kontrak_pengalaman');
+    const filtered = kontrakData.filter(item => item.id_perusahaan === id);
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanyPengalaman:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/companies/:id/kbli
+export const getCompanyKbli = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [kbliRelData, masterKbliData] = await Promise.all([
+      googleSheetsService.getSheetData('db_perusahaan_kbli'),
+      googleSheetsService.getKbliMasterData()
+    ]);
+    
+    const companyKbli = kbliRelData.filter(item => item.id_perusahaan === id);
+    const enrichedKbli = companyKbli.map(item => {
+      const master = masterKbliData.find(m => m.kode_kbli === item.kode_kbli);
+      return {
+        ...item,
+        nama_klasifikasi: master ? master.nama_klasifikasi : 'Unknown KBLI'
+      };
+    });
+    
+    res.json(enrichedKbli);
+  } catch (error) {
+    console.error('Error in getCompanyKbli:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

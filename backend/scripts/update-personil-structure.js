@@ -3,7 +3,7 @@
  * 
  * Changes:
  * 1. db_personil: Remove id_perusahaan, use NIK as primary key
- * 2. Create db_project: Mapping between company and personil
+ * 2. Create db_project: Mapping between company and personel
  */
 
 import { google } from 'googleapis';
@@ -129,8 +129,8 @@ async function updateSheetsStructure() {
       console.log('   ✅ Headers formatted');
     }
 
-    // 5. Migrate existing personil data to db_project
-    console.log('\n4️⃣ Migrating personil relationships to db_project...');
+    // 5. Migrate existing personel data to db_project
+    console.log('\n4️⃣ Migrating personel relationships to db_project...');
     
     const personilData = await sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -158,7 +158,7 @@ async function updateSheetsStructure() {
             values: projectMappings
           }
         });
-        console.log(`   ✅ Migrated ${projectMappings.length} company-personil relationships`);
+        console.log(`   ✅ Migrated ${projectMappings.length} company-personel relationships`);
       }
     }
 
@@ -171,7 +171,7 @@ async function updateSheetsStructure() {
     console.log('   ✅ Existing relationships migrated');
     console.log('\n⚠️  NEXT STEPS:');
     console.log('   1. Update db_personil manually to remove id_perusahaan column');
-    console.log('   2. Use db_project to link companies with personil');
+    console.log('   2. Use db_project to link companies with personel');
     console.log(`\n🔗 Open spreadsheet: https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit\n`);
 
   } catch (error) {

@@ -5,7 +5,7 @@
  * - id_project (primary key)
  * - id_perusahaan (company)
  * - nama_project (project name)
- * - nik (personil)
+ * - nik (personel)
  */
 
 import { google } from 'googleapis';
@@ -162,10 +162,10 @@ async function updateProjectSheet() {
     console.log('   • id_project       - Project ID (PRIMARY KEY)');
     console.log('   • id_perusahaan    - Company ID');
     console.log('   • nama_project     - Project Name');
-    console.log('   • nik              - Personil NIK');
+    console.log('   • nik              - Personel NIK');
     console.log('\n💡 Concept:');
-    console.log('   Each project belongs to a company and assigns personil');
-    console.log('   Example: PROJ001 (SIMANTAP) by COMP001 with personil NIK:123...');
+    console.log('   Each project belongs to a company and assigns personel');
+    console.log('   Example: PROJ001 (SIMANTAP) by COMP001 with personel NIK:123...');
     console.log(`\n🔗 Open spreadsheet: https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit\n`);
 
   } catch (error) {

@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS company_profile (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table: personnel (Data Personil/Tenaga Ahli)
+-- Table: personnel (Data Personel/Tenaga Ahli)
 CREATE TABLE IF NOT EXISTS personnel (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     full_name VARCHAR(255) NOT NULL,

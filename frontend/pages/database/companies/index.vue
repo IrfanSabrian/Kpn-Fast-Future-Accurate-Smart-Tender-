@@ -22,14 +22,6 @@
             <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Data</div>
             <div class="text-xl font-mono font-bold text-slate-700 dark:text-slate-200">{{ companies.length }}</div>
           </div>
-          <button
-            @click="openAddModal"
-            class="group relative px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex items-center gap-2"
-          >
-            <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mix-blend-overlay"></div>
-            <i class="fas fa-plus text-xs"></i>
-            <span>ENTRI BARU</span>
-          </button>
         </div>
       </div>
     </div>
@@ -119,111 +111,7 @@
       </div>
       <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1">Database Kosong</h3>
       <p class="text-sm text-slate-500 mb-6">Belum ada entitas perusahaan terdaftar dalam sistem.</p>
-      <button
-        @click="openAddModal"
-        class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 w-full"
-      >
-        <i class="fas fa-plus"></i>
-        Input Data
-      </button>
     </div>
-
-    <!-- Modals (Re-used) -->
-    <BaseModal 
-      :show="showEditModal" 
-      @close="closeEditModal" 
-      :title="isEditMode ? 'Edit Data Perusahaan' : 'Registrasi Perusahaan Baru'"
-      subtitle="Pastikan data sesuai dengan dokumen legalitas."
-      max-width="3xl"
-    >
-      <template #body>
-        <form @submit.prevent="saveEdit" class="space-y-5">
-           <!-- Form content similar but with updated styling -->
-           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div class="space-y-4">
-              <FormInput
-                v-if="isEditMode"
-                v-model="editForm.id_perusahaan"
-                label="SYSTEM ID"
-                disabled
-                class="font-mono text-sm"
-              />
-              <FormInput
-                v-model="editForm.nama_perusahaan"
-                label="NAMA ENTITAS BADAN USAHA"
-                placeholder="PT. / CV."
-                required
-                class="font-bold"
-              />
-               <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
-                <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                  Status Kantor
-                </label>
-                <div class="flex gap-4">
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" v-model="editForm.status" value="Pusat" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Pusat</span>
-                  </label>
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="radio" v-model="editForm.status" value="Cabang" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300">
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Cabang</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div class="space-y-4">
-              <div class="grid grid-cols-2 gap-4">
-                 <FormInput
-                  v-model="editForm.tahun_berdiri"
-                  label="TAHUN BERDIRI"
-                  type="number"
-                  placeholder="YYYY"
-                />
-                <FormInput
-                  v-model="editForm.npwp"
-                  label="NPWP"
-                  placeholder="XX.XXX.XXX.X"
-                />
-              </div>
-               <FormInput
-                v-model="editForm.email"
-                label="EMAIL RESMI"
-                type="email"
-              />
-               <FormInput
-                v-model="editForm.no_telp"
-                label="NO. TELEPON"
-              />
-            </div>
-           </div>
-           
-           <FormInput
-              v-model="editForm.alamat"
-              label="ALAMAT LENGKAP"
-              type="textarea"
-              rows="2"
-            />
-        </form>
-      </template>
-
-      <template #footer>
-        <button 
-          @click="closeEditModal"
-          class="px-5 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-bold transition-colors"
-        >
-          BATAL
-        </button>
-        <button 
-          @click="saveEdit" 
-          :disabled="saving"
-          class="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex items-center gap-2"
-        >
-          <i v-if="saving" class="fas fa-circle-notch animate-spin"></i>
-          {{ saving ? 'SAVING...' : 'SIMPAN DATA' }}
-        </button>
-      </template>
-    </BaseModal>
 
     <!-- Toast Notification -->
     <BaseToast
@@ -238,9 +126,7 @@
 </template>
 
 <script setup>
-import BaseModal from '~/components/BaseModal.vue'
 import BaseToast from '~/components/BaseToast.vue'
-import FormInput from '~/components/FormInput.vue'
 
 definePageMeta({
   layout: 'dashboard'
@@ -255,23 +141,7 @@ const { toast, success, error: showError, hideToast } = useToast()
 
 const loading = ref(true)
 const companies = ref([])
-const showEditModal = ref(false)
-const editingCompany = ref(null)
-const isEditMode = ref(false)
-const saving = ref(false)
 const imageErrors = ref({})
-
-const editForm = ref({
-  id_perusahaan: '',
-  nama_perusahaan: '',
-  status: 'Pusat',
-  email: '',
-  no_telp: '',
-  no_fax: '',
-  npwp: '',
-  tahun_berdiri: '',
-  alamat: ''
-})
 
 // === Helpers ===
 
@@ -398,57 +268,6 @@ const fetchCompanies = async () => {
     console.error('❌ Fetch error:', err)
   } finally {
     loading.value = false
-  }
-}
-
-// === CRUD Actions ===
-
-const openAddModal = () => {
-  isEditMode.value = false
-  editForm.value = {
-    id_perusahaan: '',
-    nama_perusahaan: '',
-    status: 'Pusat',
-    email: '',
-    no_telp: '',
-    no_fax: '',
-    npwp: '',
-    tahun_berdiri: '',
-    alamat: ''
-  }
-  showEditModal.value = true
-}
-
-const closeEditModal = () => {
-  showEditModal.value = false
-  editingCompany.value = null
-}
-
-const saveEdit = async () => {
-  saving.value = true
-  try {
-    const url = isEditMode.value 
-      ? `${apiBaseUrl}/companies/${editForm.value.id_perusahaan}`
-      : `${apiBaseUrl}/companies`
-      
-    const method = isEditMode.value ? 'PUT' : 'POST'
-    
-    const response = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editForm.value)
-    })
-
-    if (!response.ok) throw new Error('Gagal menyimpan data')
-
-    success(isEditMode.value ? 'Data berhasil diperbarui' : 'Perusahaan baru ditambahkan')
-    closeEditModal()
-    await fetchCompanies()
-    
-  } catch (err) {
-    showError(err.message)
-  } finally {
-    saving.value = false
   }
 }
 

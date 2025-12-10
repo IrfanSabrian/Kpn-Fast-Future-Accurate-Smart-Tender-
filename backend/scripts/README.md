@@ -19,7 +19,7 @@ node scripts/test-google-sheets.js
 - ✅ Check environment variables
 - ✅ Verify service account file
 - ✅ Test Google Sheets connection
-- ✅ Read sample data dari Profil & Personil sheets
+- ✅ Read sample data dari Profil & Personel sheets
 
 **Expected output:**
 ```

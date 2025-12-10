@@ -49,12 +49,12 @@
                <i class="fas fa-building w-5 text-center group-hover:text-blue-500 transition-colors"></i>
                <span>Perusahaan</span>
              </NuxtLink>
-             <NuxtLink to="/database/personil" 
+             <NuxtLink to="/database/personel" 
                class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold transition-all group hover:bg-slate-50 dark:hover:bg-slate-800"
                active-class="bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shadow-sm"
              >
                <i class="fas fa-users w-5 text-center group-hover:text-blue-500 transition-colors"></i>
-               <span>Personil Ahli</span>
+               <span>Personel</span>
              </NuxtLink>
              <div class="opacity-50 pointer-events-none flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium">
                <i class="fas fa-folder-open w-5 text-center"></i>

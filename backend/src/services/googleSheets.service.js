@@ -289,90 +289,114 @@ class GoogleSheetsService {
   // ========================================
 
   /**
-   * Get all personnel data
-   * @returns {Array} List of personnel
+   * Helper to read valid data from any sheet
    */
-  async getAllpersonel() {
+  async readSheet(spreadsheetId, sheetName) {
+      if (!spreadsheetId) throw new Error("Spreadsheet ID missing for readSheet");
+      try {
+        const response = await this.sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: `${sheetName}!A1:Z2000`,
+        });
+        const rows = response.data.values;
+        if (!rows || rows.length < 2) return [];
+        const headers = rows[0];
+        return rows.slice(1).map(row => {
+            const obj = {};
+            headers.forEach((h, i) => obj[h] = row[i] || '');
+            return obj;
+        });
+      } catch (e) {
+        console.warn(`Warning: Could not read sheet ${sheetName}: ${e.message}`);
+        return [];
+      }
+  }
+
+  /**
+   * Get all personnel data (Joined with KTP & NPWP)
+   * @returns {Array} List of personnel with NIK and NPWP
+   */
+  async getAllPersonil() {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      // Try to get specifically configured ID, fallback to general ID
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL || process.env.GOOGLE_SHEET_ID;
       
-      // Use specific sheet name for personel data
-      const personelTabName = 'db_personel';
-
-      // Read all data - using explicit row limit to ensure all data retrieved
-      const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: `${personelTabName}!A1:H1000`, // Read up to 1000 rows
-      });
-
-      const rows = response.data.values;
-      
-      if (!rows || rows.length < 2) {
-        return []; // No data yet
+      if (!spreadsheetId) {
+        throw new Error('GOOGLE_SHEET_ID_PERSONEL not configured');
       }
 
-      const headers = rows[0];
-      const dataRows = rows.slice(1);
+      // Fetch all required tables in parallel
+      const [personelData, ktpData, npwpData] = await Promise.all([
+        this.readSheet(spreadsheetId, 'db_personel'),
+        this.readSheet(spreadsheetId, 'db_ktp'),
+        this.readSheet(spreadsheetId, 'db_npwp_personel')
+      ]);
 
-      // Map to array of objects, filter out empty rows
-      return dataRows
-        .filter(row => row && row.length > 0 && row[0]) // Filter empty rows
-        .map(row => {
-          const personel = {};
-          headers.forEach((header, index) => {
-            personel[header] = row[index] || '';
-          });
-          return personel;
-        });
+      // Join data based on id_personel
+      return personelData.map(p => {
+        const ktp = ktpData.find(k => k.id_personel === p.id_personel) || {};
+        const npwp = npwpData.find(n => n.id_personel === p.id_personel) || {};
+
+        return {
+          ...p,
+          // Flatten key identification fields for ease of use
+          nik: ktp.nik || '',
+          nama_ktp: ktp.nama_ktp || '',
+          nomor_npwp_personel: npwp.nomor_npwp_personel || '',
+          // Include full objects for details
+          ktp,
+          npwp
+        };
+      });
     } catch (error) {
-      console.error('Error getting personel:', error);
-      throw new Error(`Failed to get personel: ${error.message}`);
+      console.error('Error getting consolidated personnel:', error);
+      throw new Error(`Failed to get personnel: ${error.message}`);
     }
   }
 
   /**
-   * Get single personnel by ID
-   * @param {string} id - Personnel ID
+   * Get single personnel by ID (searches in id_personel or nik)
+   * @param {string} id - Personnel ID or NIK
    */
-  async getpersonelById(id) {
-    const allpersonel = await this.getAllpersonel();
-    return allpersonel.find(p => p.nik === id) || null;
+  async getPersonilById(id) {
+    const allPersonil = await this.getAllPersonil();
+    return allPersonil.find(p => p.id_personel === id || p.nik === id) || null;
   }
 
   /**
    * Add new personnel
    * @param {Object} data - Personnel data
    */
-  async addpersonel(data) {
+  /**
+   * Add new personnel
+   * @param {Object} data - Personnel data
+   */
+  async addPersonil(data) { // Renamed
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
       // Use specific sheet name for personel data  
       const personelTabName = 'db_personel';
 
       // Get current data to find next row
-      const currentData = await this.getAllpersonel();
-      const nextRow = currentData.length + 2; // +1 for header, +1 for next empty
+      const currentData = await this.getAllPersonil();
+      // Only insert into main table for now (Simplified)
+      const nextRow = currentData.length + 2; 
 
-      // Expected headers - using actual Google Sheets columns
+      // Expected headers - db_personel
       const headers = [
-        'nik',
-        'nama',
-        'tempat_lahir',
-        'tanggal_lahir',
-        'strata',
-        'jurusan_pendidikan',
-        'sertifikat_keahlian',
-        'pengalaman_kerja',
+        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'email_personel', 'status_personel', 'tanggal_input'
       ];
 
-      // Generate NIK if not provided (basic example, adjust to your NIK format)
-      if (!data.nik) {
-        data.nik = `NIK${Date.now()}`;
+      // Auto-generate ID (Basic)
+      if (!data.id_personel) {
+         const count = currentData.length + 1;
+         data.id_personel = `PRS${String(count).padStart(3, '0')}`;
       }
+      data.tanggal_input = new Date().toISOString();
 
       // Prepare values
       const values = headers.map(header => data[header] || '');
@@ -380,7 +404,7 @@ class GoogleSheetsService {
       // Append row
       await this.sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: `${personelTabName}!A${nextRow}:H${nextRow}`,
+        range: `${personelTabName}!A${nextRow}`,
         valueInputOption: 'RAW',
         resource: {
           values: [values],
@@ -389,8 +413,8 @@ class GoogleSheetsService {
 
       return { 
         success: true, 
-        message: 'personel added successfully',
-        data: { nik: data.nik }
+        message: 'Personnel added successfully',
+        data: { id_personel: data.id_personel }
       };
     } catch (error) {
       console.error('Error adding personel:', error);
@@ -403,50 +427,45 @@ class GoogleSheetsService {
    * @param {string} id - Personnel ID
    * @param {Object} data - Updated data
    */
-  async updatepersonel(id, data) {
+  /**
+   * Update personnel by ID
+   * @param {string} id - Personnel ID
+   * @param {Object} data - Updated data
+   */
+  async updatePersonil(id, data) { // Renamed
     await this.initialize();
 
     try {
-      const allpersonel = await this.getAllpersonel();
-      const index = allpersonel.findIndex(p => p.nik === id);
+      const allPersonil = await this.getAllPersonil();
+      const index = allPersonil.findIndex(p => p.id_personel === id); // Use id_personel
 
       if (index === -1) {
-        throw new Error(`personel with ID ${id} not found`);
+        throw new Error(`Personnel with ID ${id} not found`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-      // Use specific sheet name for personel data
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
       const personelTabName = 'db_personel';
 
-      // Row number (index + 2, because index 0 = row 2)
       const rowNumber = index + 2;
 
       const headers = [
-        'nik',
-        'nama',
-        'tempat_lahir',
-        'tanggal_lahir',
-        'strata',
-        'jurusan_pendidikan',
-        'sertifikat_keahlian',
-        'pengalaman_kerja',
+        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'email_personel', 'status_personel', 'tanggal_input'
       ];
 
-      // Merge existing data with updates
-      const updatedData = { ...allpersonel[index], ...data };
+      // Merge data (this update is imperfect as it only updates db_personel, not joined tables)
+      const updatedData = { ...allPersonil[index], ...data };
       const values = headers.map(header => updatedData[header] || '');
 
-      // Update row
       await this.sheets.spreadsheets.values.update({
         spreadsheetId,
-        range: `${personelTabName}!A${rowNumber}:H${rowNumber}`,
+        range: `${personelTabName}!A${rowNumber}`,
         valueInputOption: 'RAW',
         resource: {
           values: [values],
         },
       });
 
-      return { success: true, message: 'personel updated successfully' };
+      return { success: true, message: 'Personnel updated successfully' };
     } catch (error) {
       console.error('Error updating personel:', error);
       throw new Error(`Failed to update personel: ${error.message}`);
@@ -457,25 +476,27 @@ class GoogleSheetsService {
    * Delete personnel by ID
    * @param {string} id - Personnel ID
    */
-  async deletepersonel(id) {
+  /**
+   * Delete personnel by ID
+   * @param {string} id - Personnel ID
+   */
+  async deletePersonil(id) { // Renamed
     await this.initialize();
 
     try {
-      const allpersonel = await this.getAllpersonel();
-      const index = allpersonel.findIndex(p => p.nik === id);
+      const allPersonil = await this.getAllPersonil();
+      const index = allPersonil.findIndex(p => p.id_personel === id); // Use id_personel
 
       if (index === -1) {
-        throw new Error(`personel with ID ${id} not found`);
+        throw new Error(`Personnel with ID ${id} not found`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const personelTab = tabs.find(t => t.title === 'db_personel') || tabs[0];
 
-      // Row number to delete
-      const rowNumber = index + 1; // +1 because row 1 is header, data starts at row 2
+      const rowNumber = index + 1; // 0-based index for batchUpdate
 
-      // Delete row using batchUpdate
       await this.sheets.spreadsheets.batchUpdate({
         spreadsheetId,
         resource: {
@@ -494,7 +515,7 @@ class GoogleSheetsService {
         },
       });
 
-      return { success: true, message: 'personel deleted successfully' };
+      return { success: true, message: 'Personnel deleted successfully' };
     } catch (error) {
       console.error('Error deleting personel:', error);
       throw new Error(`Failed to delete personel: ${error.message}`);
@@ -586,7 +607,7 @@ class GoogleSheetsService {
     await this.initialize();
 
     try {
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       const currentData = await this.getSheetData(sheetName);
       const nextRow = currentData.length + 2;
 
@@ -628,7 +649,7 @@ class GoogleSheetsService {
         throw new Error(`Data with ${idField} = ${id} not found in ${sheetName}`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       const rowNumber = index + 2;
 
       const updatedData = { ...allData[index], ...data };
@@ -671,7 +692,7 @@ class GoogleSheetsService {
         return { success: true, message: `No data found in ${sheetName} to delete` };
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const tab = tabs.find(t => t.title === sheetName);
 
@@ -725,7 +746,7 @@ class GoogleSheetsService {
         throw new Error(`Data with ${idField} = ${id} not found in ${sheetName}`);
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const tab = tabs.find(t => t.title === sheetName);
 
@@ -768,7 +789,7 @@ class GoogleSheetsService {
 
   // --- 1. DB PERUSAHAAN ---
   async getAllCompanies() {
-    return this.getSheetData('db_perusahaan');
+    return this.getSheetData('db_profil');
   }
 
   async getCompanyById(id) {
@@ -800,7 +821,7 @@ class GoogleSheetsService {
     const folderName = `${folderNumber}.(${data.nama_perusahaan})`;
 
     // Add data to Google Sheets
-    const result = await this.addSheetData('db_perusahaan', headers, data);
+    const result = await this.addSheetData('db_profil', headers, data);
 
     // Create folder in Google Drive
     try {
@@ -840,7 +861,7 @@ class GoogleSheetsService {
     }
 
     // Update data in Google Sheets
-    const result = await this.updateSheetData('db_perusahaan', headers, 'id_perusahaan', id, data);
+    const result = await this.updateSheetData('db_profil', headers, 'id_perusahaan', id, data);
 
     // Check if nama_perusahaan changed
     if (data.nama_perusahaan && data.nama_perusahaan !== currentCompany.nama_perusahaan) {
@@ -911,7 +932,7 @@ class GoogleSheetsService {
     }
 
     // Delete company data from Google Sheets
-    const result = await this.deleteSheetData('db_perusahaan', 'id_perusahaan', id);
+    const result = await this.deleteSheetData('db_profil', 'id_perusahaan', id);
 
     // Add folder deletion info to result
     result.folderDeleted = folderDeleted;
@@ -1029,7 +1050,7 @@ class GoogleSheetsService {
 
   // --- 5. DB personel (Updated) ---
   async getAllpersonelNew(idPerusahaan = null) {
-    const allpersonel = await this.getSheetData('db_personel');
+    const allpersonel = await this.getAllPersonil(); // Use joined data
     if (idPerusahaan) {
       return allpersonel.filter(p => p.id_perusahaan === idPerusahaan);
     }
@@ -1161,7 +1182,13 @@ class GoogleSheetsService {
 
   // --- 9. DB personel PROJECT (RELATION) ---
   async getAllpersonelProject() {
-    return this.getSheetData('db_personel_project');
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
+    if (!spreadsheetId) {
+       // Fallback for safety if not configured, though likely to fail if not in default sheet
+       console.warn('GOOGLE_SHEET_ID_PERSONEL not set for getAllpersonelProject');
+       return this.getSheetData('db_personel_project');
+    }
+    return this.readSheet(spreadsheetId, 'db_personel_project');
   }
 
   async getpersonelProjectByProject(idProject) {

@@ -114,9 +114,9 @@
                 <i class="fas fa-file-signature text-2xl text-amber-500 mb-3 group-hover:scale-110 transition-transform origin-left"></i>
                 <div class="font-bold text-slate-700 dark:text-slate-200 text-sm">Surat Penawaran</div>
              </button>
-             <button class="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:shadow-md transition-all text-left group">
+             <button class="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:shadow-md transition-all text-left group" @click="router.push('/database/personel')">
                 <i class="fas fa-users-cog text-2xl text-cyan-500 mb-3 group-hover:scale-110 transition-transform origin-left"></i>
-                <div class="font-bold text-slate-700 dark:text-slate-200 text-sm">Database Personil</div>
+                <div class="font-bold text-slate-700 dark:text-slate-200 text-sm">Database Personel</div>
              </button>
              <button class="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:shadow-md transition-all text-left group">
                 <i class="fas fa-map-marked-alt text-2xl text-indigo-500 mb-3 group-hover:scale-110 transition-transform origin-left"></i>

@@ -1,76 +1,63 @@
 import express from 'express';
+import * as companyController from '../controllers/company.controller.js';
 import googleSheetsService from '../services/googleSheets.service.js';
 
 const router = express.Router();
 
-// Get all companies
-router.get('/', async (req, res) => {
-  try {
-    const companies = await googleSheetsService.getAllProfilPerusahaan();
-    res.json(companies);
-  } catch (error) {
-    console.error('Error fetching companies:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+// ========================================
+// MAIN COMPANY ROUTES
+// ========================================
 
-// Get company by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const company = await googleSheetsService.getProfilPerusahaanById(req.params.id);
-    if (!company) {
-      return res.status(404).json({ error: 'Company not found' });
-    }
-    res.json(company);
-  } catch (error) {
-    console.error('Error fetching company:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+// Get all companies (summary list)
+router.get('/', companyController.getAllCompanies);
+
+// Get company by ID (overview only)
+router.get('/:id', companyController.getCompanyById);
 
 // Add new company
-router.post('/', async (req, res) => {
-  try {
-    const result = await googleSheetsService.addProfilPerusahaan(req.body);
-    res.status(201).json(result);
-  } catch (error) {
-    console.error('Error adding company:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+router.post('/', companyController.addCompany);
 
 // Update company by ID
-router.put('/:id', async (req, res) => {
-  try {
-    const result = await googleSheetsService.updateProfilPerusahaan(req.params.id, req.body);
-    res.json(result);
-  } catch (error) {
-    console.error('Error updating company:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+router.put('/:id', companyController.updateCompany);
 
 // Delete company by ID
-router.delete('/:id', async (req, res) => {
-  try {
-    const result = await googleSheetsService.deleteProfilPerusahaan(req.params.id);
-    res.json(result);
-  } catch (error) {
-    console.error('Error deleting company:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+router.delete('/:id', companyController.deleteCompany);
 
-// --- AKTA ROUTES ---
-// Get akta by company ID
-router.get('/:id/akta', async (req, res) => {
-  try {
-    const akta = await googleSheetsService.getAllAkta(req.params.id);
-    res.json(akta);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// ========================================
+// SUB-MODULE ROUTES - Lazy Loading
+// ========================================
+
+// Get company's Akta data
+router.get('/:id/akta', companyController.getCompanyAkta);
+
+// Get company's Pejabat data
+router.get('/:id/pejabat', companyController.getCompanyPejabat);
+
+// Get company's NIB data
+router.get('/:id/nib', companyController.getCompanyNib);
+
+// Get company's SBU data
+router.get('/:id/sbu', companyController.getCompanySbu);
+
+// Get company's KTA data
+router.get('/:id/kta', companyController.getCompanyKta);
+
+// Get company's Sertifikat data
+router.get('/:id/sertifikat', companyController.getCompanySertifikat);
+
+// Get company's Pajak data (NPWP, KSWP, SPT, PKP)
+router.get('/:id/pajak', companyController.getCompanyPajak);
+
+// Get company's Pengalaman/Kontrak data
+router.get('/:id/pengalaman', companyController.getCompanyPengalaman);
+
+// Get company's KBLI data
+router.get('/:id/kbli', companyController.getCompanyKbli);
+
+// ========================================
+// CRUD FOR SUB-MODULES
+// ========================================
+
 
 router.post('/:id/akta', async (req, res) => {
   try {
@@ -100,17 +87,7 @@ router.delete('/akta/:aktaId', async (req, res) => {
   }
 });
 
-// --- PEJABAT ROUTES ---
-// Get pejabat by company ID
-router.get('/:id/pejabat', async (req, res) => {
-  try {
-    const pejabat = await googleSheetsService.getAllPejabat(req.params.id);
-    res.json(pejabat);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
+// --- PEJABAT CRUD ---
 router.post('/:id/pejabat', async (req, res) => {
   try {
     const data = { ...req.body, id_perusahaan: req.params.id };
@@ -139,17 +116,7 @@ router.delete('/pejabat/:nik', async (req, res) => {
   }
 });
 
-// --- NIB ROUTES ---
-// Get NIB by company ID
-router.get('/:id/nib', async (req, res) => {
-  try {
-    const nib = await googleSheetsService.getAllNIB(req.params.id);
-    res.json(nib);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
+// --- NIB CRUD ---
 router.post('/:id/nib', async (req, res) => {
   try {
     const data = { ...req.body, id_perusahaan: req.params.id };
@@ -162,7 +129,6 @@ router.post('/:id/nib', async (req, res) => {
 
 router.put('/nib/:nomorNib', async (req, res) => {
   try {
-    // Decode param because NIB might contain special chars or be long
     const nomorNib = decodeURIComponent(req.params.nomorNib);
     const result = await googleSheetsService.updateNIB(nomorNib, req.body);
     res.json(result);
@@ -181,17 +147,7 @@ router.delete('/nib/:nomorNib', async (req, res) => {
   }
 });
 
-// --- PENGALAMAN ROUTES ---
-// Get pengalaman by company ID
-router.get('/:id/pengalaman', async (req, res) => {
-  try {
-    const pengalaman = await googleSheetsService.getAllPengalaman(req.params.id);
-    res.json(pengalaman);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
+// --- PENGALAMAN CRUD ---
 router.post('/:id/pengalaman', async (req, res) => {
   try {
     const data = { ...req.body, id_perusahaan: req.params.id };
@@ -263,7 +219,7 @@ router.delete('/projects/:idProject', async (req, res) => {
 
 // --- PERSONEL PROJECT ROUTES ---
 // Add personel to project
-router.post('/projects/:idProject/personil', async (req, res) => {
+router.post('/projects/:idProject/personel', async (req, res) => {
   try {
     const data = { 
       id_project: req.params.idProject,
