@@ -58,13 +58,19 @@ export const addPersonnel = async (req, res) => {
   try {
     const data = req.body;
 
-    // Basic validation
-    if (!data.nama) {
+    // Basic validation - support both 'nama' and 'nama_lengkap'
+    const namaValue = data.nama || data.nama_lengkap;
+    if (!namaValue || !namaValue.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Name (nama) is required',
+        message: 'Name is required',
         data: null,
       });
+    }
+
+    // Ensure nama_lengkap is set for the service
+    if (!data.nama_lengkap && data.nama) {
+      data.nama_lengkap = data.nama;
     }
 
     const result = await googleSheetsService.addPersonil(data);

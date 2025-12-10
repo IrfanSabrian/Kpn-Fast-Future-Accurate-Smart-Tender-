@@ -21,10 +21,6 @@
                  <h1 class="text-lg md:text-2xl font-black text-slate-900 dark:text-white leading-tight truncate">
                    {{ person?.nama_lengkap || 'Loading Personel...' }}
                  </h1>
-                 <!-- Status Badge -->
-                  <span v-if="person?.status_personel" class="hidden md:inline-flex items-center justify-center uppercase text-[10px] font-bold tracking-widest px-3 py-1 rounded-md border h-6 bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300">
-                   {{ person.status_personel }}
-                 </span>
                </div>
                
                <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">
@@ -55,8 +51,8 @@
                 <i class="fas fa-user-circle text-9xl"></i>
              </div>
              
-             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                <!-- Phone (Left) -->
+             <div class="grid grid-cols-1 gap-6 relative z-10">
+                <!-- Phone -->
                 <div class="flex items-start gap-4">
                    <div class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-100 dark:border-emerald-900/50">
                       <i class="fas fa-phone"></i>
@@ -67,19 +63,8 @@
                    </div>
                 </div>
 
-                <!-- Email (Right) -->
+                <!-- Address -->
                 <div class="flex items-start gap-4">
-                   <div class="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0 border border-purple-100 dark:border-purple-900/50">
-                      <i class="fas fa-envelope"></i>
-                   </div>
-                   <div>
-                      <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Email Personel</p>
-                      <p class="text-sm font-medium text-slate-700 dark:text-slate-200 break-all">{{ person.email_personel || '-' }}</p>
-                   </div>
-                </div>
-
-                <!-- Address (Bottom Full Width) -->
-                <div class="md:col-span-2 flex items-start gap-4">
                    <div class="w-10 h-10 rounded-full bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0 border border-violet-100 dark:border-violet-900/50">
                       <i class="fas fa-map-marker-alt"></i>
                    </div>
@@ -231,13 +216,9 @@
                     <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat NPWP</span>
                     <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug">{{ npwp.alamat_npwp_personel || '-' }}</span>
                   </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
                     <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">KPP</span>
                     <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ npwp.kpp_npwp_personel || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Status</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ npwp.status_npwp_personel || '-' }}</span>
                   </div>
                 </div>
               </div>

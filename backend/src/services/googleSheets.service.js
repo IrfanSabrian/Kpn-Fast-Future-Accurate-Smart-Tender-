@@ -394,7 +394,7 @@ class GoogleSheetsService {
 
       // Expected headers - db_personel
       const headers = [
-        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'email_personel', 'status_personel', 'tanggal_input'
+        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input'
       ];
 
       // Auto-generate ID (Basic)
@@ -404,8 +404,14 @@ class GoogleSheetsService {
       }
       data.tanggal_input = new Date().toISOString();
 
+      // Extract nama_lengkap from data (support both nama_lengkap and nama)
+      const namaLengkap = data.nama_lengkap || data.nama;
+
       // Prepare values
-      const values = headers.map(header => data[header] || '');
+      const values = headers.map(header => {
+        if (header === 'nama_lengkap') return namaLengkap || '';
+        return data[header] || '';
+      });
 
       // Append row
       await this.sheets.spreadsheets.values.append({
@@ -416,6 +422,56 @@ class GoogleSheetsService {
           values: [values],
         },
       });
+
+      // === CREATE GOOGLE DRIVE FOLDER FOR PERSONEL ===
+      try {
+        if (namaLengkap) {
+          console.log(`🔍 Starting folder creation for personel: ${namaLengkap}`);
+          
+          // Find or create "02. Personel" folder
+          let personelParentFolder = null;
+          
+          if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
+            console.log(`📁 Using GOOGLE_DRIVE_PERSONEL_FOLDER_ID: ${process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID}`);
+            personelParentFolder = { id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID };
+          } else {
+            console.log('🔍 GOOGLE_DRIVE_PERSONEL_FOLDER_ID not set, searching for Data folder...');
+            // Try to find "Data" folder first
+            const dataFolder = await googleDriveService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
+            
+            if (dataFolder) {
+              console.log(`✅ Found Data folder (ID: ${dataFolder.id})`);
+              // Look for "02. Personel" inside Data folder
+              personelParentFolder = await googleDriveService.findFolderByName('02. Personel', dataFolder.id);
+              
+              if (!personelParentFolder) {
+                console.log('📁 "02. Personel" folder not found, creating it...');
+                // Create "02. Personel" if not exists
+                personelParentFolder = await googleDriveService.createFolder('02. Personel', dataFolder.id);
+                console.log(`✅ Created "02. Personel" folder (ID: ${personelParentFolder.id})`);
+              } else {
+                console.log(`✅ Found "02. Personel" folder (ID: ${personelParentFolder.id})`);
+              }
+            } else {
+              console.warn('⚠️ Data folder not found in Google Drive');
+            }
+          }
+
+          if (personelParentFolder) {
+            // Create folder with personnel name
+            console.log(`📁 Creating folder "${namaLengkap}" in parent ${personelParentFolder.id}...`);
+            const personelFolder = await googleDriveService.createFolder(namaLengkap, personelParentFolder.id);
+            console.log(`✅ Created folder for personel: ${namaLengkap} (${personelFolder.id})`);
+          } else {
+            console.warn('⚠️ Parent folder "02. Personel" not found, skipping folder creation');
+          }
+        }
+      } catch (folderError) {
+        console.error('❌ Error creating personel folder:', folderError);
+        console.error('Error details:', folderError.message);
+
+        // Don't throw error, continue with personnel creation
+      }
 
       return { 
         success: true, 
@@ -449,17 +505,22 @@ class GoogleSheetsService {
         throw new Error(`Personnel with ID ${id} not found`);
       }
 
+      const oldData = allPersonil[index];
+      const oldNamaLengkap = oldData.nama_lengkap;
+      const newNamaLengkap = data.nama_lengkap || data.nama;
+
       const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
       const personelTabName = 'db_personel';
 
       const rowNumber = index + 2;
 
       const headers = [
-        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'email_personel', 'status_personel', 'tanggal_input'
+        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input'
       ];
 
       // Merge data (this update is imperfect as it only updates db_personel, not joined tables)
-      const updatedData = { ...allPersonil[index], ...data };
+      const updatedData = { ...oldData, ...data };
+      if (newNamaLengkap) updatedData.nama_lengkap = newNamaLengkap;
       const values = headers.map(header => updatedData[header] || '');
 
       await this.sheets.spreadsheets.values.update({
@@ -470,6 +531,32 @@ class GoogleSheetsService {
           values: [values],
         },
       });
+
+      // === RENAME GOOGLE DRIVE FOLDER IF NAME CHANGED ===
+      try {
+        if (newNamaLengkap && oldNamaLengkap && newNamaLengkap !== oldNamaLengkap) {
+          // Find "02. Personel" folder
+          let personelParentFolder = null;
+          
+          if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
+            personelParentFolder = { id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID };
+          } else {
+            const dataFolder = await googleDriveService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
+            if (dataFolder) {
+              personelParentFolder = await googleDriveService.findFolderByName('02. Personel', dataFolder.id);
+            }
+          }
+
+          if (personelParentFolder) {
+            // Rename folder from old name to new name
+            await googleDriveService.renameFolder(oldNamaLengkap, newNamaLengkap, personelParentFolder.id);
+            console.log(`✅ Renamed folder: "${oldNamaLengkap}" → "${newNamaLengkap}"`);
+          }
+        }
+      } catch (folderError) {
+        console.error('❌ Error renaming personel folder:', folderError);
+        // Don't throw error, continue with personnel update
+      }
 
       return { success: true, message: 'Personnel updated successfully' };
     } catch (error) {
@@ -497,6 +584,9 @@ class GoogleSheetsService {
         throw new Error(`Personnel with ID ${id} not found`);
       }
 
+      const personelData = allPersonil[index];
+      const namaLengkap = personelData.nama_lengkap;
+
       const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
       const tabs = await this.getSheetTabNames(spreadsheetId);
       const personelTab = tabs.find(t => t.title === 'db_personel') || tabs[0];
@@ -520,6 +610,32 @@ class GoogleSheetsService {
           ],
         },
       });
+
+      // === DELETE GOOGLE DRIVE FOLDER ===
+      try {
+        if (namaLengkap) {
+          // Find "02. Personel" folder
+          let personelParentFolder = null;
+          
+          if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
+            personelParentFolder = { id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID };
+          } else {
+            const dataFolder = await googleDriveService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
+            if (dataFolder) {
+              personelParentFolder = await googleDriveService.findFolderByName('02. Personel', dataFolder.id);
+            }
+          }
+
+          if (personelParentFolder) {
+            // Delete folder with personnel name
+            await googleDriveService.deleteFolder(namaLengkap, personelParentFolder.id);
+            console.log(`✅ Deleted folder for personel: ${namaLengkap}`);
+          }
+        }
+      } catch (folderError) {
+        console.error('❌ Error deleting personel folder:', folderError);
+        // Don't throw error, personnel is already deleted from sheet
+      }
 
       return { success: true, message: 'Personnel deleted successfully' };
     } catch (error) {
@@ -995,24 +1111,24 @@ class GoogleSheetsService {
 
   async addPejabat(data) {
     const headers = [
+      'id_pejabat',
       'id_perusahaan',
-      'nama',
-      'nik',
-      'jabatan',
-      'alamat',
-      'no_telp',
+      'id_personel',
+      'jenis_jabatan',
+      'jabatan_custom',
+      'tanggal_input',
     ];
     return this.addSheetData('db_pejabat', headers, data);
   }
 
   async updatePejabat(nik, data) {
     const headers = [
+      'id_pejabat',
       'id_perusahaan',
-      'nama',
-      'nik',
-      'jabatan',
-      'alamat',
-      'no_telp',
+      'id_personel',
+      'jenis_jabatan',
+      'jabatan_custom',
+      'tanggal_input',
     ];
     return this.updateSheetData('db_pejabat', headers, 'nik', nik, data);
   }
