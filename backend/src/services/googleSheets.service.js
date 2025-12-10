@@ -313,8 +313,8 @@ class GoogleSheetsService {
   }
 
   /**
-   * Get all personnel data (Joined with KTP & NPWP)
-   * @returns {Array} List of personnel with NIK and NPWP
+   * Get all personnel data (Joined with KTP, NPWP, Ijazah & CV)
+   * @returns {Array} List of personnel with complete documents
    */
   async getAllPersonil() {
     await this.initialize();
@@ -328,16 +328,20 @@ class GoogleSheetsService {
       }
 
       // Fetch all required tables in parallel
-      const [personelData, ktpData, npwpData] = await Promise.all([
+      const [personelData, ktpData, npwpData, ijazahData, cvData] = await Promise.all([
         this.readSheet(spreadsheetId, 'db_personel'),
         this.readSheet(spreadsheetId, 'db_ktp'),
-        this.readSheet(spreadsheetId, 'db_npwp_personel')
+        this.readSheet(spreadsheetId, 'db_npwp_personel'),
+        this.readSheet(spreadsheetId, 'db_ijazah'),
+        this.readSheet(spreadsheetId, 'db_cv')
       ]);
 
       // Join data based on id_personel
       return personelData.map(p => {
         const ktp = ktpData.find(k => k.id_personel === p.id_personel) || {};
         const npwp = npwpData.find(n => n.id_personel === p.id_personel) || {};
+        const ijazah = ijazahData.find(i => i.id_personel === p.id_personel) || {};
+        const cv = cvData.find(c => c.id_personel === p.id_personel) || {};
 
         return {
           ...p,
@@ -347,7 +351,9 @@ class GoogleSheetsService {
           nomor_npwp_personel: npwp.nomor_npwp_personel || '',
           // Include full objects for details
           ktp,
-          npwp
+          npwp,
+          ijazah,
+          cv
         };
       });
     } catch (error) {

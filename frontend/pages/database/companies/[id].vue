@@ -178,7 +178,7 @@
                     </h3>
                     <div class="flex gap-2">
                        <a v-if="company.profil_perusahaan_url" :href="company.profil_perusahaan_url" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                          <i class="fas fa-external-link-alt mr-1"></i> Open New Tab
+                          <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
                        </a>
                     </div>
                  </div>
@@ -272,7 +272,7 @@
                     </div>
                     <div class="flex gap-2" v-if="getSelectedDocUrl('akta')">
                        <a :href="getSelectedDocUrl('akta')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                          <i class="fas fa-external-link-alt mr-1"></i> Open New Tab
+                          <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
                        </a>
                     </div>
                  </div>
@@ -546,7 +546,7 @@
                      </div>
                      <div class="flex gap-2" v-if="getSelectedDocUrl('kontrak')">
                         <a :href="getSelectedDocUrl('kontrak')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                           <i class="fas fa-external-link-alt mr-1"></i> Open Tab
+                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
                         </a>
                      </div>
                   </div>
@@ -751,7 +751,7 @@
                     </div>
                     <div class="flex gap-2" v-if="getSelectedDocUrl(activeTab)">
                        <a :href="getSelectedDocUrl(activeTab)" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                          <i class="fas fa-external-link-alt mr-1"></i> Open Tab
+                          <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
                        </a>
                     </div>
                  </div>
@@ -860,7 +860,7 @@
           <div class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
             <div class="text-xs font-bold text-slate-700 dark:text-slate-200">Dokumen SPT</div>
             <a v-if="selectedSpt.spt_url" :href="selectedSpt.spt_url" target="_blank" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors">
-              <i class="fas fa-external-link-alt mr-1"></i> Buka
+              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
             </a>
           </div>
           <div class="flex-1 relative min-h-[400px]">
@@ -898,7 +898,7 @@
           <div class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
             <div class="text-xs font-bold text-slate-700 dark:text-slate-200">Preview Dokumen NPWP</div>
             <a v-if="selectedNpwp.npwp_perusahaan_url" :href="selectedNpwp.npwp_perusahaan_url" target="_blank" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors">
-              <i class="fas fa-external-link-alt mr-1"></i> Buka di Tab Baru
+              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
             </a>
           </div>
           <div class="flex-1 relative">
@@ -936,7 +936,7 @@
           <div class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
             <div class="text-xs font-bold text-slate-700 dark:text-slate-200">Preview Dokumen PKP</div>
             <a v-if="selectedPkp.url_pkp" :href="selectedPkp.url_pkp" target="_blank" class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 hover:bg-orange-100 transition-colors">
-              <i class="fas fa-external-link-alt mr-1"></i> Buka di Tab Baru
+              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
             </a>
           </div>
           <div class="flex-1 relative">
@@ -974,7 +974,7 @@
           <div class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
             <div class="text-xs font-bold text-slate-700 dark:text-slate-200">Preview Dokumen KSWP</div>
             <a v-if="selectedKswp.kswp_url" :href="selectedKswp.kswp_url" target="_blank" class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors">
-              <i class="fas fa-external-link-alt mr-1"></i> Buka di Tab Baru
+              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
             </a>
           </div>
           <div class="flex-1 relative">
