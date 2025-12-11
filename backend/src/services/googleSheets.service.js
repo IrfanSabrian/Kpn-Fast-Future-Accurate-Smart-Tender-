@@ -11,7 +11,7 @@
 import { google } from 'googleapis';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import googleDriveService from './googleDrive.service.js';
+import oauth2GoogleService from './oauth2Google.service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,34 +24,39 @@ class GoogleSheetsService {
   }
 
   /**
-   * Initialize Google Sheets API
+   * Initialize Google Sheets API with OAuth2
    */
   async initialize() {
     if (this.initialized) return;
 
     try {
-      const serviceAccountPath = path.resolve(
-        __dirname,
-        '../../',
-        process.env.GOOGLE_SERVICE_ACCOUNT_PATH
-      );
+      // Initialize OAuth2 service first
+      await oauth2GoogleService.initialize();
+      
+      if (!oauth2GoogleService.isAuthenticated()) {
+        throw new Error('User not authenticated. Please login first.');
+      }
 
-      this.auth = new google.auth.GoogleAuth({
-        keyFile: serviceAccountPath,
-        scopes: [
-          'https://www.googleapis.com/auth/spreadsheets',
-          'https://www.googleapis.com/auth/drive.file',
-        ],
-      });
-
-      this.sheets = google.sheets({ version: 'v4', auth: this.auth });
+      // Use OAuth2 client from oauth2GoogleService
+      const authClient = oauth2GoogleService.getAuthClient();
+      this.sheets = google.sheets({ version: 'v4', auth: authClient });
       this.initialized = true;
 
-      console.log('✅ Google Sheets Service initialized');
+      console.log('✅ Google Sheets Service initialized with OAuth2');
     } catch (error) {
       console.error('❌ Failed to initialize Google Sheets Service:', error);
       throw error;
     }
+  }
+
+  /**
+   * Force reload service with new OAuth client
+   * Call this after user login/logout
+   */
+  async forceReload() {
+    this.initialized = false;
+    this.sheets = null;
+    await this.initialize();
   }
 
   /**
@@ -394,7 +399,7 @@ class GoogleSheetsService {
 
       // Expected headers - db_personel
       const headers = [
-        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input'
+        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input', 'author'
       ];
 
       // Auto-generate ID (Basic)
@@ -402,7 +407,26 @@ class GoogleSheetsService {
          const count = currentData.length + 1;
          data.id_personel = `PRS${String(count).padStart(3, '0')}`;
       }
-      data.tanggal_input = new Date().toISOString();
+      // Format tanggal: YYYY-MM-DD HH:MM:SS (readable, bukan ISO)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      data.tanggal_input = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+      // Auto-fill author
+      if (!data.author) {
+        try {
+          const userInfo = await oauth2GoogleService.getUserInfo();
+          data.author = userInfo.name || userInfo.username; // Gunakan nama lengkap
+        } catch (error) {
+          console.warn('Could not get user info for author:', error.message);
+          data.author = 'system';
+        }
+      }
 
       // Extract nama_lengkap from data (support both nama_lengkap and nama)
       const namaLengkap = data.nama_lengkap || data.nama;
@@ -437,17 +461,17 @@ class GoogleSheetsService {
           } else {
             console.log('🔍 GOOGLE_DRIVE_PERSONEL_FOLDER_ID not set, searching for Data folder...');
             // Try to find "Data" folder first
-            const dataFolder = await googleDriveService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
+            const dataFolder = await oauth2GoogleService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
             
             if (dataFolder) {
               console.log(`✅ Found Data folder (ID: ${dataFolder.id})`);
               // Look for "02. Personel" inside Data folder
-              personelParentFolder = await googleDriveService.findFolderByName('02. Personel', dataFolder.id);
+              personelParentFolder = await oauth2GoogleService.findFolderByName('02. Personel', dataFolder.id);
               
               if (!personelParentFolder) {
                 console.log('📁 "02. Personel" folder not found, creating it...');
                 // Create "02. Personel" if not exists
-                personelParentFolder = await googleDriveService.createFolder('02. Personel', dataFolder.id);
+                personelParentFolder = await oauth2GoogleService.createFolder('02. Personel', dataFolder.id);
                 console.log(`✅ Created "02. Personel" folder (ID: ${personelParentFolder.id})`);
               } else {
                 console.log(`✅ Found "02. Personel" folder (ID: ${personelParentFolder.id})`);
@@ -460,7 +484,7 @@ class GoogleSheetsService {
           if (personelParentFolder) {
             // Create folder with personnel name
             console.log(`📁 Creating folder "${namaLengkap}" in parent ${personelParentFolder.id}...`);
-            const personelFolder = await googleDriveService.createFolder(namaLengkap, personelParentFolder.id);
+            const personelFolder = await oauth2GoogleService.createFolder(namaLengkap, personelParentFolder.id);
             console.log(`✅ Created folder for personel: ${namaLengkap} (${personelFolder.id})`);
           } else {
             console.warn('⚠️ Parent folder "02. Personel" not found, skipping folder creation');
@@ -541,15 +565,15 @@ class GoogleSheetsService {
           if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
             personelParentFolder = { id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID };
           } else {
-            const dataFolder = await googleDriveService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
+            const dataFolder = await oauth2GoogleService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
             if (dataFolder) {
-              personelParentFolder = await googleDriveService.findFolderByName('02. Personel', dataFolder.id);
+              personelParentFolder = await oauth2GoogleService.findFolderByName('02. Personel', dataFolder.id);
             }
           }
 
           if (personelParentFolder) {
             // Rename folder from old name to new name
-            await googleDriveService.renameFolder(oldNamaLengkap, newNamaLengkap, personelParentFolder.id);
+            await oauth2GoogleService.renameFolder(oldNamaLengkap, newNamaLengkap, personelParentFolder.id);
             console.log(`✅ Renamed folder: "${oldNamaLengkap}" → "${newNamaLengkap}"`);
           }
         }
@@ -611,6 +635,46 @@ class GoogleSheetsService {
         },
       });
 
+      // === CASCADE DELETE: Delete all related documents ===
+      console.log(`🗑️  Cascade delete documents for ${id}...`);
+      
+      try {
+        // Delete KTP
+        try {
+          await this.deleteKtp(id);
+          console.log(`✅ Deleted KTP for ${id}`);
+        } catch (err) {
+          console.log(`ℹ️  No KTP found for ${id}`);
+        }
+
+        // Delete NPWP
+        try {
+          await this.deleteNpwp(id);
+          console.log(`✅ Deleted NPWP for ${id}`);
+        } catch (err) {
+          console.log(`ℹ️  No NPWP found for ${id}`);
+        }
+
+        // Delete Ijazah
+        try {
+          await this.deleteIjazah(id);
+          console.log(`✅ Deleted Ijazah for ${id}`);
+        } catch (err) {
+          console.log(`ℹ️  No Ijazah found for ${id}`);
+        }
+
+        // Delete CV
+        try {
+          await this.deleteCv(id);
+          console.log(`✅ Deleted CV for ${id}`);
+        } catch (err) {
+          console.log(`ℹ️  No CV found for ${id}`);
+        }
+      } catch (docDeleteError) {
+        console.error('⚠️  Error deleting documents:', docDeleteError);
+        // Continue to delete folder even if document deletion fails
+      }
+
       // === DELETE GOOGLE DRIVE FOLDER ===
       try {
         if (namaLengkap) {
@@ -620,15 +684,15 @@ class GoogleSheetsService {
           if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
             personelParentFolder = { id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID };
           } else {
-            const dataFolder = await googleDriveService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
+            const dataFolder = await oauth2GoogleService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
             if (dataFolder) {
-              personelParentFolder = await googleDriveService.findFolderByName('02. Personel', dataFolder.id);
+              personelParentFolder = await oauth2GoogleService.findFolderByName('02. Personel', dataFolder.id);
             }
           }
 
           if (personelParentFolder) {
             // Delete folder with personnel name
-            await googleDriveService.deleteFolder(namaLengkap, personelParentFolder.id);
+            await oauth2GoogleService.deleteFolder(namaLengkap, personelParentFolder.id);
             console.log(`✅ Deleted folder for personel: ${namaLengkap}`);
           }
         }
@@ -732,6 +796,17 @@ class GoogleSheetsService {
       const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       const currentData = await this.getSheetData(sheetName);
       const nextRow = currentData.length + 2;
+
+      // Auto-fill author from OAuth2 user (if header includes 'author')
+      if (headers.includes('author') && !data.author) {
+        try {
+          const userInfo = await oauth2GoogleService.getUserInfo();
+          data.author = userInfo.name || userInfo.username; // Gunakan nama lengkap
+        } catch (error) {
+          console.warn('Could not get user info for author, using "system":', error.message);
+          data.author = 'system';
+        }
+      }
 
       const values = headers.map(header => data[header] || '');
 
@@ -928,6 +1003,7 @@ class GoogleSheetsService {
       'no_telp',
       'no_fax',
       'email',
+      'author'
     ];
     
     // Get existing companies to generate ID and folder number
@@ -947,7 +1023,7 @@ class GoogleSheetsService {
 
     // Create folder in Google Drive
     try {
-      const folder = await googleDriveService.createFolder(folderName);
+      const folder = await oauth2GoogleService.createFolder(folderName);
       console.log(`✅ Folder created for company: ${folderName} (ID: ${folder.id})`);
       
       // Optionally, you can store the folder ID in the company data
@@ -1001,7 +1077,7 @@ class GoogleSheetsService {
           const newFolderName = `${folderNumber}.(${data.nama_perusahaan})`;
           
           // Rename folder in Google Drive
-          const folder = await googleDriveService.renameFolder(oldFolderName, newFolderName);
+          const folder = await oauth2GoogleService.renameFolder(oldFolderName, newFolderName);
           console.log(`✅ Company folder renamed: "${oldFolderName}" → "${newFolderName}"`);
           
           result.folderRenamed = true;
@@ -1042,7 +1118,7 @@ class GoogleSheetsService {
         const folderName = `${folderNumber}.(${company.nama_perusahaan})`;
         
         // Delete folder in Google Drive
-        await googleDriveService.deleteFolder(folderName);
+        await oauth2GoogleService.deleteFolder(folderName);
         console.log(`✅ Company folder deleted: "${folderName}"`);
         folderDeleted = true;
       } catch (driveError) {
@@ -1081,6 +1157,7 @@ class GoogleSheetsService {
       'nomor_akta',
       'tanggal_akta',
       'nama_notaris',
+      'author'
     ];
     return this.addSheetData('db_akta', headers, data);
   }
@@ -1442,7 +1519,7 @@ class GoogleSheetsService {
           if (companyIndex !== -1) {
             const companyFolderNumber = String(companyIndex + 1).padStart(2, '0');
             const companyFolderName = `${companyFolderNumber}.(${company.nama_perusahaan})`;
-            const companyFolder = await googleDriveService.findFolderByName(companyFolderName);
+            const companyFolder = await oauth2GoogleService.findFolderByName(companyFolderName);
             
             if (companyFolder) {
               // Get all projects for this company to determine project number
@@ -1451,7 +1528,7 @@ class GoogleSheetsService {
               const projectNumber = String(companyProjects.length).padStart(2, '0');
               const projectFolderName = `${projectNumber}.(${data.nama_project})`;
               
-              const projectFolder = await googleDriveService.createFolder(projectFolderName, companyFolder.id);
+              const projectFolder = await oauth2GoogleService.createFolder(projectFolderName, companyFolder.id);
               console.log(`✅ Project folder created: ${companyFolderName}/${projectFolderName} (ID: ${projectFolder.id})`);
               
               result.projectFolderId = projectFolder.id;
@@ -1497,7 +1574,7 @@ class GoogleSheetsService {
           if (companyIndex !== -1) {
             const companyFolderNumber = String(companyIndex + 1).padStart(2, '0');
             const companyFolderName = `${companyFolderNumber}.(${company.nama_perusahaan})`;
-            const companyFolder = await googleDriveService.findFolderByName(companyFolderName);
+            const companyFolder = await oauth2GoogleService.findFolderByName(companyFolderName);
             
             if (companyFolder) {
               const companyProjects = await this.getProjectsByCompany(currentProject.id_perusahaan);
@@ -1508,9 +1585,9 @@ class GoogleSheetsService {
                 const oldProjectFolderName = `${projectNumber}.(${currentProject.nama_project})`;
                 const newProjectFolderName = `${projectNumber}.(${data.nama_project})`;
                 
-                const projectFolder = await googleDriveService.findFolderByName(oldProjectFolderName, companyFolder.id);
+                const projectFolder = await oauth2GoogleService.findFolderByName(oldProjectFolderName, companyFolder.id);
                 if (projectFolder) {
-                  await googleDriveService.renameFolderById(projectFolder.id, newProjectFolderName);
+                  await oauth2GoogleService.renameFolderById(projectFolder.id, newProjectFolderName);
                   result.folderRenamed = true;
                   result.newProjectFolderName = newProjectFolderName;
                 }
@@ -1545,7 +1622,7 @@ class GoogleSheetsService {
         if (companyIndex !== -1) {
           const companyFolderNumber = String(companyIndex + 1).padStart(2, '0');
           const companyFolderName = `${companyFolderNumber}.(${company.nama_perusahaan})`;
-          const companyFolder = await googleDriveService.findFolderByName(companyFolderName);
+          const companyFolder = await oauth2GoogleService.findFolderByName(companyFolderName);
           
           if (companyFolder) {
             const companyProjects = await this.getProjectsByCompany(project.id_perusahaan);
@@ -1554,10 +1631,10 @@ class GoogleSheetsService {
             if (projectIndex !== -1) {
               const projectNumber = String(projectIndex + 1).padStart(2, '0');
               const projectFolderName = `${projectNumber}.(${project.nama_project})`;
-              const projectFolder = await googleDriveService.findFolderByName(projectFolderName, companyFolder.id);
+              const projectFolder = await oauth2GoogleService.findFolderByName(projectFolderName, companyFolder.id);
               
               if (projectFolder) {
-                await googleDriveService.deleteFolderById(projectFolder.id);
+                await oauth2GoogleService.deleteFolderById(projectFolder.id);
                 folderDeleted = true;
               }
             }
@@ -1619,6 +1696,326 @@ class GoogleSheetsService {
     
     const allCompanies = await this.getAllCompanies();
     return allCompanies.filter(c => companyIds.includes(c.id_perusahaan));
+  }
+
+  // ========================================
+  // PERSONNEL DOCUMENTS CRUD (KTP, NPWP, IJAZAH, CV)
+  // ========================================
+
+  // --- KTP ---
+  async addKtp(data) {
+    // IMPORTANT: Headers MUST match EXACT column order in db_ktp sheet!
+    const headers = [
+      'id_ktp',                 // Auto-generated
+      'id_personel',
+      'nik',
+      'nama_ktp',
+      'tempat_lahir_ktp',
+      'tanggal_lahir_ktp',
+      'jenis_kelamin',
+      'golongan_darah',
+      'alamat_ktp',
+      'rt_rw',
+      'kelurahan_desa',
+      'kecamatan',
+      'kota_kabupaten',
+      'provinsi',
+      'agama',
+      'status_perkawinan',
+      'pekerjaan',
+      'kewarganegaraan',
+      'berlaku_hingga',
+      'tanggal_terbit_ktp',
+      'file_ktp_url',
+      'tanggal_input',
+      'author'
+    ];
+    return this.addSheetDataPersonel('db_ktp', headers, data);
+  }
+
+  async updateKtp(idPersonel, data) {
+    const headers = [
+      'id_personel',
+      'nik',
+      'nama_ktp',
+      'tempat_lahir_ktp',
+      'tanggal_lahir_ktp',
+      'jenis_kelamin',
+      'alamat_ktp',
+      'berlaku_hingga',
+      'file_ktp_url'
+    ];
+    return this.updateSheetDataPersonel('db_ktp', headers, 'id_personel', idPersonel, data);
+  }
+
+  async deleteKtp(idPersonel) {
+    return this.deleteSheetDataPersonel('db_ktp', 'id_personel', idPersonel);
+  }
+
+  // --- NPWP ---
+  async addNpwp(data) {
+    // IMPORTANT: Must match EXACT column order in db_npwp_personel sheet!
+    const headers = [
+      'id_npwp_personel',               // Auto-generated
+      'id_personel',
+      'nomor_npwp_personel',
+      'nik_npwp_personel',
+      'nama_npwp_personel',
+      'alamat_npwp_personel',
+      'kelurahan_npwp_personel',
+      'kecamatan_npwp_personel',
+      'kota_npwp_personel',
+      'provinsi_npwp_personel',
+      'kode_pos_npwp_personel',
+      'kpp_npwp_personel',
+      'tanggal_terdaftar_npwp_personel',
+      'file_npwp_personel_url',
+      'tanggal_input',
+      'author'
+    ];
+    return this.addSheetDataPersonel('db_npwp_personel', headers, data);
+  }
+
+  async updateNpwp(idPersonel, data) {
+    const headers = [
+      'id_personel',
+      'nomor_npwp_personel',
+      'nik_npwp_personel',
+      'nama_npwp_personel',
+      'alamat_npwp_personel',
+      'kpp_npwp_personel',
+      'file_npwp_personel_url'
+    ];
+    return this.updateSheetDataPersonel('db_npwp_personel', headers, 'id_personel', idPersonel, data);
+  }
+
+  async deleteNpwp(idPersonel) {
+    return this.deleteSheetDataPersonel('db_npwp_personel', 'id_personel', idPersonel);
+  }
+
+  // --- IJAZAH ---
+  async addIjazah(data) {
+    const headers = [
+      'id_ijazah',              // Auto-generated
+      'id_personel',
+      'jenjang_pendidikan',
+      'nama_institusi_pendidikan',
+      'fakultas',
+      'program_studi',
+      'nomor_ijazah',
+      'tahun_masuk',
+      'tahun_lulus',
+      'gelar_akademik',
+      'ipk',
+      'file_ijazah_url',
+      'tanggal_input',
+      'author'
+    ];
+    return this.addSheetDataPersonel('db_ijazah', headers, data);
+  }
+
+  async updateIjazah(idPersonel, data) {
+    const headers = [
+      'id_personel',
+      'jenjang_pendidikan',
+      'nama_institusi_pendidikan',
+      'fakultas',
+      'program_studi',
+      'nomor_ijazah',
+      'tahun_masuk',
+      'tahun_lulus',
+      'gelar_akademik',
+      'ipk',
+      'file_ijazah_url'
+    ];
+    return this.updateSheetDataPersonel('db_ijazah', headers, 'id_personel', idPersonel, data);
+  }
+
+  async deleteIjazah(idPersonel) {
+    return this.deleteSheetDataPersonel('db_ijazah', 'id_personel', idPersonel);
+  }
+
+  // --- CV ---
+  async addCv(data) {
+    const headers = [
+      'id_cv',                  // Auto-generated
+      'id_personel',
+      'nama_lengkap_cv',
+      'ringkasan_profil',
+      'keahlian_utama',
+      'total_pengalaman_tahun',
+      'pengalaman_kerja_terakhir',
+      'sertifikasi_profesional',
+      'bahasa_dikuasai',
+      'file_cv_url',
+      'tanggal_input',
+      'author'
+    ];
+    return this.addSheetDataPersonel('db_cv', headers, data);
+  }
+
+  async updateCv(idPersonel, data) {
+    const headers = [
+      'id_personel',
+      'nama_lengkap_cv',
+      'ringkasan_profil',
+      'keahlian_utama',
+      'total_pengalaman_tahun',
+      'pengalaman_kerja_terakhir',
+      'sertifikasi_profesional',
+      'bahasa_dikuasai',
+      'file_cv_url'
+    ];
+    return this.updateSheetDataPersonel('db_cv', headers, 'id_personel', idPersonel, data);
+  }
+
+  async deleteCv(idPersonel) {
+    return this.deleteSheetDataPersonel('db_cv', 'id_personel', idPersonel);
+  }
+
+  // Helper functions for personnel document sheets (uses PERSONEL spreadsheet)
+  async addSheetDataPersonel(sheetName, headers, data) {
+    await this.initialize();
+
+    try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
+      const currentData = await this.readSheet(spreadsheetId, sheetName);
+      const nextRow = currentData.length + 2;
+
+      // Auto-generate ID if needed (for id_ktp, id_npwp, etc.)
+      if (headers[0].startsWith('id_') && !data[headers[0]]) {
+        // Map sheet names to proper prefixes
+        const prefixMap = {
+          'db_ktp': 'KTP',
+          'db_npwp_personel': 'NPWPP',
+          'db_ijazah': 'IJAZAH',
+          'db_cv': 'CV'
+        };
+        const prefix = prefixMap[sheetName] || sheetName.replace('db_', '').toUpperCase();
+        const count = currentData.length + 1;
+        data[headers[0]] = `${prefix}${String(count).padStart(3, '0')}`;
+      }
+
+      // Auto-generate tanggal_input if field exists in headers
+      if (headers.includes('tanggal_input') && !data.tanggal_input) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        data.tanggal_input = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      }
+
+      // Auto-fill author from OAuth2 user (username tanpa @domain)
+      if (headers.includes('author') && !data.author) {
+        try {
+          const userInfo = await oauth2GoogleService.getUserInfo();
+          data.author = userInfo.username; // Tanpa @gmail.com
+        } catch (error) {
+          console.warn('Could not get user info for author, using "system":', error.message);
+          data.author = 'system';
+        }
+      }
+
+      const values = headers.map(header => data[header] || '');
+
+      await this.sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `${sheetName}!A${nextRow}`,
+        valueInputOption: 'RAW',
+        resource: { values: [values] },
+      });
+
+      return {
+        success: true,
+        message: `Data added to ${sheetName} successfully`,
+      };
+    } catch (error) {
+      throw new Error(`Failed to add data to ${sheetName}: ${error.message}`);
+    }
+  }
+
+  async updateSheetDataPersonel(sheetName, headers, idField, id, data) {
+    await this.initialize();
+
+    try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
+      const allData = await this.readSheet(spreadsheetId, sheetName);
+      const index = allData.findIndex(item => item[idField] === id);
+
+      if (index === -1) {
+        throw new Error(`Data with ${idField} = ${id} not found in ${sheetName}`);
+      }
+
+      const rowNumber = index + 2;
+
+      const updatedData = { ...allData[index], ...data };
+      const values = headers.map(header => updatedData[header] || '');
+
+      await this.sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${sheetName}!A${rowNumber}`,
+        valueInputOption: 'RAW',
+        resource: { values: [values] },
+      });
+
+      return {
+        success: true,
+        message: `Data in ${sheetName} updated successfully`,
+      };
+    } catch (error) {
+      throw new Error(`Failed to update data in ${sheetName}: ${error.message}`);
+    }
+  }
+
+  async deleteSheetDataPersonel(sheetName, idField, id) {
+    await this.initialize();
+
+    try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERSONEL || process.env.GOOGLE_SHEET_ID_PERSONIL;
+      const allData = await this.readSheet(spreadsheetId, sheetName);
+      const index = allData.findIndex(item => item[idField] === id);
+
+      if (index === -1) {
+        throw new Error(`Data with ${idField} = ${id} not found in ${sheetName}`);
+      }
+
+      const tabs = await this.getSheetTabNames(spreadsheetId);
+      const tab = tabs.find(t => t.title === sheetName);
+
+      if (!tab) {
+        throw new Error(`Sheet ${sheetName} not found in spreadsheet`);
+      }
+
+      const rowNumber = index + 1; // 0-based index for batchUpdate
+
+      await this.sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        resource: {
+          requests: [
+            {
+              deleteDimension: {
+                range: {
+                  sheetId: tab.sheetId,
+                  dimension: 'ROWS',
+                  startIndex: rowNumber,
+                  endIndex: rowNumber + 1,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      return {
+        success: true,
+        message: `Data in ${sheetName} deleted successfully`,
+      };
+    } catch (error) {
+      throw new Error(`Failed to delete data from ${sheetName}: ${error.message}`);
+    }
   }
 }
 

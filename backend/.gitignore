@@ -4,6 +4,9 @@ node_modules/
 # Environment variables
 .env
 
+# OAuth2 Credentials & Tokens (SENSITIVE!)
+credentials/oauth2-token.json
+
 # Uploads
 uploads/*
 !uploads/.gitkeep

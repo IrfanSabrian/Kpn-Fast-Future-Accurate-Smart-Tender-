@@ -101,8 +101,8 @@ async function insertData(sheets, spreadsheetId, sheetName, data) {
 // SPREADSHEET 1: PERUSAHAAN
 const dataPerusahaan = {
   db_profil: [
-    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'npwp', 'status', 'profil_perusahaan_url', 'logo_perusahaan', 'kop_perusahaan', 'lokal_logo', 'tanggal_input'],
-    ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', '96.730.481.7-707.000', 'Pusat', 'https://drive.google.com/file/d/1h2iwwLjjmieDP7AvsVd2Qq0MnWCcccuK/view?usp=drive_link', 'https://drive.google.com/file/d/1Gssm8bTZqVHPb_V0ZsT_Y8cseeANUjH1/view?usp=drive_link', 'https://drive.google.com/file/d/1Qga2ikIWx3Drz0uoPOxeVGYp-EXsSOBO/view?usp=drive_link', '/assets/logo/Logo CV. VERUS CONSULTANT ENGINEERING.png', '2025-12-10 18:42:00']
+    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'npwp', 'status', 'profil_perusahaan_url', 'logo_perusahaan', 'kop_perusahaan', 'lokal_logo', 'tanggal_input', 'author'],
+    ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', '96.730.481.7-707.000', 'Pusat', 'https://drive.google.com/file/d/1h2iwwLjjmieDP7AvsVd2Qq0MnWCcccuK/view?usp=drive_link', 'https://drive.google.com/file/d/1Gssm8bTZqVHPb_V0ZsT_Y8cseeANUjH1/view?usp=drive_link', 'https://drive.google.com/file/d/1Qga2ikIWx3Drz0uoPOxeVGYp-EXsSOBO/view?usp=drive_link', '/assets/logo/Logo CV. VERUS CONSULTANT ENGINEERING.png', '2025-12-10 18:42:00', 'system']
   ],
   
   db_perusahaan_kbli: [
@@ -120,8 +120,8 @@ const dataPerusahaan = {
   ],
   
   db_akta: [
-    ['id_akta', 'id_perusahaan', 'jenis_akta', 'nomor_akta', 'tanggal_akta', 'notaris', 'akta_perusahaan_url', 'tanggal_input'],
-    ['AKTA001', 'COMP001', 'Pendirian', '17/2020', '2020-11-20', 'Gunardi Muhammad Hasan, S.H', 'https://drive.google.com/file/d/1mFlqsXXApig7480IZF7bU2pXLcxtvL3Q/view?usp=drive_link', '2025-12-10 18:42:00']
+    ['id_akta', 'id_perusahaan', 'jenis_akta', 'nomor_akta', 'tanggal_akta', 'notaris', 'akta_perusahaan_url', 'tanggal_input', 'author'],
+    ['AKTA001', 'COMP001', 'Pendirian', '17/2020', '2020-11-20', 'Gunardi Muhammad Hasan, S.H', 'https://drive.google.com/file/d/1mFlqsXXApig7480IZF7bU2pXLcxtvL3Q/view?usp=drive_link', '2025-12-10 18:42:00', 'system']
   ],
   
   db_pejabat: [
@@ -186,37 +186,37 @@ const dataPerusahaan = {
 const dataPersonel = {
   // Master data personel - SUMBER DATA UTAMA
   db_personel: [
-    ['id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input'],
-    ['PRS001', 'KAMARULLAH', 'PARIT BUGIS', '1992-01-23', 'JL. PROF. M. YAMIN GG. PEMANGKAT 2 NO. 8.10', '08565172259', '2025-12-10 18:42:00'],
-    ['PRS002', 'RUKIAH', 'NIBUNG', '1998-07-05', 'JL. TANJUNG RAYA 2 GG. SAIGON UTAMA 1 NO. 77', '08123456789', '2025-12-10 18:42:00']
+    ['id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input', 'author'],
+    ['PRS001', 'KAMARULLAH', 'PARIT BUGIS', '1992-01-23', 'JL. PROF. M. YAMIN GG. PEMANGKAT 2 NO. 8.10', '08565172259', '2025-12-10 18:42:00', 'system'],
+    ['PRS002', 'RUKIAH', 'NIBUNG', '1998-07-05', 'JL. TANJUNG RAYA 2 GG. SAIGON UTAMA 1 NO. 77', '08123456789', '2025-12-10 18:42:00', 'system']
   ],
   
   // Data KTP - Hanya data spesifik KTP
   db_ktp: [
-    ['id_ktp', 'id_personel', 'nik', 'nama_ktp', 'tempat_lahir_ktp', 'tanggal_lahir_ktp', 'jenis_kelamin', 'golongan_darah', 'alamat_ktp', 'rt_rw', 'kelurahan_desa', 'kecamatan', 'kota_kabupaten', 'provinsi', 'agama', 'status_perkawinan', 'pekerjaan', 'kewarganegaraan', 'berlaku_hingga', 'tanggal_terbit_ktp', 'file_ktp_url', 'tanggal_input'],
-    ['KTP001', 'PRS001', '6102152301920001', 'KAMARULLAH', 'PARIT BUGIS', '23-01-1992', 'LAKI-LAKI', 'O', 'JL. PROF. M. YAMIN GG. PEMANGKAT 2 NO. 8.10', '001/014', 'AKCAYA', 'PONTIANAK SELATAN', 'PONTIANAK', 'KALIMANTAN BARAT', 'ISLAM', 'KAWIN', 'WIRASWASTA', 'WNI', 'SEUMUR HIDUP', '25-03-2021', 'https://drive.google.com/file/d/1mFl-mdK1slGzSB9hx1mKDMbfQPVex3sR/view?usp=drive_link', '2025-12-10 18:42:00'],
-    ['KTP002', 'PRS002', '6106094504980003', 'RUKIAH', 'NIBUNG', '05-07-1998', 'PEREMPUAN', 'B', 'JL. TANJUNG RAYA 2 GG. SAIGON UTAMA 1 NO. 77', '001/017', 'SAIGON', 'PONTIANAK TIMUR', 'PONTIANAK', 'KALIMANTAN BARAT', 'ISLAM', 'KAWIN', 'PELAJAR/MAHASISWA', 'WNI', 'SEUMUR HIDUP', '', 'https://drive.google.com/file/d/1mzBduRYqDQDrUNgPy9HLWlN7KwuBgh1M/view?usp=drive_link', '2025-12-10 18:42:00']
+    ['id_ktp', 'id_personel', 'nik', 'nama_ktp', 'tempat_lahir_ktp', 'tanggal_lahir_ktp', 'jenis_kelamin', 'golongan_darah', 'alamat_ktp', 'rt_rw', 'kelurahan_desa', 'kecamatan', 'kota_kabupaten', 'provinsi', 'agama', 'status_perkawinan', 'pekerjaan', 'kewarganegaraan', 'berlaku_hingga', 'tanggal_terbit_ktp', 'file_ktp_url', 'tanggal_input', 'author'],
+    ['KTP001', 'PRS001', '6102152301920001', 'KAMARULLAH', 'PARIT BUGIS', '23-01-1992', 'LAKI-LAKI', 'O', 'JL. PROF. M. YAMIN GG. PEMANGKAT 2 NO. 8.10', '001/014', 'AKCAYA', 'PONTIANAK SELATAN', 'PONTIANAK', 'KALIMANTAN BARAT', 'ISLAM', 'KAWIN', 'WIRASWASTA', 'WNI', 'SEUMUR HIDUP', '25-03-2021', 'https://drive.google.com/file/d/1mFl-mdK1slGzSB9hx1mKDMbfQPVex3sR/view?usp=drive_link', '2025-12-10 18:42:00', 'system'],
+    ['KTP002', 'PRS002', '6106094504980003', 'RUKIAH', 'NIBUNG', '05-07-1998', 'PEREMPUAN', 'B', 'JL. TANJUNG RAYA 2 GG. SAIGON UTAMA 1 NO. 77', '001/017', 'SAIGON', 'PONTIANAK TIMUR', 'PONTIANAK', 'KALIMANTAN BARAT', 'ISLAM', 'KAWIN', 'PELAJAR/MAHASISWA', 'WNI', 'SEUMUR HIDUP', '', 'https://drive.google.com/file/d/1mzBduRYqDQDrUNgPy9HLWlN7KwuBgh1M/view?usp=drive_link', '2025-12-10 18:42:00', 'system']
   ],
   
   // Data NPWP Personel - Hanya data spesifik NPWP
   db_npwp_personel: [
-    ['id_npwp_personel', 'id_personel', 'nomor_npwp_personel', 'nik_npwp_personel', 'nama_npwp_personel', 'alamat_npwp_personel', 'kelurahan_npwp_personel', 'kecamatan_npwp_personel', 'kota_npwp_personel', 'provinsi_npwp_personel', 'kode_pos_npwp_personel', 'kpp_npwp_personel', 'tanggal_terdaftar_npwp_personel', 'file_npwp_personel_url', 'tanggal_input'],
-    ['NPWPP001', 'PRS001', '70.423.877.7-704.000', '6102152301320001', 'KAMARULLAH', 'JL. PARIT BUGIS NO RT 08 RW 04', 'PARIT BUGIS', 'SEGEDONG', 'PONTIANAK', 'KALIMANTAN BARAT', '', 'KPP PRATAMA MEMPAWAH', '', 'https://drive.google.com/file/d/1t7mDwZDw0oUaSI13C8VzawucrjcIU-9g/view?usp=drive_link', '2025-12-10 18:42:00'],
-    ['NPWPP002', 'PRS002', '84.756.455.6-701.000', '6106094504980003', 'RUKIAH', 'JL. TANJUNG RAYA 2 GG. SAIGON UTAMA 1 NO. 77 RT. 001 RW. 017', 'SAIGON', 'PONTIANAK TIMUR', 'PONTIANAK', 'KALIMANTAN BARAT', '', 'KPP PRATAMA PONTIANAK', '', 'https://drive.google.com/file/d/1mBR9ii6t5mq0c5sVjlkMo7AZv-_E7xjY/view?usp=drive_link', '2025-12-10 18:42:00']
+    ['id_npwp_personel', 'id_personel', 'nomor_npwp_personel', 'nik_npwp_personel', 'nama_npwp_personel', 'alamat_npwp_personel', 'kelurahan_npwp_personel', 'kecamatan_npwp_personel', 'kota_npwp_personel', 'provinsi_npwp_personel', 'kode_pos_npwp_personel', 'kpp_npwp_personel', 'tanggal_terdaftar_npwp_personel', 'file_npwp_personel_url', 'tanggal_input', 'author'],
+    ['NPWPP001', 'PRS001', '70.423.877.7-704.000', '6102152301320001', 'KAMARULLAH', 'JL. PARIT BUGIS NO RT 08 RW 04', 'PARIT BUGIS', 'SEGEDONG', 'PONTIANAK', 'KALIMANTAN BARAT', '', 'KPP PRATAMA MEMPAWAH', '', 'https://drive.google.com/file/d/1t7mDwZDw0oUaSI13C8VzawucrjcIU-9g/view?usp=drive_link', '2025-12-10 18:42:00', 'system'],
+    ['NPWPP002', 'PRS002', '84.756.455.6-701.000', '6106094504980003', 'RUKIAH', 'JL. TANJUNG RAYA 2 GG. SAIGON UTAMA 1 NO. 77 RT. 001 RW. 017', 'SAIGON', 'PONTIANAK TIMUR', 'PONTIANAK', 'KALIMANTAN BARAT', '', 'KPP PRATAMA PONTIANAK', '', 'https://drive.google.com/file/d/1mBR9ii6t5mq0c5sVjlkMo7AZv-_E7xjY/view?usp=drive_link', '2025-12-10 18:42:00', 'system']
   ],
   
   // Data Ijazah - Hanya data spesifik pendidikan
   db_ijazah: [
-    ['id_ijazah', 'id_personel', 'jenjang_pendidikan', 'nama_institusi_pendidikan', 'fakultas', 'program_studi', 'nomor_ijazah', 'tahun_masuk', 'tahun_lulus', 'gelar_akademik', 'ipk', 'file_ijazah_url', 'tanggal_input'],
-    ['IJZ001', 'PRS001', 'S1', 'Universitas Tanjungpura', 'Teknik', 'Teknik Sipil', 'ST/2015/001234', '2011', '2015', 'S.T.', '3.45', 'https://drive.google.com/file/d/1ijazah001/view', '2025-12-10 18:42:00'],
-    ['IJZ002', 'PRS002', 'S1', 'Universitas Tanjungpura', 'Teknik', 'Teknik Arsitektur', 'ST/2015/005678', '2011', '2015', 'S.T.', '3.52', 'https://drive.google.com/file/d/1ijazah002/view', '2025-12-10 18:42:00']
+    ['id_ijazah', 'id_personel', 'jenjang_pendidikan', 'nama_institusi_pendidikan', 'fakultas', 'program_studi', 'nomor_ijazah', 'tahun_masuk', 'tahun_lulus', 'gelar_akademik', 'ipk', 'file_ijazah_url', 'tanggal_input', 'author'],
+    ['IJZ001', 'PRS001', 'S1', 'Universitas Tanjungpura', 'Teknik', 'Teknik Sipil', 'ST/2015/001234', '2011', '2015', 'S.T.', '3.45', 'https://drive.google.com/file/d/1ijazah001/view', '2025-12-10 18:42:00', 'system'],
+    ['IJZ002', 'PRS002', 'S1', 'Universitas Tanjungpura', 'Teknik', 'Teknik Arsitektur', 'ST/2015/005678', '2011', '2015', 'S.T.', '3.52', 'https://drive.google.com/file/d/1ijazah002/view', '2025-12-10 18:42:00', 'system']
   ],
   
   // Data CV - Hanya data spesifik CV/profil profesional
   db_cv: [
-    ['id_cv', 'id_personel', 'nama_lengkap_cv', 'ringkasan_profil', 'keahlian_utama', 'pengalaman_kerja_terakhir', 'total_pengalaman_tahun', 'sertifikasi_profesional', 'bahasa_dikuasai', 'file_cv_url', 'tanggal_update_cv', 'tanggal_input'],
-    ['CV001', 'PRS001', 'KAMARULLAH, S.T.', 'Profesional di bidang konsultansi teknik dengan pengalaman 8+ tahun dalam perencanaan dan pengawasan proyek konstruksi', 'Perencanaan Teknik, Manajemen Proyek, AutoCAD, SAP2000, Quantity Surveying', 'Direktur CV. VERUS CONSULTANT ENGINEERING', '8', 'SKA Ahli Muda Teknik Sipil, Sertifikat Ahli K3 Konstruksi', 'Indonesia (Native), Inggris (Intermediate)', 'https://drive.google.com/file/d/1cv001/view', '2024-12-01', '2025-12-10 18:42:00'],
-    ['CV002', 'PRS002', 'RUKIAH, S.T.', 'Profesional di bidang arsitektur dan desain dengan pengalaman 8+ tahun dalam desain bangunan dan perencanaan tata ruang', 'Desain Arsitektur, Rendering 3D, SketchUp, AutoCAD, Revit, Photoshop', 'Komanditer CV. VERUS CONSULTANT ENGINEERING', '8', 'SKA Ahli Muda Arsitektur, Sertifikat Desain Interior', 'Indonesia (Native), Inggris (Intermediate)', 'https://drive.google.com/file/d/1cv002/view', '2024-12-01', '2025-12-10 18:42:00']
+    ['id_cv', 'id_personel', 'nama_lengkap_cv', 'ringkasan_profil', 'keahlian_utama', 'pengalaman_kerja_terakhir', 'total_pengalaman_tahun', 'sertifikasi_profesional', 'bahasa_dikuasai', 'file_cv_url', 'tanggal_update_cv', 'tanggal_input', 'author'],
+    ['CV001', 'PRS001', 'KAMARULLAH, S.T.', 'Profesional di bidang konsultansi teknik dengan pengalaman 8+ tahun dalam perencanaan dan pengawasan proyek konstruksi', 'Perencanaan Teknik, Manajemen Proyek, AutoCAD, SAP2000, Quantity Surveying', 'Direktur CV. VERUS CONSULTANT ENGINEERING', '8', 'SKA Ahli Muda Teknik Sipil, Sertifikat Ahli K3 Konstruksi', 'Indonesia (Native), Inggris (Intermediate)', 'https://drive.google.com/file/d/1cv001/view', '2024-12-01', '2025-12-10 18:42:00', 'system'],
+    ['CV002', 'PRS002', 'RUKIAH, S.T.', 'Profesional di bidang arsitektur dan desain dengan pengalaman 8+ tahun dalam desain bangunan dan perencanaan tata ruang', 'Desain Arsitektur, Rendering 3D, SketchUp, AutoCAD, Revit, Photoshop', 'Komanditer CV. VERUS CONSULTANT ENGINEERING', '8', 'SKA Ahli Muda Arsitektur, Sertifikat Desain Interior', 'Indonesia (Native), Inggris (Intermediate)', 'https://drive.google.com/file/d/1cv002/view', '2024-12-01', '2025-12-10 18:42:00', 'system']
   ]
 };
 

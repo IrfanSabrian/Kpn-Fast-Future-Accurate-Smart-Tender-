@@ -134,15 +134,23 @@ app.get('/api', (req, res) => {
 
 // Import routes
 import personnelRoutes from './routes/personnel.routes.js';
+import personnelDocumentsRoutes from './routes/personnelDocuments.routes.js';
+import oauth2AuthRoutes from './routes/oauth2Auth.routes.js';
 import databaseRoutes from './routes/database.routes.js';
 import driveRoutes from './routes/drive.routes.js';
 import kbliRoutes from './routes/kbli.routes.js';
+import recentActivitiesRoutes from './routes/recentActivities.routes.js';
+import sheetsPermissionRoutes from './routes/sheetsPermission.routes.js';
 
 // Use routes
+app.use('/api/auth', oauth2AuthRoutes); // OAuth2 authentication
 app.use('/api/companies', databaseRoutes); // Unified database routes for companies
 app.use('/api/personnel', personnelRoutes); // Personnel management
+app.use('/api/personnel-documents', personnelDocumentsRoutes); // Personnel documents (KTP, NPWP, Ijazah, CV)
 app.use('/api/drive', driveRoutes); // Google Drive folder management
 app.use('/api/kbli', kbliRoutes); // KBLI master data and company KBLI
+app.use('/api/activities', recentActivitiesRoutes); // Recent activities with author
+app.use('/api/sheets', sheetsPermissionRoutes); // Google Sheets permission management
 
 // Error handling middleware
 app.use((err, req, res, next) => {

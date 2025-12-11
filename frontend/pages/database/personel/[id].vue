@@ -137,190 +137,150 @@
               </div>
             </div>
 
-            <!-- Document Details Card -->
-            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-              <!-- KTP Details -->
-              <div v-if="selectedDocument === 'ktp' && ktp" class="space-y-2">
-                <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
-                  <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
-                    <i class="far fa-id-card text-lg"></i>
+            <!-- Document Details Card - Using PersonnelDocumentManager -->
+            <PersonnelDocumentManager
+              :document-type="selectedDocument"
+              :has-document="hasDocument(selectedDocument)"
+              @add="openAddModal(selectedDocument)"
+              @edit="openEditModal(selectedDocument)"
+              @delete="openDeleteConfirm(selectedDocument)"
+            >
+              <template #content>
+                <!-- KTP Details -->
+                <div v-if="selectedDocument === 'ktp'" class="space-y-2">
+                  <div class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-blue-50 dark:bg-blue-900/20 px-4 rounded-lg mb-3 border border-blue-100 dark:border-blue-800">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NIK</div>
+                    <div class="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wide">
+                      {{ ktp.nik || '-' }}
+                    </div>
                   </div>
-                  <div>
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Kartu Tanda Penduduk</h3>
-                    <p class="text-xs text-slate-500">Data Identitas Diri</p>
-                  </div>
-                </div>
-
-                <!-- NIK Highlight -->
-                <div class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-blue-50 dark:bg-blue-900/20 px-4 rounded-lg mb-3 border border-blue-100 dark:border-blue-800">
-                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NIK</div>
-                  <div class="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wide">
-                    {{ ktp.nik || '-' }}
-                  </div>
-                </div>
-                
-                <div class="space-y-1">
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama Lengkap</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.nama_ktp || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tempat/Tgl Lahir</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.tempat_lahir_ktp || '-' }}, {{ ktp.tanggal_lahir_ktp || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Jenis Kelamin</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.jenis_kelamin || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat KTP</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug">{{ ktp.alamat_ktp || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-1">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Berlaku Hingga</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.berlaku_hingga || '-' }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- NPWP Details -->
-              <div v-else-if="selectedDocument === 'npwp' && npwp" class="space-y-2">
-                <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
-                  <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600">
-                    <i class="fas fa-credit-card text-lg"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">NPWP Personel</h3>
-                    <p class="text-xs text-slate-500">Data Pajak Pribadi</p>
+                  
+                  <div class="space-y-1">
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama Lengkap</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.nama_ktp || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tempat/Tgl Lahir</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.tempat_lahir_ktp || '-' }}, {{ ktp.tanggal_lahir_ktp || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Jenis Kelamin</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.jenis_kelamin || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat KTP</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug">{{ ktp.alamat_ktp || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Berlaku Hingga</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.berlaku_hingga || '-' }}</span>
+                    </div>
                   </div>
                 </div>
 
-                <!-- NPWP Highlight -->
-                <div class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-orange-50 dark:bg-orange-900/20 px-4 rounded-lg mb-3 border border-orange-100 dark:border-orange-800">
-                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NO. NPWP</div>
-                  <div class="text-sm font-mono font-bold text-orange-600 dark:text-orange-400 tracking-wide">
-                    {{ npwp.nomor_npwp_personel || '-' }}
+                <!-- NPWP Details -->
+                <div v-else-if="selectedDocument === 'npwp'" class="space-y-2">
+                  <div class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-orange-50 dark:bg-orange-900/20 px-4 rounded-lg mb-3 border border-orange-100 dark:border-orange-800">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NO. NPWP</div>
+                    <div class="text-sm font-mono font-bold text-orange-600 dark:text-orange-400 tracking-wide">
+                      {{ npwp.nomor_npwp_personel || '-' }}
+                    </div>
+                  </div>
+
+                  <div class="space-y-1">
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NIK NPWP</span>
+                      <span class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ npwp.nik_npwp_personel || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama WP</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ npwp.nama_npwp_personel || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat NPWP</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug">{{ npwp.alamat_npwp_personel || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">KPP</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ npwp.kpp_npwp_personel || '-' }}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="space-y-1">
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NIK NPWP</span>
-                    <span class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ npwp.nik_npwp_personel || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama WP</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ npwp.nama_npwp_personel || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat NPWP</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug">{{ npwp.alamat_npwp_personel || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">KPP</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ npwp.kpp_npwp_personel || '-' }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Ijazah Details -->
-              <div v-else-if="selectedDocument === 'ijazah' && ijazah" class="space-y-2">
-                <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
-                  <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600">
-                    <i class="fas fa-graduation-cap text-lg"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Ijazah Pendidikan</h3>
-                    <p class="text-xs text-slate-500">Kredensial Akademik</p>
-                  </div>
-                </div>
-
-                <div class="space-y-1">
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Jenjang</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.jenjang_pendidikan || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Institusi</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.nama_institusi_pendidikan || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Fakultas</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.fakultas || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Program Studi</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.program_studi || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">No. Ijazah</span>
-                    <span class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ ijazah.nomor_ijazah || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tahun</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.tahun_masuk || '-' }} - {{ ijazah.tahun_lulus || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Gelar</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.gelar_akademik || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">IPK</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.ipk || '-' }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- CV Details -->
-              <div v-else-if="selectedDocument === 'cv' && cv" class="space-y-2">
-                <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
-                  <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600">
-                    <i class="fas fa-file-alt text-lg"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Curriculum Vitae</h3>
-                    <p class="text-xs text-slate-500">Profil Profesional</p>
+                <!-- Ijazah Details -->
+                <div v-else-if="selectedDocument === 'ijazah'" class="space-y-2">
+                  <div class="space-y-1">
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Jenjang</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.jenjang_pendidikan || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Institusi</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.nama_institusi_pendidikan || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Fakultas</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.fakultas || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Program Studi</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.program_studi || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">No. Ijazah</span>
+                      <span class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ ijazah.nomor_ijazah || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tahun</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.tahun_masuk || '-' }} - {{ ijazah.tahun_lulus || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Gelar</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.gelar_akademik || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">IPK</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ijazah.ipk || '-' }}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div class="space-y-1">
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama Lengkap</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.nama_lengkap_cv || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Ringkasan Profil</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed">{{ cv.ringkasan_profil || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Keahlian Utama</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.keahlian_utama || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Pengalaman</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.total_pengalaman_tahun || '-' }} Tahun</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Posisi Terakhir</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.pengalaman_kerja_terakhir || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Sertifikasi</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed">{{ cv.sertifikasi_profesional || '-' }}</span>
-                  </div>
-                  <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Bahasa</span>
-                    <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.bahasa_dikuasai || '-' }}</span>
+                <!-- CV Details -->
+                <div v-else-if="selectedDocument === 'cv'" class="space-y-2">
+                  <div class="space-y-1">
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama Lengkap</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.nama_lengkap_cv || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Ringkasan Profil</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed">{{ cv.ringkasan_profil || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Keahlian Utama</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.keahlian_utama || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Pengalaman</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.total_pengalaman_tahun || '-' }} Tahun</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Posisi Terakhir</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.pengalaman_kerja_terakhir || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Sertifikasi</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed">{{ cv.sertifikasi_profesional || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Bahasa</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ cv.bahasa_dikuasai || '-' }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              <!-- Empty State -->
-              <div v-else class="text-center py-12 text-slate-400">
-                <i :class="`${getDocumentIcon(selectedDocument)} text-4xl mb-3 opacity-20`"></i>
-                <p class="text-sm">Data {{ getDocumentLabel(selectedDocument) }} belum tersedia</p>
-              </div>
-            </div>
+              </template>
+            </PersonnelDocumentManager>
           </div>
 
           <!-- Right Column: PDF Preview (5 cols) -->
@@ -452,11 +412,363 @@
         </div>
       </div>
     </BaseModal>
+
+    <!-- KTP Upload Modal -->
+    <PersonnelDocumentUploadModal
+      :show="showKtpUploadModal"
+      document-type="ktp"
+      :person-name="person?.nama_lengkap"
+      :is-edit-mode="isEditingKtp"
+      :existing-file-url="ktp?.file_ktp_url"
+      @close="showKtpUploadModal = false"
+      @save="saveKtp"
+    >
+      <template #form-fields>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">NIK <span class="text-red-500">*</span></label>
+            <input
+              v-model="ktpFormData.nik"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              placeholder="16 digit NIK"
+              maxlength="16"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nama Lengkap</label>
+            <input
+              v-model="ktpFormData.nama_ktp"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Tempat Lahir</label>
+              <input
+                v-model="ktpFormData.tempat_lahir_ktp"
+                type="text"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Tanggal Lahir</label>
+              <input
+                v-model="ktpFormData.tanggal_lahir_ktp"
+                type="date"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Jenis Kelamin</label>
+            <select
+              v-model="ktpFormData.jenis_kelamin"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            >
+              <option value="">Pilih</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Alamat KTP</label>
+            <textarea
+              v-model="ktpFormData.alamat_ktp"
+              rows="3"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Berlaku Hingga</label>
+            <input
+              v-model="ktpFormData.berlaku_hingga"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              placeholder="SEUMUR HIDUP"
+            />
+          </div>
+        </div>
+      </template>
+    </PersonnelDocumentUploadModal>
+
+    <!-- NPWP Upload Modal -->
+    <PersonnelDocumentUploadModal
+      :show="showNpwpUploadModal"
+      document-type="npwp"
+      :person-name="person?.nama_lengkap"
+      :is-edit-mode="isEditingNpwp"
+      :existing-file-url="npwp?.file_npwp_personel_url"
+      @close="showNpwpUploadModal = false"
+      @save="saveNpwp"
+    >
+      <template #form-fields>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nomor NPWP <span class="text-red-500">*</span></label>
+            <input
+              v-model="npwpFormData.nomor_npwp_personel"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              placeholder="XX.XXX.XXX.X-XXX.XXX"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">NIK NPWP</label>
+            <input
+              v-model="npwpFormData.nik_npwp_personel"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              maxlength="16"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nama Wajib Pajak</label>
+            <input
+              v-model="npwpFormData.nama_npwp_personel"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Alamat NPWP</label>
+            <textarea
+              v-model="npwpFormData.alamat_npwp_personel"
+              rows="3"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">KPP</label>
+            <input
+              v-model="npwpFormData.kpp_npwp_personel"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              placeholder="Contoh: KPP Pratama Jakarta Pusat"
+            />
+          </div>
+        </div>
+      </template>
+    </PersonnelDocumentUploadModal>
+
+    <!-- Ijazah Upload Modal -->
+    <PersonnelDocumentUploadModal
+      :show="showIjazahUploadModal"
+      document-type="ijazah"
+      :person-name="person?.nama_lengkap"
+      :is-edit-mode="isEditingIjazah"
+      :existing-file-url="ijazah?.file_ijazah_url"
+      @close="showIjazahUploadModal = false"
+      @save="saveIjazah"
+    >
+      <template #form-fields>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Jenjang Pendidikan <span class="text-red-500">*</span></label>
+            <select
+              v-model="ijazahFormData.jenjang_pendidikan"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+            >
+              <option value="">Pilih Jenjang</option>
+              <option value="SMA/SMK">SMA/SMK</option>
+              <option value="D3">D3</option>
+              <option value="S1">S1</option>
+              <option value="S2">S2</option>
+              <option value="S3">S3</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nama Institusi</label>
+            <input
+              v-model="ijazahFormData.nama_institusi_pendidikan"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Fakultas</label>
+            <input
+              v-model="ijazahFormData.fakultas"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Program Studi</label>
+            <input
+              v-model="ijazahFormData.program_studi"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nomor Ijazah</label>
+            <input
+              v-model="ijazahFormData.nomor_ijazah"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Tahun Masuk</label>
+              <input
+                v-model="ijazahFormData.tahun_masuk"
+                type="text"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+                placeholder="2015"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Tahun Lulus</label>
+              <input
+                v-model="ijazahFormData.tahun_lulus"
+                type="text"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+                placeholder="2019"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Gelar Akademik</label>
+            <input
+              v-model="ijazahFormData.gelar_akademik"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              placeholder="S.T., S.Kom., dll"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">IPK</label>
+            <input
+              v-model="ijazahFormData.ipk"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              placeholder="3.50"
+            />
+          </div>
+        </div>
+      </template>
+    </PersonnelDocumentUploadModal>
+
+    <!-- CV Upload Modal -->
+    <PersonnelDocumentUploadModal
+      :show="showCvUploadModal"
+      document-type="cv"
+      :person-name="person?.nama_lengkap"
+      :is-edit-mode="isEditingCv"
+      :existing-file-url="cv?.file_cv_url"
+      @close="showCvUploadModal = false"
+      @save="saveCv"
+    >
+      <template #form-fields>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nama Lengkap</label>
+            <input
+              v-model="cvFormData.nama_lengkap_cv"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Ringkasan Profil</label>
+            <textarea
+              v-model="cvFormData.ringkasan_profil"
+              rows="3"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              placeholder="Profesional berpengalaman di bidang..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Keahlian Utama</label>
+            <input
+              v-model="cvFormData.keahlian_utama"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              placeholder="Project Management, AutoCAD, dll"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Total Pengalaman (Tahun)</label>
+            <input
+              v-model="cvFormData.total_pengalaman_tahun"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              placeholder="5"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Pengalaman Kerja Terakhir</label>
+            <input
+              v-model="cvFormData.pengalaman_kerja_terakhir"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              placeholder="Senior Engineer di PT ABC"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Sertifikasi Profesional</label>
+            <textarea
+              v-model="cvFormData.sertifikasi_profesional"
+              rows="2"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              placeholder="PMP, SKA Ahli, dll"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Bahasa Dikuasai</label>
+            <input
+              v-model="cvFormData.bahasa_dikuasai"
+              type="text"
+              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              placeholder="Indonesia, Inggris"
+            />
+          </div>
+        </div>
+      </template>
+    </PersonnelDocumentUploadModal>
+
+    <!-- Confirm Dialog for Document Deletion -->
+    <ConfirmDialog
+      :show="showDeleteConfirm"
+      title="Hapus Dokumen?"
+      :message="`Dokumen ${getDocumentLabel(deleteDocumentType)} akan dihapus permanen. Lanjutkan?`"
+      confirm-text="Hapus"
+      cancel-text="Batal"
+      @confirm="handleDeleteDocument"
+      @cancel="showDeleteConfirm = false"
+    />
   </div>
 </template>
 
 <script setup>
 import BaseModal from '~/components/BaseModal.vue'
+import PersonnelDocumentUploadModal from '~/components/PersonnelDocumentUploadModal.vue'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
 
 definePageMeta({
   layout: 'dashboard'
@@ -479,7 +791,29 @@ const cv = ref(null)
 // Document Selection State
 const selectedDocument = ref('ktp')
 
-// Modal States
+// Modal States for Document Upload
+const showKtpUploadModal = ref(false)
+const showNpwpUploadModal = ref(false)
+const showIjazahUploadModal = ref(false)
+const showCvUploadModal = ref(false)
+
+// Edit Mode States
+const isEditingKtp = ref(false)
+const isEditingNpwp = ref(false)
+const isEditingIjazah = ref(false)
+const isEditingCv = ref(false)
+
+// Form Data States
+const ktpFormData = ref({})
+const npwpFormData = ref({})
+const ijazahFormData = ref({})
+const cvFormData = ref({})
+
+// Confirm Dialog States
+const showDeleteConfirm = ref(false)
+const deleteDocumentType = ref('')
+
+// Old Modal States (keep for backward compatibility)
 const showKtpModal = ref(false)
 const showNpwpModal = ref(false)
 
@@ -552,6 +886,165 @@ const openKtpModal = () => {
 
 const openNpwpModal = () => {
   showNpwpModal.value = true
+}
+
+// Helper Functions
+const hasDocument = (docType) => {
+  // Cek keberadaan file_url, bukan field lain
+  // Karena user mungkin tidak isi semua field, tapi file sudah diupload
+  switch(docType) {
+    case 'ktp': return !!ktp.value && !!ktp.value.file_ktp_url
+    case 'npwp': return !!npwp.value && !!npwp.value.file_npwp_personel_url
+    case 'ijazah': return !!ijazah.value && !!ijazah.value.file_ijazah_url
+    case 'cv': return !!cv.value && !!cv.value.file_cv_url
+    default: return false
+  }
+}
+
+// Modal Handlers
+const openAddModal = (docType) => {
+  switch(docType) {
+    case 'ktp':
+      ktpFormData.value = {}
+      isEditingKtp.value = false
+      showKtpUploadModal.value = true
+      break
+    case 'npwp':
+      npwpFormData.value = {}
+      isEditingNpwp.value = false
+      showNpwpUploadModal.value = true
+      break
+    case 'ijazah':
+      ijazahFormData.value = {}
+      isEditingIjazah.value = false
+      showIjazahUploadModal.value = true
+      break
+    case 'cv':
+      cvFormData.value = {}
+      isEditingCv.value = false
+      showCvUploadModal.value = true
+      break
+  }
+}
+
+const openEditModal = (docType) => {
+  switch(docType) {
+    case 'ktp':
+      ktpFormData.value = { ...ktp.value }
+      isEditingKtp.value = true
+      showKtpUploadModal.value = true
+      break
+    case 'npwp':
+      npwpFormData.value = { ...npwp.value }
+      isEditingNpwp.value = true
+      showNpwpUploadModal.value = true
+      break
+    case 'ijazah':
+      ijazahFormData.value = { ...ijazah.value }
+      isEditingIjazah.value = true
+      showIjazahUploadModal.value = true
+      break
+    case 'cv':
+      cvFormData.value = { ...cv.value }
+      isEditingCv.value = true
+      showCvUploadModal.value = true
+      break
+  }
+}
+
+const openDeleteConfirm = (docType) => {
+  deleteDocumentType.value = docType
+  showDeleteConfirm.value = true
+}
+
+// Use composable for document handlers
+const documentHandlers = usePersonnelDocuments(personId, apiBaseUrl)
+
+// Delete Document Handler
+const handleDeleteDocument = async () => {
+  try {
+    const docType = deleteDocumentType.value
+    
+    switch(docType) {
+      case 'ktp':
+        await documentHandlers.handleDeleteKtp()
+        break
+      case 'npwp':
+        await documentHandlers.handleDeleteNpwp()
+        break
+      case 'ijazah':
+        await documentHandlers.handleDeleteIjazah()
+        break
+      case 'cv':
+        await documentHandlers.handleDeleteCv()
+        break
+    }
+    
+    showDeleteConfirm.value = false
+    deleteDocumentType.value = ''
+    
+    // Reload data
+    await fetchPersonDetail()
+  } catch (err) {
+    console.error('Delete document error:', err)
+  }
+}
+
+// Save Handlers for Documents
+const saveKtp = async (file) => {
+  try {
+    if (isEditingKtp.value) {
+      await documentHandlers.handleUpdateKtp(ktpFormData.value, file)
+    } else {
+      await documentHandlers.handleAddKtp(ktpFormData.value, file)
+    }
+    showKtpUploadModal.value = false
+    await fetchPersonDetail()
+  } catch (err) {
+    console.error('Save KTP error:', err)
+  }
+}
+
+const saveNpwp = async (file) => {
+  try {
+    if (isEditingNpwp.value) {
+      await documentHandlers.handleUpdateNpwp(npwpFormData.value, file)
+    } else {
+      await documentHandlers.handleAddNpwp(npwpFormData.value, file)
+    }
+    showNpwpUploadModal.value = false
+    await fetchPersonDetail()
+  } catch (err) {
+    console.error('Save NPWP error:', err)
+  }
+}
+
+const saveIjazah = async (file) => {
+  try {
+    if (isEditingIjazah.value) {
+      await documentHandlers.handleUpdateIjazah(ijazahFormData.value, file)
+    } else {
+      await documentHandlers.handleAddIjazah(ijazahFormData.value, file)
+    }
+    showIjazahUploadModal.value = false
+    await fetchPersonDetail()
+  } catch (err) {
+    console.error('Save Ijazah error:', err)
+  }
+}
+
+const saveCv = async (file) => {
+  try {
+    if (isEditingCv.value) {
+      await documentHandlers.handleUpdateCv(cvFormData.value, file)
+    } else {
+      await documentHandlers.handleAddCv(cvFormData.value, file)
+    }
+    showCvUploadModal.value = false
+    await fetchPersonDetail()
+  } catch (err) {
+    console.error('Save CV error:', err)
+  }
 }
 
 // Fetch Data

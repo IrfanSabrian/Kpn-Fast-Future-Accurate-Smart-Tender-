@@ -21,15 +21,30 @@
           </p>
         </div>
         
-        <div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-          <div class="text-right px-4 border-r border-slate-100 dark:border-slate-700">
-            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">SERVER TIME</div>
-            <div class="text-xl font-mono font-bold text-slate-700 dark:text-slate-200">
-              <ClientOnly>{{ currentTime }}</ClientOnly>
+        <!-- Google Auth Status Indicator (Read-only) -->
+        <div class="flex items-center gap-3">
+          <div 
+            v-if="authStatus.isAuthenticated"
+            class="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 rounded-xl border border-emerald-100 dark:border-emerald-800">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <i class="fas fa-check-circle text-emerald-600 dark:text-emerald-400"></i>
+            </div>
+            <div class="text-left">
+              <div class="text-xs font-bold text-emerald-700 dark:text-emerald-300">Google Connected</div>
+              <div class="text-[10px] text-emerald-500">All services active</div>
             </div>
           </div>
-          <div class="px-2">
-            <i class="fas fa-robot text-2xl text-blue-500/80"></i>
+          
+          <div 
+            v-else
+            class="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 rounded-xl border border-amber-100 dark:border-amber-800">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+              <i class="fas fa-exclamation-circle text-amber-600 dark:text-amber-400"></i>
+            </div>
+            <div class="text-left">
+              <div class="text-xs font-bold text-amber-700 dark:text-amber-300">Not Connected</div>
+              <div class="text-[10px] text-amber-500">Click profile to connect</div>
+            </div>
           </div>
         </div>
       </header>
@@ -126,48 +141,50 @@
 
         </div>
 
-        <!-- Right Column: System Status & AI (4 cols) -->
+        <!-- Right Column: Recent Activities (4 cols) -->
         <div class="lg:col-span-4 space-y-6">
           
-          <!-- AI Assistant Card -->
-          <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group">
-            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-500 blur-[60px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
-
-            <div class="relative z-10">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center border border-white/20">
-                   <i class="fas fa-brain text-cyan-300"></i>
-                </div>
-                <div>
-                  <h3 class="font-bold">AI Assistant</h3>
-                  <div class="flex items-center gap-1.5">
-                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
-                    <span class="text-[10px] text-slate-400 font-mono">GEMINI-PRO CONNECTED</span>
-                  </div>
+          <!-- Activity Log (Real Data with Author) -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300">Aktivitas Terbaru</h3>
+            </div>
+            
+            <!-- Loading State -->
+            <div v-if="loadingActivities" class="space-y-4">
+              <div v-for="i in 4" :key="i" class="flex gap-3 animate-pulse">
+                <div class="flex-shrink-0 w-2 h-2 mt-1.5 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                <div class="flex-1">
+                  <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-3/4 mb-2"></div>
+                  <div class="h-2 bg-slate-100 dark:bg-slate-800 rounded w-1/2"></div>
                 </div>
               </div>
-              <p class="text-sm text-slate-300 mb-6 leading-relaxed">
-                Siap membantu automasi pembuatan dokumen teknis dan analisis data proyek Anda.
-              </p>
-              <button class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm transition-colors shadow-lg shadow-blue-900/50 flex items-center justify-center gap-2">
-                <i class="fas fa-comments"></i>
-                Mulai Chat
-              </button>
             </div>
-          </div>
 
-          <!-- Activity Log (Compact) -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">RECENT ACTIVITY</h3>
-            <div class="space-y-4">
-               <div v-for="i in 4" :key="i" class="flex gap-3">
-                  <div class="flex-shrink-0 w-2 h-2 mt-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-                  <div>
-                    <p class="text-xs font-medium text-slate-700 dark:text-slate-300">Update status <span class="text-blue-600 font-bold">PT. Example</span> menjadi Valid.</p>
-                    <p class="text-[10px] text-slate-400 font-mono mt-0.5">10:4{{i}} AM</p>
-                  </div>
-               </div>
+            <!-- Activities List -->
+            <div v-else-if="recentActivities.length > 0" class="space-y-4">
+              <div v-for="(activity, index) in recentActivities" :key="index" class="flex gap-3 group hover:bg-slate-50 dark:hover:bg-slate-700/30 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                <div :class="['flex-shrink-0 w-6 h-6 mt-0.5 rounded-lg flex items-center justify-center', 
+                              activity.color.replace('text-', 'bg-').replace('500', '50 dark:bg-').replace('500', '900/20')]">
+                  <i :class="['fas', activity.icon, 'text-xs', activity.color]"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                    <span class="font-bold text-blue-600 dark:text-blue-400">{{ activity.author }}</span>
+                    {{ activity.action.toLowerCase() }} 
+                    <span class="font-semibold truncate inline-block max-w-[150px] align-bottom">{{ activity.target }}</span>
+                  </p>
+                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                    {{ formatTime(activity.timestamp) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="text-center py-8">
+              <i class="fas fa-inbox text-3xl text-slate-200 dark:text-slate-700 mb-2"></i>
+              <p class="text-xs text-slate-400">Belum ada aktivitas</p>
             </div>
           </div>
 
@@ -187,21 +204,32 @@ const router = useRouter()
 const config = useRuntimeConfig()
 const apiUrl = config.public.apiBaseUrl || 'http://localhost:5000' // Fail-safe default
 
-// Real-time Clock
+// Real-time Clock (removed from UI but kept for potential future use)
 const currentTime = ref('')
 const companiesCount = ref(0)
 const personilCount = ref(0)
+const recentActivities = ref([])
+const loadingActivities = ref(true)
+
+// Google Auth Status
+const authStatus = ref({
+  isAuthenticated: false,
+  loading: true
+})
 
 let timer
 
 onMounted(async () => {
-  // Timer setup
+  // Timer setup (for potential future use)
   const updateTime = () => {
     const now = new Date()
     currentTime.value = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   }
   updateTime()
   timer = setInterval(updateTime, 1000)
+
+  // Check Google Auth Status
+  checkAuthStatus()
 
   // Fetch quick stats
   try {
@@ -221,11 +249,129 @@ onMounted(async () => {
     companiesCount.value = 0
     personilCount.value = 0
   }
+
+  // Fetch recent activities
+  fetchRecentActivities()
 })
 
 onUnmounted(() => {
   if (timer) clearInterval(timer)
 })
+
+// Check Google OAuth authentication status
+const checkAuthStatus = async () => {
+  authStatus.value.loading = true
+  try {
+    const response = await fetch(`${apiUrl}/auth/status`)
+    if (response.ok) {
+      const result = await response.json()
+      authStatus.value.isAuthenticated = result.isAuthenticated || false
+    }
+  } catch (error) {
+    console.warn('Failed to check auth status:', error)
+  } finally {
+    authStatus.value.loading = false
+  }
+}
+
+// Handle Google Auth - Open in popup window
+const handleGoogleAuth = async () => {
+  try {
+    const response = await fetch(`${apiUrl}/auth/google/url`)
+    if (response.ok) {
+      const result = await response.json()
+      if (result.success && result.authUrl) {
+        // Open Google OAuth in popup window (centered, small)
+        const width = 700
+        const height = 500
+        const left = (window.screen.width / 2) - (width / 2)
+        const top = (window.screen.height / 2) - (height / 2)
+        
+        const popup = window.open(
+          result.authUrl,
+          'Google OAuth',
+          `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+        )
+        
+        if (popup) {
+          // Poll to check if popup is closed
+          const checkPopupClosed = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(checkPopupClosed)
+              console.log('OAuth popup closed, refreshing status...')
+              
+              // Wait 1 second for backend to save token
+              setTimeout(() => {
+                // Refresh auth status after popup closes
+                checkAuthStatus()
+                // Trigger custom event to refresh sidebar profile
+                console.log('🔄 Dispatching oauth-completed event...')
+                window.dispatchEvent(new CustomEvent('oauth-completed'))
+                
+                // Force reload page to ensure everything updates
+                setTimeout(() => {
+                  console.log('🔄 Force refreshing page...')
+                  window.location.reload()
+                }, 500)
+              }, 1000)
+            }
+          }, 500)
+        } else {
+          alert('Popup blocked! Please allow popups for this site.')
+        }
+      } else {
+        alert('Failed to get Google authentication URL')
+      }
+    }
+  } catch (error) {
+    console.error('Error getting auth URL:', error)
+    alert('Failed to connect to authentication service')
+  }
+}
+
+// Fetch recent activities from backend
+const fetchRecentActivities = async () => {
+  loadingActivities.value = true
+  try {
+    const response = await fetch(`${apiUrl}/activities/recent?limit=7`)
+    if (response.ok) {
+      const result = await response.json()
+      recentActivities.value = result.data || []
+    }
+  } catch (error) {
+    console.warn('Failed to fetch recent activities:', error)
+    recentActivities.value = []
+  } finally {
+    loadingActivities.value = false
+  }
+}
+
+// Format timestamp to human-readable format
+const formatTime = (timestamp) => {
+  if (!timestamp) return ''
+  
+  try {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diff = now - date
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    if (minutes < 1) return 'Baru saja'
+    if (minutes < 60) return `${minutes} menit lalu`
+    if (hours < 24) return `${hours} jam lalu`
+    if (days < 7) return `${days} hari lalu`
+    
+    return date.toLocaleDateString('id-ID', { 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric' 
+    })
+  } catch (e) {
+    return timestamp
+  }
+}
 
 // Stats data (Computed so it updates when fetched)
 const stats = computed(() => [

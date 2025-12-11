@@ -5,7 +5,7 @@
  */
 
 import express from 'express';
-import googleDriveService from '../services/googleDrive.service.js';
+import oauth2GoogleService from '../services/oauth2Google.service.js';
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.post('/create-folder', async (req, res) => {
       });
     }
 
-    const folder = await googleDriveService.createFolder(folderName, parentId);
+    const folder = await oauth2GoogleService.createFolder(folderName, parentId);
     
     res.json({
       success: true,
@@ -57,7 +57,7 @@ router.post('/create-nested', async (req, res) => {
       });
     }
 
-    const lastFolder = await googleDriveService.createNestedFolders(folderPath, parentId);
+    const lastFolder = await oauth2GoogleService.createNestedFolders(folderPath, parentId);
     
     res.json({
       success: true,
@@ -89,7 +89,7 @@ router.post('/create-project', async (req, res) => {
       });
     }
 
-    const result = await googleDriveService.createProjectStructure(
+    const result = await oauth2GoogleService.createProjectStructure(
       projectName, 
       companyName, 
       subfolders || []
@@ -117,7 +117,7 @@ router.post('/create-project', async (req, res) => {
 router.get('/list-folders', async (req, res) => {
   try {
     const { parentId } = req.query;
-    const folders = await googleDriveService.listFolders(parentId);
+    const folders = await oauth2GoogleService.listFolders(parentId);
     
     res.json({
       success: true,
