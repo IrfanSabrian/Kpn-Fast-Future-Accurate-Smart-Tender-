@@ -412,6 +412,185 @@ class OAuth2GoogleService {
     return match ? match[1] : null;
   }
 
+  /**
+   * Delete folder by name from Drive
+   * @param {string} folderName - Name of the folder to delete
+   * @param {string} parentId - Parent folder ID where to search
+   */
+  async deleteFolder(folderName, parentId = null) {
+    await this.initialize();
+
+    if (!this.isAuthenticated()) {
+      throw new Error('User not authenticated. Please login first.');
+    }
+
+    try {
+      // Find the folder first
+      const folder = await this.findFolderByName(folderName, parentId);
+      
+      if (!folder) {
+        console.warn(`⚠️  Folder not found: ${folderName}`);
+        return { success: false, message: 'Folder not found' };
+      }
+
+      // Delete the folder
+      await this.drive.files.delete({
+        fileId: folder.id
+      });
+
+      console.log(`✅ Folder deleted: ${folderName} (ID: ${folder.id})`);
+      return { 
+        success: true, 
+        message: `Folder deleted successfully`,
+        folderId: folder.id 
+      };
+    } catch (error) {
+      console.error(`❌ Error deleting folder ${folderName}:`, error);
+      throw new Error(`Failed to delete folder: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete folder by ID from Drive
+   * @param {string} folderId - ID of the folder to delete
+   */
+  async deleteFolderById(folderId) {
+    await this.initialize();
+
+    if (!this.isAuthenticated()) {
+      throw new Error('User not authenticated. Please login first.');
+    }
+
+    try {
+      await this.drive.files.delete({
+        fileId: folderId
+      });
+
+      console.log(`✅ Folder deleted by ID: ${folderId}`);
+      return { 
+        success: true, 
+        message: `Folder deleted successfully`,
+        folderId 
+      };
+    } catch (error) {
+      console.error(`❌ Error deleting folder by ID ${folderId}:`, error);
+      throw new Error(`Failed to delete folder: ${error.message}`);
+    }
+  }
+
+  /**
+   * Rename folder in Drive
+   * @param {string} oldName - Current folder name
+   * @param {string} newName - New folder name
+   * @param {string} parentId - Parent folder ID where to search
+   */
+  async renameFolder(oldName, newName, parentId = null) {
+    await this.initialize();
+
+    if (!this.isAuthenticated()) {
+      throw new Error('User not authenticated. Please login first.');
+    }
+
+    try {
+      // Find the folder
+      const folder = await this.findFolderByName(oldName, parentId);
+      
+      if (!folder) {
+        console.warn(`⚠️  Folder not found: ${oldName}`);
+        throw new Error(`Folder "${oldName}" not found`);
+      }
+
+      // Rename the folder
+      await this.drive.files.update({
+        fileId: folder.id,
+        requestBody: {
+          name: newName
+        }
+      });
+
+      console.log(`✅ Folder renamed: "${oldName}" → "${newName}" (ID: ${folder.id})`);
+      return { 
+        success: true, 
+        message: `Folder renamed successfully`,
+        folderId: folder.id,
+        oldName,
+        newName
+      };
+    } catch (error) {
+      console.error(`❌ Error renaming folder "${oldName}" to "${newName}":`, error);
+      throw new Error(`Failed to rename folder: ${error.message}`);
+    }
+  }
+
+  /**
+   * Find file by name in Drive
+   * @param {string} fileName - Name of the file to find
+   * @param {string} parentId - Parent folder ID where to search
+   */
+  async findFileByName(fileName, parentId = null) {
+    await this.initialize();
+
+    if (!this.isAuthenticated()) {
+      throw new Error('User not authenticated. Please login first.');
+    }
+
+    try {
+      let query = `name='${fileName}' and trashed=false`;
+      
+      if (parentId) {
+        query += ` and '${parentId}' in parents`;
+      }
+
+      const response = await this.drive.files.list({
+        q: query,
+        fields: 'files(id, name)',
+        spaces: 'drive'
+      });
+
+      if (response.data.files && response.data.files.length > 0) {
+        return response.data.files[0];
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`Error finding file ${fileName}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Rename file by ID in Drive
+   * @param {string} fileId - ID of the file to rename
+   * @param {string} newFileName - New file name
+   */
+  async renameFileById(fileId, newFileName) {
+    await this.initialize();
+
+    if (!this.isAuthenticated()) {
+      throw new Error('User not authenticated. Please login first.');
+    }
+
+    try {
+      await this.drive.files.update({
+        fileId: fileId,
+        requestBody: {
+          name: newFileName
+        }
+      });
+
+      console.log(`✅ File renamed to: ${newFileName} (ID: ${fileId})`);
+      return { 
+        success: true, 
+        message: `File renamed successfully`,
+        fileId,
+        newFileName
+      };
+    } catch (error) {
+      console.error(`❌ Error renaming file ${fileId} to "${newFileName}":`, error);
+      throw new Error(`Failed to rename file: ${error.message}`);
+    }
+  }
+
   // ==================== GOOGLE SHEETS METHODS ====================
   // Future: Add Sheets methods here if needed (read, write, etc.)
   // For now, googleSheets.service.js still uses Service Account (which works fine for Sheets)

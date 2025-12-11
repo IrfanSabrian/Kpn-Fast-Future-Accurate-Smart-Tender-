@@ -280,8 +280,10 @@
       :show="showDeleteConfirm"
       title="Konfirmasi Hapus"
       :message="`Apakah Anda yakin ingin menghapus personel ${deletePersonelData?.nama_lengkap}? Folder personel di Google Drive juga akan dihapus.`"
-      confirmText="Hapus"
-      confirmClass="bg-red-600 hover:bg-red-700"
+      confirmText="Ya, Hapus Personel"
+      loadingText="Menghapus..."
+      :loading="saving"
+      type="danger"
       @confirm="confirmDelete"
       @cancel="closeDeleteConfirm"
     />
@@ -498,6 +500,7 @@ const confirmDelete = async () => {
   if (!deletePersonelData.value) return
   
   try {
+    saving.value = true // Set loading state
     const response = await fetch(`${apiBaseUrl}/personnel/${deletePersonelData.value.id_personel}`, {
       method: 'DELETE'
     })
@@ -517,6 +520,8 @@ const confirmDelete = async () => {
   } catch (err) {
     console.error('Delete error:', err)
     showError('Gagal menghapus personel: ' + err.message)
+  } finally {
+    saving.value = false // Reset loading state
   }
 }
 

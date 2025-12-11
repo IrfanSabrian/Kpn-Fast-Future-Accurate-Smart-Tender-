@@ -1,89 +1,114 @@
 <template>
-  <BaseModal :show="show" @close="handleClose" maxWidth="6xl">
+  <BaseModal :show="show" @close="handleClose" maxWidth="7xl">
     <template #header>
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center" :class="iconBackgroundClass">
-          <i :class="iconClass"></i>
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm" :class="iconBackgroundClass">
+          <i :class="iconClass" class="text-xl"></i>
         </div>
         <div>
-          <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
             {{ isEditMode ? 'Edit' : 'Tambah' }} {{ documentLabel }}
           </h3>
-          <p class="text-xs text-slate-500 mt-0.5">{{ personName }}</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">{{ personName }}</p>
         </div>
       </div>
     </template>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Left Column: Form Fields -->
-      <div class="space-y-4">
-        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-4">Informasi {{ documentLabel }}</h4>
-        
-        <slot name="form-fields"></slot>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left Column: Form Fields (2 cols) - Scrollable -->
+      <div class="lg:col-span-2">
+        <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col h-[400px]">
+          <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 px-4 pt-4 pb-3 flex items-center gap-2 flex-shrink-0">
+            <span class="w-1 h-3 bg-blue-500 rounded-full"></span>
+            Informasi Dokumen
+          </h4>
+          <!-- Scrollable Form Container -->
+          <div class="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4">
+            <slot name="form-fields"></slot>
+          </div>
+        </div>
       </div>
 
-      <!-- Right Column: PDF Upload & Preview -->
-      <div class="space-y-4">
-        <h4 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-4">File PDF</h4>
+      <!-- Right Column: Upload/Preview (1 col) -->
+      <div class="lg:col-span-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[400px] relative group">
         
-        <!-- File Upload -->
-        <div class="relative">
-          <input
-            ref="fileInput"
-            type="file"
-            accept=".pdf,application/pdf"
-            @change="handleFileSelect"
-            class="hidden"
-          />
-          <button
+        <!-- Header with Actions -->
+        <div class="bg-white dark:bg-slate-800 px-3 py-2 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center shadow-sm z-10">
+          <div class="flex items-center gap-2">
+            <i class="fas" :class="previewUrl ? 'fa-eye' : 'fa-cloud-upload-alt text-blue-500'"></i>
+            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+              {{ previewUrl ? 'Preview' : 'Upload' }}
+            </span>
+          </div>
+          
+          <!-- Actions: Only visible if previewUrl exists -->
+          <div v-if="previewUrl" class="flex items-center gap-1">
+             <input
+              ref="fileInput"
+              type="file"
+              accept=".pdf,application/pdf"
+              @change="handleFileSelect"
+              class="hidden"
+            />
+             <button @click="$refs.fileInput.click()" type="button" class="text-[10px] bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 px-2 py-1 rounded transition-colors border border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:text-blue-400">
+                <i class="fas fa-sync-alt"></i>
+             </button>
+             <button @click="removeFile" type="button" class="text-[10px] bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded transition-colors border border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400">
+                <i class="fas fa-trash"></i>
+             </button>
+          </div>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="flex-1 relative bg-slate-200/50 dark:bg-slate-900/50 p-2">
+           <!-- State 1: Preview -->
+           <iframe
+            v-if="previewUrl"
+            :src="previewUrl"
+            class="w-full h-full rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm bg-white"
+          ></iframe>
+          
+          <!-- State 2: Upload Placeholder/Button -->
+          <div 
+            v-else 
             @click="$refs.fileInput.click()"
-            type="button"
-            class="w-full px-4 py-3 border-2 border-dashed rounded-xl transition-all"
-            :class="selectedFile ? 'border-green-300 bg-green-50 dark:bg-green-900/10' : 'border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500'"
+            class="w-full h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 bg-white dark:bg-slate-800 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group/upload"
           >
-            <div class="flex items-center justify-center gap-2">
-              <i :class="selectedFile ? 'fas fa-check-circle text-green-600' : 'fas fa-upload text-slate-400'"></i>
-              <span class="text-sm font-medium" :class="selectedFile ? 'text-green-700 dark:text-green-400' : 'text-slate-600 dark:text-slate-300'">
-                {{ selectedFile ? selectedFile.name : `Pilih File PDF ${documentLabel}` }}
-              </span>
-            </div>
-            <p class="text-xs text-slate-400 mt-1">Format: PDF | Maks: 10MB</p>
-          </button>
-        </div>
+             <input
+              v-if="!previewUrl"
+              ref="fileInput"
+              type="file"
+              accept=".pdf,application/pdf"
+              @change="handleFileSelect"
+              class="hidden"
+            />
 
-        <!-- PDF Preview -->
-        <div v-if="previewUrl" class="bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[400px]">
-          <div class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-            <div class="text-xs font-bold text-slate-700 dark:text-slate-200">Preview Dokumen</div>
-            <button
-              v-if="selectedFile"
-              @click="removeFile"
-              type="button"
-              class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100 hover:bg-red-100 transition-colors"
-            >
-              <i class="fas fa-times mr-1"></i> Hapus File
-            </button>
+             <!-- Decoration -->
+             <div class="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center mb-4 group-hover/upload:scale-110 group-hover/upload:rotate-3 transition-transform duration-300 shadow-sm">
+                <i class="fas fa-cloud-upload-alt text-2xl"></i>
+             </div>
+             
+             <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1 group-hover/upload:text-blue-600 dark:group-hover/upload:text-blue-400">
+                Upload PDF
+             </h3>
+             <p class="text-slate-400 max-w-[150px] text-center text-[10px] mb-3 leading-tight">
+                Klik untuk pilih dokumen
+             </p>
+             
+             <div class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                Max 10MB
+             </div>
           </div>
-          <div class="flex-1 relative">
-            <iframe
-              :src="previewUrl"
-              class="w-full h-full absolute inset-0 border-none"
-            ></iframe>
-          </div>
-        </div>
-        <div v-else class="bg-slate-50 dark:bg-slate-900 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center h-[400px]">
-          <i class="fas fa-file-pdf text-5xl text-slate-300 mb-3"></i>
-          <p class="text-sm text-slate-400">Belum ada file dipilih</p>
         </div>
       </div>
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-end gap-3">
+      <div class="flex items-center justify-end gap-3 w-full">
         <button
           @click="handleClose"
           type="button"
-          class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+          class="px-5 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
         >
           Batal
         </button>
@@ -91,12 +116,12 @@
           @click="handleSave"
           :disabled="!canSave || saving"
           type="button"
-          class="px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2 transform active:scale-95"
           :class="buttonClasses"
         >
-          <i v-if="saving" class="fas fa-spinner fa-spin mr-2"></i>
-          <i v-else class="fas fa-save mr-2"></i>
-          {{ saving ? 'Menyimpan...' : 'Simpan' }}
+          <i v-if="saving" class="fas fa-spinner fa-spin"></i>
+          <i v-else class="fas fa-save"></i>
+          {{ saving ? 'Menyimpan...' : 'Simpan Dokumen' }}
         </button>
       </div>
     </template>
@@ -125,25 +150,25 @@ const documentConfig = {
     label: 'KTP',
     icon: 'far fa-id-card',
     iconBg: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
-    button: 'bg-blue-600 hover:bg-blue-700 text-white'
+    button: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/30'
   },
   npwp: {
     label: 'NPWP',
     icon: 'fas fa-credit-card',
     iconBg: 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
-    button: 'bg-orange-600 hover:bg-orange-700 text-white'
+    button: 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white shadow-orange-500/30'
   },
   ijazah: {
     label: 'Ijazah',
     icon: 'fas fa-graduation-cap',
     iconBg: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-    button: 'bg-purple-600 hover:bg-purple-700 text-white'
+    button: 'bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white shadow-purple-500/30'
   },
   cv: {
     label: 'Daftar Riwayat Hidup',
     icon: 'fas fa-file-alt',
     iconBg: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
-    button: 'bg-emerald-600 hover:bg-emerald-700 text-white'
+    button: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/30'
   }
 }
 
@@ -258,3 +283,19 @@ defineExpose({
   }
 })
 </script>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.6);
+}
+</style>

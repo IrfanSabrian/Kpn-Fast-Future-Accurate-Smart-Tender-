@@ -31,29 +31,30 @@
       </div>
     </template>
     <template #footer>
-      <button
-        @click="cancel"
-        class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg transition-colors"
-      >
-        {{ cancelText }}
-      </button>
-      <button
-        @click="confirm"
-        :disabled="loading"
-        class="px-6 py-2.5 font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        :class="[
-          type === 'danger' 
-            ? 'bg-red-600 hover:bg-red-700 text-white' 
-            : 'bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white'
-        ]"
-      >
-        <span v-if="loading">
-          <i class="fas fa-spinner fa-spin mr-2"></i>{{ loadingText }}
-        </span>
-        <span v-else>
-          {{ confirmText }}
-        </span>
-      </button>
+      <div class="flex justify-end gap-3 w-full">
+        <button
+          @click="cancel"
+          :disabled="loading"
+          class="px-5 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+        >
+          {{ cancelText }}
+        </button>
+        <button
+          @click="confirm"
+          :disabled="loading"
+          class="px-6 py-2.5 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-95 flex items-center gap-2"
+          :class="[
+            type === 'danger' 
+              ? 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-red-500/30' 
+              : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/30'
+          ]"
+        >
+          <i v-if="loading" class="fas fa-spinner fa-spin"></i>
+          <span v-else-if="type === 'danger'"><i class="fas fa-trash-alt mr-2"></i></span>
+          <span v-else><i class="fas fa-check mr-2"></i></span>
+          {{ loading ? loadingText : confirmText }}
+        </button>
+      </div>
     </template>
   </BaseModal>
 </template>

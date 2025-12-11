@@ -22,20 +22,40 @@ export const useToast = () => {
     toast.value.show = false
   }
 
-  const success = (title, message, duration) => {
-    showToast('success', title, message, duration)
+  const success = (...args) => {
+    // If only one parameter, treat it as message with default title
+    if (args.length === 1) {
+      showToast('success', 'Berhasil', args[0], 3000)
+    } else {
+      showToast('success', args[0], args[1], args[2])
+    }
   }
 
-  const error = (title, message, duration) => {
-    showToast('error', title, message, duration)
+  const error = (...args) => {
+    // If only one parameter, treat it as message with default title
+    if (args.length === 1) {
+      showToast('error', 'Gagal', args[0], 3000)
+    } else {
+      showToast('error', args[0], args[1], args[2])
+    }
   }
 
-  const warning = (title, message, duration) => {
-    showToast('warning', title, message, duration)
+  const warning = (...args) => {
+    // If only one parameter, treat it as message with default title
+    if (args.length === 1) {
+      showToast('warning', 'Peringatan', args[0], 3000)
+    } else {
+      showToast('warning', args[0], args[1], args[2])
+    }
   }
 
-  const info = (title, message, duration) => {
-    showToast('info', title, message, duration)
+  const info = (...args) => {
+    // If only one parameter, treat it as message with default title
+    if (args.length === 1) {
+      showToast('info', 'Informasi', args[0], 3000)
+    } else {
+      showToast('info', args[0], args[1], args[2])
+    }
   }
 
   return {

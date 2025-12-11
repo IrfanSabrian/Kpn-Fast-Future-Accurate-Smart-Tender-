@@ -11,69 +11,76 @@
       >
         <div 
           v-if="isVisible"
-          class="fixed top-4 right-4 z-[999999] max-w-md"
+          class="fixed top-4 right-4 z-[999999] max-w-sm w-full pointer-events-auto"
         >
           <div 
-            class="flex items-start gap-3 p-4 rounded-xl shadow-2xl border backdrop-blur-md"
+            class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border overflow-hidden backdrop-blur-md"
             :class="[
-              type === 'success' ? 'bg-green-50/95 dark:bg-green-900/95 border-green-200 dark:border-green-700' : '',
-              type === 'error' ? 'bg-red-50/95 dark:bg-red-900/95 border-red-200 dark:border-red-700' : '',
-              type === 'warning' ? 'bg-yellow-50/95 dark:bg-yellow-900/95 border-yellow-200 dark:border-yellow-700' : '',
-              type === 'info' ? 'bg-blue-50/95 dark:bg-blue-900/95 border-blue-200 dark:border-blue-700' : ''
+              props.type === 'success' ? 'border-emerald-500' : 
+              props.type === 'error' ? 'border-red-500' : 
+              props.type === 'warning' ? 'border-amber-500' : 
+              'border-blue-500'
             ]"
           >
-            <!-- Icon -->
-            <div class="flex-shrink-0">
-              <i 
-                class="text-xl"
-                :class="[
-                  type === 'success' ? 'fas fa-check-circle text-green-600 dark:text-green-400' : '',
-                  type === 'error' ? 'fas fa-times-circle text-red-600 dark:text-red-400' : '',
-                  type === 'warning' ? 'fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400' : '',
-                  type === 'info' ? 'fas fa-info-circle text-blue-600 dark:text-blue-400' : ''
-                ]"
-              ></i>
-            </div>
-            
-            <!-- Content -->
-            <div class="flex-1">
-              <h4 
-                class="font-bold mb-1"
-                :class="[
-                  type === 'success' ? 'text-green-900 dark:text-green-100' : '',
-                  type === 'error' ? 'text-red-900 dark:text-red-100' : '',
-                  type === 'warning' ? 'text-yellow-900 dark:text-yellow-100' : '',
-                  type === 'info' ? 'text-blue-900 dark:text-blue-100' : ''
-                ]"
-              >
-                {{ title }}
-              </h4>
-              <p 
-                class="text-sm"
-                :class="[
-                  type === 'success' ? 'text-green-700 dark:text-green-300' : '',
-                  type === 'error' ? 'text-red-700 dark:text-red-300' : '',
-                  type === 'warning' ? 'text-yellow-700 dark:text-yellow-300' : '',
-                  type === 'info' ? 'text-blue-700 dark:text-blue-300' : ''
-                ]"
-              >
-                {{ message }}
-              </p>
-            </div>
-            
-            <!-- Close Button -->
-            <button 
-              @click="close"
-              class="flex-shrink-0 hover:opacity-70 transition-opacity"
+            <!-- Color Bar -->
+            <div 
+              class="h-1"
               :class="[
-                type === 'success' ? 'text-green-600 dark:text-green-400' : '',
-                type === 'error' ? 'text-red-600 dark:text-red-400' : '',
-                type === 'warning' ? 'text-yellow-600 dark:text-yellow-400' : '',
-                type === 'info' ? 'text-blue-600 dark:text-blue-400' : ''
+                props.type === 'success' ? 'bg-emerald-500' : 
+                props.type === 'error' ? 'bg-red-500' : 
+                props.type === 'warning' ? 'bg-amber-500' : 
+                'bg-blue-500'
               ]"
-            >
-              <i class="fas fa-times"></i>
-            </button>
+            ></div>
+
+            <div class="p-4 flex items-start gap-3">
+              <!-- Icon -->
+              <div 
+                class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                :class="[
+                  props.type === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 
+                  props.type === 'error' ? 'bg-red-100 dark:bg-red-900/30 text-red-600' : 
+                  props.type === 'warning' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 
+                  'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                ]"
+              >
+                <i 
+                  class="fas"
+                  :class="[
+                    props.type === 'success' ? 'fa-check-circle' : 
+                    props.type === 'error' ? 'fa-exclamation-circle' : 
+                    props.type === 'warning' ? 'fa-exclamation-triangle' : 
+                    'fa-info-circle'
+                  ]"
+                ></i>
+              </div>
+              
+              <!-- Content -->
+              <div class="flex-1 min-w-0">
+                <h4 
+                  class="text-sm font-bold mb-1"
+                  :class="[
+                    props.type === 'success' ? 'text-emerald-700 dark:text-emerald-400' : 
+                    props.type === 'error' ? 'text-red-700 dark:text-red-400' : 
+                    props.type === 'warning' ? 'text-amber-700 dark:text-amber-400' : 
+                    'text-blue-700 dark:text-blue-400'
+                  ]"
+                >
+                  {{ props.title }}
+                </h4>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  {{ props.message }}
+                </p>
+              </div>
+              
+              <!-- Close Button -->
+              <button 
+                @click="close"
+                class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors flex-shrink-0"
+              >
+                <i class="fas fa-times text-xs"></i>
+              </button>
+            </div>
           </div>
         </div>
       </Transition>
@@ -82,41 +89,74 @@
 </template>
 
 <script setup>
+// Define props
+const props = defineProps({
+  show: {
+    type: Boolean,
+    default: false
+  },
+  type: {
+    type: String,
+    default: 'info',
+    validator: (value) => ['success', 'error', 'warning', 'info'].includes(value)
+  },
+  title: {
+    type: String,
+    default: ''
+  },
+  message: {
+    type: String,
+    default: ''
+  },
+  duration: {
+    type: Number,
+    default: 3000
+  }
+})
+
+// Define emits
+const emit = defineEmits(['close'])
+
+// Internal state
 const isVisible = ref(false)
-const type = ref('info')
-const title = ref('')
-const message = ref('')
-const duration = ref(3000)
+let hideTimeout = null
 
-const show = (msg, toastType = 'info', toastTitle = '') => {
-  message.value = msg
-  type.value = toastType
-  
-  // Set default titles based on type if not provided
-  if (!toastTitle) {
-    if (toastType === 'success') title.value = 'Berhasil'
-    else if (toastType === 'error') title.value = 'Gagal'
-    else if (toastType === 'warning') title.value = 'Peringatan'
-    else title.value = 'Info'
+// Watch for show prop changes
+watch(() => props.show, (newValue) => {
+  if (newValue) {
+    isVisible.value = true
+    
+    // Clear any existing timeout
+    if (hideTimeout) {
+      clearTimeout(hideTimeout)
+    }
+    
+    // Auto-hide after duration
+    if (props.duration > 0) {
+      hideTimeout = setTimeout(() => {
+        close()
+      }, props.duration)
+    }
   } else {
-    title.value = toastTitle
+    isVisible.value = false
   }
-
-  isVisible.value = true
-
-  if (duration.value > 0) {
-    setTimeout(() => {
-      close()
-    }, duration.value)
-  }
-}
+}, { immediate: true })
 
 const close = () => {
   isVisible.value = false
+  emit('close')
+  
+  // Clear timeout when manually closed
+  if (hideTimeout) {
+    clearTimeout(hideTimeout)
+    hideTimeout = null
+  }
 }
 
-defineExpose({
-  show,
-  close
+// Cleanup on unmount
+onUnmounted(() => {
+  if (hideTimeout) {
+    clearTimeout(hideTimeout)
+  }
 })
 </script>

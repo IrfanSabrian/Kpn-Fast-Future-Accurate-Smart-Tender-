@@ -161,20 +161,68 @@
                       <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.nama_ktp || '-' }}</span>
                     </div>
                     <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
-                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tempat/Tgl Lahir</span>
-                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.tempat_lahir_ktp || '-' }}, {{ ktp.tanggal_lahir_ktp || '-' }}</span>
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tempat Lahir</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.tempat_lahir_ktp || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tanggal Lahir</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.tanggal_lahir_ktp || '-' }}</span>
                     </div>
                     <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
                       <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Jenis Kelamin</span>
                       <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.jenis_kelamin || '-' }}</span>
                     </div>
                     <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
-                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat KTP</span>
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Golongan Darah</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.golongan_darah || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat</span>
                       <span class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug">{{ ktp.alamat_ktp || '-' }}</span>
                     </div>
-                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1">
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">RT/RW</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.rt_rw || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kelurahan/Desa</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.kelurahan_desa || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kecamatan</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.kecamatan || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kota/Kabupaten</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.kota_kabupaten || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Provinsi</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.provinsi || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Agama</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.agama || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Status Perkawinan</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.status_perkawinan || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Pekerjaan</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.pekerjaan || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kewarganegaraan</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.kewarganegaraan || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700">
                       <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Berlaku Hingga</span>
                       <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.berlaku_hingga || '-' }}</span>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tanggal Terbit</span>
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ ktp.tanggal_terbit_ktp || '-' }}</span>
                     </div>
                   </div>
                 </div>
@@ -424,74 +472,191 @@
       @save="saveKtp"
     >
       <template #form-fields>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">NIK <span class="text-red-500">*</span></label>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">NIK <span class="text-red-500">*</span></label>
             <input
               v-model="ktpFormData.nik"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
               placeholder="16 digit NIK"
               maxlength="16"
             />
           </div>
           
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nama Lengkap</label>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap (Sesuai KTP)</label>
             <input
               v-model="ktpFormData.nama_ktp"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Tempat Lahir</label>
-              <input
-                v-model="ktpFormData.tempat_lahir_ktp"
-                type="text"
-                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-              />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Tanggal Lahir</label>
-              <input
-                v-model="ktpFormData.tanggal_lahir_ktp"
-                type="date"
-                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-              />
-            </div>
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Tempat Lahir</label>
+            <input
+              v-model="ktpFormData.tempat_lahir_ktp"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+          
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Tanggal Lahir</label>
+            <input
+              v-model="ktpFormData.tanggal_lahir_ktp"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              placeholder="DD-MM-YYYY"
+            />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Jenis Kelamin</label>
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin</label>
             <select
               v-model="ktpFormData.jenis_kelamin"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
             >
-              <option value="">Pilih</option>
-              <option value="Laki-laki">Laki-laki</option>
-              <option value="Perempuan">Perempuan</option>
+              <option value="LAKI-LAKI">Laki-laki</option>
+              <option value="PEREMPUAN">Perempuan</option>
             </select>
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Alamat KTP</label>
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Golongan Darah</label>
+            <select
+              v-model="ktpFormData.golongan_darah"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            >
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="AB">AB</option>
+              <option value="O">O</option>
+            </select>
+          </div>
+
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Alamat</label>
             <textarea
               v-model="ktpFormData.alamat_ktp"
-              rows="3"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              rows="2"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              placeholder="Alamat lengkap sesuai KTP"
             ></textarea>
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Berlaku Hingga</label>
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">RT/RW</label>
+            <input
+              v-model="ktpFormData.rt_rw"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              placeholder="000/000"
+            />
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Kelurahan/Desa</label>
+            <input
+              v-model="ktpFormData.kelurahan_desa"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Kecamatan</label>
+            <input
+              v-model="ktpFormData.kecamatan"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Kota/Kabupaten</label>
+            <input
+              v-model="ktpFormData.kota_kabupaten"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Provinsi</label>
+            <input
+              v-model="ktpFormData.provinsi"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Agama</label>
+            <select
+              v-model="ktpFormData.agama"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            >
+              <option value="ISLAM">Islam</option>
+              <option value="KRISTEN">Kristen</option>
+              <option value="KATOLIK">Katolik</option>
+              <option value="HINDU">Hindu</option>
+              <option value="BUDDHA">Buddha</option>
+              <option value="KONGHUCU">Konghucu</option>
+            </select>
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Status Perkawinan</label>
+            <select
+              v-model="ktpFormData.status_perkawinan"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            >
+              <option value="BELUM KAWIN">Belum Kawin</option>
+              <option value="KAWIN">Kawin</option>
+              <option value="CERAI HIDUP">Cerai Hidup</option>
+              <option value="CERAI MATI">Cerai Mati</option>
+            </select>
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Pekerjaan</label>
+            <input
+              v-model="ktpFormData.pekerjaan"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              placeholder="Contoh: PELAJAR/MAHASISWA"
+            />
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Kewarganegaraan</label>
+            <input
+              v-model="ktpFormData.kewarganegaraan"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              placeholder="WNI"
+            />
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Berlaku Hingga</label>
             <input
               v-model="ktpFormData.berlaku_hingga"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
               placeholder="SEUMUR HIDUP"
+            />
+          </div>
+
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Tanggal Terbit</label>
+            <input
+              v-model="ktpFormData.tanggal_terbit_ktp"
+              type="text"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              placeholder="DD-MM-YYYY"
             />
           </div>
         </div>
@@ -509,53 +674,53 @@
       @save="saveNpwp"
     >
       <template #form-fields>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nomor NPWP <span class="text-red-500">*</span></label>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Nomor NPWP <span class="text-red-500">*</span></label>
             <input
               v-model="npwpFormData.nomor_npwp_personel"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
               placeholder="XX.XXX.XXX.X-XXX.XXX"
             />
           </div>
           
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">NIK NPWP</label>
+          <div class="col-span-2 sm:col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">NIK NPWP</label>
             <input
               v-model="npwpFormData.nik_npwp_personel"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
               maxlength="16"
             />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nama Wajib Pajak</label>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Wajib Pajak</label>
             <input
               v-model="npwpFormData.nama_npwp_personel"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
             />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Alamat NPWP</label>
+          <div class="col-span-2">
+             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">KPP</label>
+             <input
+               v-model="npwpFormData.kpp_npwp_personel"
+               type="text"
+               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+               placeholder="Contoh: KPP Pratama Jakarta Pusat"
+             />
+           </div>
+
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Alamat NPWP</label>
             <textarea
               v-model="npwpFormData.alamat_npwp_personel"
-              rows="3"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              rows="2"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
             ></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">KPP</label>
-            <input
-              v-model="npwpFormData.kpp_npwp_personel"
-              type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
-              placeholder="Contoh: KPP Pratama Jakarta Pusat"
-            />
           </div>
         </div>
       </template>
@@ -572,14 +737,14 @@
       @save="saveIjazah"
     >
       <template #form-fields>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Jenjang Pendidikan <span class="text-red-500">*</span></label>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Jenjang <span class="text-red-500">*</span></label>
             <select
               v-model="ijazahFormData.jenjang_pendidikan"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
             >
-              <option value="">Pilih Jenjang</option>
+              <option value="">Pilih</option>
               <option value="SMA/SMK">SMA/SMK</option>
               <option value="D3">D3</option>
               <option value="S1">S1</option>
@@ -587,81 +752,79 @@
               <option value="S3">S3</option>
             </select>
           </div>
+
+          <div class="col-span-1">
+             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">IPK</label>
+             <input
+               v-model="ijazahFormData.ipk"
+               type="text"
+               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+               placeholder="3.50"
+             />
+           </div>
           
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nama Institusi</label>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Institusi</label>
             <input
               v-model="ijazahFormData.nama_institusi_pendidikan"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
             />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Fakultas</label>
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Fakultas</label>
             <input
               v-model="ijazahFormData.fakultas"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
             />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Program Studi</label>
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Program Studi</label>
             <input
               v-model="ijazahFormData.program_studi"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
             />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nomor Ijazah</label>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Nomor Ijazah</label>
             <input
               v-model="ijazahFormData.nomor_ijazah"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Tahun Masuk</label>
+            <div class="col-span-1">
+              <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Tahun Masuk</label>
               <input
                 v-model="ijazahFormData.tahun_masuk"
                 type="text"
-                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+                class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
                 placeholder="2015"
               />
             </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Tahun Lulus</label>
+            <div class="col-span-1">
+              <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Tahun Lulus</label>
               <input
                 v-model="ijazahFormData.tahun_lulus"
                 type="text"
-                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+                class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
                 placeholder="2019"
               />
             </div>
-          </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Gelar Akademik</label>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Gelar Akademik</label>
             <input
               v-model="ijazahFormData.gelar_akademik"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
               placeholder="S.T., S.Kom., dll"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">IPK</label>
-            <input
-              v-model="ijazahFormData.ipk"
-              type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
-              placeholder="3.50"
             />
           </div>
         </div>
@@ -679,74 +842,74 @@
       @save="saveCv"
     >
       <template #form-fields>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Nama Lengkap</label>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
             <input
               v-model="cvFormData.nama_lengkap_cv"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
             />
           </div>
           
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Ringkasan Profil</label>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Ringkasan Profil</label>
             <textarea
               v-model="cvFormData.ringkasan_profil"
-              rows="3"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
-              placeholder="Profesional berpengalaman di bidang..."
+              rows="2"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              placeholder="Profesional berpengalaman..."
             ></textarea>
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Keahlian Utama</label>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Keahlian Utama</label>
             <input
               v-model="cvFormData.keahlian_utama"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
               placeholder="Project Management, AutoCAD, dll"
             />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Total Pengalaman (Tahun)</label>
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Pengalaman (Thn)</label>
             <input
               v-model="cvFormData.total_pengalaman_tahun"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
               placeholder="5"
             />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Pengalaman Kerja Terakhir</label>
+           <div class="col-span-1">
+             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Bahasa</label>
+             <input
+               v-model="cvFormData.bahasa_dikuasai"
+               type="text"
+               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+               placeholder="Indonesia, Inggris"
+             />
+           </div>
+
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Pengalaman Terakhir</label>
             <input
               v-model="cvFormData.pengalaman_kerja_terakhir"
               type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
               placeholder="Senior Engineer di PT ABC"
             />
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Sertifikasi Profesional</label>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Sertifikasi</label>
             <textarea
               v-model="cvFormData.sertifikasi_profesional"
               rows="2"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
               placeholder="PMP, SKA Ahli, dll"
             ></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Bahasa Dikuasai</label>
-            <input
-              v-model="cvFormData.bahasa_dikuasai"
-              type="text"
-              class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
-              placeholder="Indonesia, Inggris"
-            />
           </div>
         </div>
       </template>
@@ -769,6 +932,7 @@
 import BaseModal from '~/components/BaseModal.vue'
 import PersonnelDocumentUploadModal from '~/components/PersonnelDocumentUploadModal.vue'
 import ConfirmDialog from '~/components/ConfirmDialog.vue'
+import BaseToast from '~/components/BaseToast.vue'
 
 definePageMeta({
   layout: 'dashboard'
@@ -957,13 +1121,14 @@ const openDeleteConfirm = (docType) => {
   showDeleteConfirm.value = true
 }
 
-// Use composable for document handlers
-const documentHandlers = usePersonnelDocuments(personId, apiBaseUrl)
+// Use composable for document handlers (pass toast functions)
+const documentHandlers = usePersonnelDocuments(personId, apiBaseUrl, success, showError)
 
 // Delete Document Handler
 const handleDeleteDocument = async () => {
   try {
     const docType = deleteDocumentType.value
+    const docTypeLabel = getDocumentLabel(docType)
     
     switch(docType) {
       case 'ktp':
@@ -980,12 +1145,19 @@ const handleDeleteDocument = async () => {
         break
     }
     
+    // Close confirm dialog
     showDeleteConfirm.value = false
     deleteDocumentType.value = ''
     
-    // Reload data
-    await fetchPersonDetail()
+    // Show toast BEFORE reload
+    success(`${docTypeLabel} berhasil dihapus`)
+    
+    // Wait for toast animation then reload
+    setTimeout(async () => {
+      await fetchPersonDetail()
+    }, 500)
   } catch (err) {
+    // Error toast already shown by composable
     console.error('Delete document error:', err)
   }
 }
@@ -998,9 +1170,19 @@ const saveKtp = async (file) => {
     } else {
       await documentHandlers.handleAddKtp(ktpFormData.value, file)
     }
+    
+    // Close modal first
     showKtpUploadModal.value = false
-    await fetchPersonDetail()
+    
+    // Show toast BEFORE reload
+    success(isEditingKtp.value ? 'KTP berhasil diperbarui' : 'KTP berhasil ditambahkan')
+    
+    // Wait for toast animation then reload
+    setTimeout(async () => {
+      await fetchPersonDetail()
+    }, 500)
   } catch (err) {
+    // Error toast already shown by composable
     console.error('Save KTP error:', err)
   }
 }
@@ -1012,9 +1194,19 @@ const saveNpwp = async (file) => {
     } else {
       await documentHandlers.handleAddNpwp(npwpFormData.value, file)
     }
+    
+    // Close modal first
     showNpwpUploadModal.value = false
-    await fetchPersonDetail()
+    
+    // Show toast BEFORE reload
+    success(isEditingNpwp.value ? 'NPWP berhasil diperbarui' : 'NPWP berhasil ditambahkan')
+    
+    // Wait for toast animation then reload
+    setTimeout(async () => {
+      await fetchPersonDetail()
+    }, 500)
   } catch (err) {
+    // Error toast already shown by composable
     console.error('Save NPWP error:', err)
   }
 }
@@ -1026,9 +1218,19 @@ const saveIjazah = async (file) => {
     } else {
       await documentHandlers.handleAddIjazah(ijazahFormData.value, file)
     }
+    
+    // Close modal first
     showIjazahUploadModal.value = false
-    await fetchPersonDetail()
+    
+    // Show toast BEFORE reload
+    success(isEditingIjazah.value ? 'Ijazah berhasil diperbarui' : 'Ijazah berhasil ditambahkan')
+    
+    // Wait for toast animation then reload
+    setTimeout(async () => {
+      await fetchPersonDetail()
+    }, 500)
   } catch (err) {
+    // Error toast already shown by composable
     console.error('Save Ijazah error:', err)
   }
 }
@@ -1040,9 +1242,19 @@ const saveCv = async (file) => {
     } else {
       await documentHandlers.handleAddCv(cvFormData.value, file)
     }
+    
+    // Close modal first
     showCvUploadModal.value = false
-    await fetchPersonDetail()
+    
+    // Show toast BEFORE reload
+    success(isEditingCv.value ? 'CV berhasil diperbarui' : 'CV berhasil ditambahkan')
+    
+    // Wait for toast animation then reload
+    setTimeout(async () => {
+      await fetchPersonDetail()
+    }, 500)
   } catch (err) {
+    // Error toast already shown by composable
     console.error('Save CV error:', err)
   }
 }

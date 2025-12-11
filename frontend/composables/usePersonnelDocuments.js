@@ -1,9 +1,15 @@
 /**
  * Composable untuk Document Management (KTP, NPWP, Ijazah, CV)
+ * @param {string} personId - ID personel
+ * @param {string} apiBaseUrl - Base URL API
+ * @param {Function} successToast - Function to show success toast
+ * @param {Function} errorToast - Function to show error toast
  */
 
-export const usePersonnelDocuments = (personId, apiBaseUrl) => {
-  const { success, error: showError } = useToast()
+export const usePersonnelDocuments = (personId, apiBaseUrl, successToast, errorToast) => {
+  // Use toast functions passed from parent instead of creating new instance
+  const success = successToast
+  const showError = errorToast
 
   // ========== KTP Handlers ==========
   const handleAddKtp = async (formData, file) => {
@@ -31,7 +37,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       }
 
       const result = await response.json()
-      success('KTP berhasil ditambahkan')
+      // Success toast will be shown by parent after reload
       return result
     } catch (err) {
       showError('Gagal menambah KTP: ' + err.message)
@@ -62,7 +68,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       }
 
       const result = await response.json()
-      success('KTP berhasil diperbarui')
+      // Success toast will be shown by parent after reload
       return result
     } catch (err) {
       showError('Gagal memperbarui KTP: ' + err.message)
@@ -81,7 +87,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
         throw new Error(errorData.message || 'Failed to delete KTP')
       }
 
-      success('KTP berhasil dihapus')
+      // Success toast will be shown by parent after reload
       return true
     } catch (err) {
       showError('Gagal menghapus KTP: ' + err.message)
@@ -102,7 +108,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to add NPWP')
-      success('NPWP berhasil ditambahkan')
+      // Success toast will be shown by parent after reload
       return await response.json()
     } catch (err) {
       showError('Gagal menambah NPWP: ' + err.message)
@@ -122,7 +128,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to update NPWP')
-      success('NPWP berhasil diperbarui')
+      // Success toast will be shown by parent after reload
       return await response.json()
     } catch (err) {
       showError('Gagal memperbarui NPWP: ' + err.message)
@@ -137,7 +143,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to delete NPWP')
-      success('NPWP berhasil dihapus')
+      // Success toast will be shown by parent after reload
       return true
     } catch (err) {
       showError('Gagal menghapus NPWP: ' + err.message)
@@ -158,7 +164,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to add Ijazah')
-      success('Ijazah berhasil ditambahkan')
+      // Success toast will be shown by parent after reload
       return await response.json()
     } catch (err) {
       showError('Gagal menambah Ijazah: ' + err.message)
@@ -178,7 +184,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to update Ijazah')  
-      success('Ijazah berhasil diperbarui')
+      // Success toast will be shown by parent after reload
       return await response.json()
     } catch (err) {
       showError('Gagal memperbarui Ijazah: ' + err.message)
@@ -193,7 +199,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to delete Ijazah')
-      success('Ijazah berhasil dihapus')
+      // Success toast will be shown by parent after reload
       return true
     } catch (err) {
       showError('Gagal menghapus Ijazah: ' + err.message)
@@ -214,7 +220,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to add CV')
-      success('CV berhasil ditambahkan')
+      // Success toast will be shown by parent after reload
       return await response.json()
     } catch (err) {
       showError('Gagal menambah CV: ' + err.message)
@@ -234,7 +240,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to update CV')
-      success('CV berhasil diperbarui')
+      // Success toast will be shown by parent after reload
       return await response.json()
     } catch (err) {
       showError('Gagal memperbarui CV: ' + err.message)
@@ -249,7 +255,7 @@ export const usePersonnelDocuments = (personId, apiBaseUrl) => {
       })
 
       if (!response.ok) throw new Error('Failed to delete CV')
-      success('CV berhasil dihapus')
+      // Success toast will be shown by parent after reload
       return true
     } catch (err) {
       showError('Gagal menghapus CV: ' + err.message)

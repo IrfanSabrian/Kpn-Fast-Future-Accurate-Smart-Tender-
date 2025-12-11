@@ -558,13 +558,20 @@ class GoogleSheetsService {
 
       // === RENAME GOOGLE DRIVE FOLDER IF NAME CHANGED ===
       try {
-        if (newNamaLengkap && oldNamaLengkap && newNamaLengkap !== oldNamaLengkap) {
+        const oldNameClean = oldNamaLengkap ? oldNamaLengkap.trim() : '';
+        const newNameClean = newNamaLengkap ? newNamaLengkap.trim() : '';
+
+        if (newNameClean && oldNameClean && newNameClean !== oldNameClean) {
+          console.log(`🔄 Attempting to rename folder from "${oldNameClean}" to "${newNameClean}"...`);
+
           // Find "02. Personel" folder
           let personelParentFolder = null;
           
           if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
             personelParentFolder = { id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID };
+            console.log(`📁 Using configured Personel Folder ID: ${personelParentFolder.id}`);
           } else {
+            console.log('🔍 Searching for "02. Personel" folder structure...');
             const dataFolder = await oauth2GoogleService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
             if (dataFolder) {
               personelParentFolder = await oauth2GoogleService.findFolderByName('02. Personel', dataFolder.id);
@@ -572,9 +579,70 @@ class GoogleSheetsService {
           }
 
           if (personelParentFolder) {
-            // Rename folder from old name to new name
-            await oauth2GoogleService.renameFolder(oldNamaLengkap, newNamaLengkap, personelParentFolder.id);
-            console.log(`✅ Renamed folder: "${oldNamaLengkap}" → "${newNamaLengkap}"`);
+            console.log(`📂 Parent folder found: ${personelParentFolder.id}. Checking for folder "${oldNameClean}"...`);
+            
+            // Try to find the folder first to verify existence
+            const existingFolder = await oauth2GoogleService.findFolderByName(oldNameClean, personelParentFolder.id);
+            
+            if (existingFolder) {
+              // Rename folder from old name to new name
+              await oauth2GoogleService.renameFolder(oldNameClean, newNameClean, personelParentFolder.id);
+              console.log(`✅ Renamed folder successfully: "${oldNameClean}" → "${newNameClean}"`);
+              
+              // === RENAME ALL DOCUMENT PDF FILES ===
+              try {
+                console.log(`📄 Attempting to rename document PDF files...`);
+                
+                // Find the renamed folder
+                const renamedFolder = await oauth2GoogleService.findFolderByName(newNameClean, personelParentFolder.id);
+                
+                if (renamedFolder) {
+                  // Define document subfolders and their file patterns
+                  const documentFolders = [
+                    { folderName: '01. Kartu Tanda Penduduk', oldFileName: `KTP ${oldNameClean}.pdf`, newFileName: `KTP ${newNameClean}.pdf` },
+                    { folderName: '02. NPWP', oldFileName: `NPWP ${oldNameClean}.pdf`, newFileName: `NPWP ${newNameClean}.pdf` },
+                    { folderName: '03. Ijazah', oldFileName: `Ijazah ${oldNameClean}.pdf`, newFileName: `Ijazah ${newNameClean}.pdf` },
+                    { folderName: '04. Daftar Riwayat Hidup', oldFileName: `Daftar Riwayat Hidup ${oldNameClean}.pdf`, newFileName: `Daftar Riwayat Hidup ${newNameClean}.pdf` }
+                  ];
+                  
+                  for (const docFolder of documentFolders) {
+                    try {
+                      // Find document subfolder
+                      const subfolder = await oauth2GoogleService.findFolderByName(docFolder.folderName, renamedFolder.id);
+                      
+                      if (subfolder) {
+                        // Find file with old name
+                        const file = await oauth2GoogleService.findFileByName(docFolder.oldFileName, subfolder.id);
+                        
+                        if (file) {
+                          // Rename file
+                          await oauth2GoogleService.renameFileById(file.id, docFolder.newFileName);
+                          console.log(`✅ Renamed file: "${docFolder.oldFileName}" → "${docFolder.newFileName}"`);
+                        } else {
+                          console.log(`ℹ️  File not found: "${docFolder.oldFileName}" in ${docFolder.folderName}`);
+                        }
+                      } else {
+                        console.log(`ℹ️  Subfolder not found: "${docFolder.folderName}"`);
+                      }
+                    } catch (fileError) {
+                      console.warn(`⚠️  Error renaming file in ${docFolder.folderName}:`, fileError.message);
+                      // Continue with other files even if one fails
+                    }
+                  }
+                  
+                  console.log(`✅ Finished renaming document PDF files`);
+                } else {
+                  console.warn(`⚠️  Could not find renamed folder "${newNameClean}" to rename files`);
+                }
+              } catch (filesError) {
+                console.error('❌ Error renaming document PDF files:', filesError);
+                // Don't throw, folder rename was successful
+              }
+            } else {
+              console.warn(`⚠️ Could not rename folder: Folder "${oldNameClean}" not found in parent ${personelParentFolder.id}`);
+            }
+          } else {
+            console.warn('⚠️ Could not rename folder: Parent folder "02. Personel" not found');
           }
         }
       } catch (folderError) {
@@ -1734,22 +1802,62 @@ class GoogleSheetsService {
   }
 
   async updateKtp(idPersonel, data) {
-    const headers = [
-      'id_personel',
-      'nik',
-      'nama_ktp',
-      'tempat_lahir_ktp',
-      'tanggal_lahir_ktp',
-      'jenis_kelamin',
-      'alamat_ktp',
-      'berlaku_hingga',
-      'file_ktp_url'
-    ];
-    return this.updateSheetDataPersonel('db_ktp', headers, 'id_personel', idPersonel, data);
-  }
+  // IMPORTANT: Headers MUST match EXACT column order in db_ktp sheet - same as addKtp!
+  const headers = [
+    'id_ktp',                 // Keep existing ID
+    'id_personel',
+    'nik',
+    'nama_ktp',
+    'tempat_lahir_ktp',
+    'tanggal_lahir_ktp',
+    'jenis_kelamin',
+    'golongan_darah',
+    'alamat_ktp',
+    'rt_rw',
+    'kelurahan_desa',
+    'kecamatan',
+    'kota_kabupaten',
+    'provinsi',
+    'agama',
+    'status_perkawinan',
+    'pekerjaan',
+    'kewarganegaraan',
+    'berlaku_hingga',
+    'tanggal_terbit_ktp',
+    'file_ktp_url',
+    'tanggal_input',
+    'author'
+  ];
+  return this.updateSheetDataPersonel('db_ktp', headers, 'id_personel', idPersonel, data);
+}
 
   async deleteKtp(idPersonel) {
-    return this.deleteSheetDataPersonel('db_ktp', 'id_personel', idPersonel);
+    await this.initialize();
+    
+    try {
+      // Get KTP data to retrieve file URL before deletion
+      const personel = await this.getPersonilById(idPersonel);
+      
+      if (personel && personel.ktp && personel.ktp.file_ktp_url) {
+        // Delete file from Google Drive
+        const fileUrl = personel.ktp.file_ktp_url;
+        const fileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+        
+        if (fileId) {
+          try {
+            await oauth2GoogleService.deleteFile(fileId);
+            console.log(`✅ Deleted KTP file from Google Drive (ID: ${fileId})`);
+          } catch (err) {
+            console.warn(`⚠️  Could not delete KTP file from Drive: ${err.message}`);
+          }
+        }
+      }
+      
+      // Delete from database
+      return this.deleteSheetDataPersonel('db_ktp', 'id_personel', idPersonel);
+    } catch (error) {
+      throw new Error(`Failed to delete KTP: ${error.message}`);
+    }
   }
 
   // --- NPWP ---
@@ -1777,20 +1885,55 @@ class GoogleSheetsService {
   }
 
   async updateNpwp(idPersonel, data) {
-    const headers = [
-      'id_personel',
-      'nomor_npwp_personel',
-      'nik_npwp_personel',
-      'nama_npwp_personel',
-      'alamat_npwp_personel',
-      'kpp_npwp_personel',
-      'file_npwp_personel_url'
-    ];
-    return this.updateSheetDataPersonel('db_npwp_personel', headers, 'id_personel', idPersonel, data);
-  }
+  // IMPORTANT: Must match EXACT column order in db_npwp_personel sheet - same as addNpwp!
+  const headers = [
+    'id_npwp_personel',               // Keep existing ID
+    'id_personel',
+    'nomor_npwp_personel',
+    'nik_npwp_personel',
+    'nama_npwp_personel',
+    'alamat_npwp_personel',
+    'kelurahan_npwp_personel',
+    'kecamatan_npwp_personel',
+    'kota_npwp_personel',
+    'provinsi_npwp_personel',
+    'kode_pos_npwp_personel',
+    'kpp_npwp_personel',
+    'tanggal_terdaftar_npwp_personel',
+    'file_npwp_personel_url',
+    'tanggal_input',
+    'author'
+  ];
+  return this.updateSheetDataPersonel('db_npwp_personel', headers, 'id_personel', idPersonel, data);
+}
 
   async deleteNpwp(idPersonel) {
-    return this.deleteSheetDataPersonel('db_npwp_personel', 'id_personel', idPersonel);
+    await this.initialize();
+    
+    try {
+      // Get NPWP data to retrieve file URL before deletion
+      const personel = await this.getPersonilById(idPersonel);
+      
+      if (personel && personel.npwp && personel.npwp.file_npwp_personel_url) {
+        // Delete file from Google Drive
+        const fileUrl = personel.npwp.file_npwp_personel_url;
+        const fileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+        
+        if (fileId) {
+          try {
+            await oauth2GoogleService.deleteFile(fileId);
+            console.log(`✅ Deleted NPWP file from Google Drive (ID: ${fileId})`);
+          } catch (err) {
+            console.warn(`⚠️  Could not delete NPWP file from Drive: ${err.message}`);
+          }
+        }
+      }
+      
+      // Delete from database
+      return this.deleteSheetDataPersonel('db_npwp_personel', 'id_personel', idPersonel);
+    } catch (error) {
+      throw new Error(`Failed to delete NPWP: ${error.message}`);
+    }
   }
 
   // --- IJAZAH ---
@@ -1815,24 +1958,53 @@ class GoogleSheetsService {
   }
 
   async updateIjazah(idPersonel, data) {
-    const headers = [
-      'id_personel',
-      'jenjang_pendidikan',
-      'nama_institusi_pendidikan',
-      'fakultas',
-      'program_studi',
-      'nomor_ijazah',
-      'tahun_masuk',
-      'tahun_lulus',
-      'gelar_akademik',
-      'ipk',
-      'file_ijazah_url'
-    ];
-    return this.updateSheetDataPersonel('db_ijazah', headers, 'id_personel', idPersonel, data);
-  }
+  // IMPORTANT: Must match EXACT column order in db_ijazah sheet - same as addIjazah!
+  const headers = [
+    'id_ijazah',              // Keep existing ID
+    'id_personel',
+    'jenjang_pendidikan',
+    'nama_institusi_pendidikan',
+    'fakultas',
+    'program_studi',
+    'nomor_ijazah',
+    'tahun_masuk',
+    'tahun_lulus',
+    'gelar_akademik',
+    'ipk',
+    'file_ijazah_url',
+    'tanggal_input',
+    'author'
+  ];
+  return this.updateSheetDataPersonel('db_ijazah', headers, 'id_personel', idPersonel, data);
+}
 
   async deleteIjazah(idPersonel) {
-    return this.deleteSheetDataPersonel('db_ijazah', 'id_personel', idPersonel);
+    await this.initialize();
+    
+    try {
+      // Get Ijazah data to retrieve file URL before deletion
+      const personel = await this.getPersonilById(idPersonel);
+      
+      if (personel && personel.ijazah && personel.ijazah.file_ijazah_url) {
+        // Delete file from Google Drive
+        const fileUrl = personel.ijazah.file_ijazah_url;
+        const fileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+        
+        if (fileId) {
+          try {
+            await oauth2GoogleService.deleteFile(fileId);
+            console.log(`✅ Deleted Ijazah file from Google Drive (ID: ${fileId})`);
+          } catch (err) {
+            console.warn(`⚠️  Could not delete Ijazah file from Drive: ${err.message}`);
+          }
+        }
+      }
+      
+      // Delete from database
+      return this.deleteSheetDataPersonel('db_ijazah', 'id_personel', idPersonel);
+    } catch (error) {
+      throw new Error(`Failed to delete Ijazah: ${error.message}`);
+    }
   }
 
   // --- CV ---
@@ -1855,22 +2027,51 @@ class GoogleSheetsService {
   }
 
   async updateCv(idPersonel, data) {
-    const headers = [
-      'id_personel',
-      'nama_lengkap_cv',
-      'ringkasan_profil',
-      'keahlian_utama',
-      'total_pengalaman_tahun',
-      'pengalaman_kerja_terakhir',
-      'sertifikasi_profesional',
-      'bahasa_dikuasai',
-      'file_cv_url'
-    ];
-    return this.updateSheetDataPersonel('db_cv', headers, 'id_personel', idPersonel, data);
-  }
+  // IMPORTANT: Must match EXACT column order in db_cv sheet - same as addCv!
+  const headers = [
+    'id_cv',                  // Keep existing ID
+    'id_personel',
+    'nama_lengkap_cv',
+    'ringkasan_profil',
+    'keahlian_utama',
+    'total_pengalaman_tahun',
+    'pengalaman_kerja_terakhir',
+    'sertifikasi_profesional',
+    'bahasa_dikuasai',
+    'file_cv_url',
+    'tanggal_input',
+    'author'
+  ];
+  return this.updateSheetDataPersonel('db_cv', headers, 'id_personel', idPersonel, data);
+}
 
   async deleteCv(idPersonel) {
-    return this.deleteSheetDataPersonel('db_cv', 'id_personel', idPersonel);
+    await this.initialize();
+    
+    try {
+      // Get CV data to retrieve file URL before deletion
+      const personel = await this.getPersonilById(idPersonel);
+      
+      if (personel && personel.cv && personel.cv.file_cv_url) {
+        // Delete file from Google Drive
+        const fileUrl = personel.cv.file_cv_url;
+        const fileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+        
+        if (fileId) {
+          try {
+            await oauth2GoogleService.deleteFile(fileId);
+            console.log(`✅ Deleted CV file from Google Drive (ID: ${fileId})`);
+          } catch (err) {
+            console.warn(`⚠️  Could not delete CV file from Drive: ${err.message}`);
+          }
+        }
+      }
+      
+      // Delete from database
+      return this.deleteSheetDataPersonel('db_cv', 'id_personel', idPersonel);
+    } catch (error) {
+      throw new Error(`Failed to delete CV: ${error.message}`);
+    }
   }
 
   // Helper functions for personnel document sheets (uses PERSONEL spreadsheet)

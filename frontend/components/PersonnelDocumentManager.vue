@@ -18,8 +18,8 @@
     </div>
 
     <!-- Document is available -->
-    <div v-else class="p-6">
-      <div class="flex items-center justify-between mb-6">
+    <div v-else>
+      <div class="flex items-center justify-between px-6 pt-6 pb-4">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center" :class="iconBackgroundClass">
             <i :class="`${iconClass} text-lg`"></i>
@@ -47,7 +47,10 @@
         </div>
       </div>
       
-      <slot name="content"></slot>
+      <!-- Scrollable Content Area -->
+      <div class="max-h-[calc(45vh-80px)] overflow-y-auto custom-scrollbar px-6 pb-6">
+        <slot name="content"></slot>
+      </div>
     </div>
   </div>
 </template>
@@ -104,3 +107,19 @@ const iconClass = computed(() => config.value.icon)
 const iconBackgroundClass = computed(() => config.value.iconBg)
 const buttonClasses = computed(() => config.value.button)
 </script>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.6);
+}
+</style>
