@@ -470,15 +470,17 @@
       :existing-file-url="ktp?.file_ktp_url"
       @close="showKtpUploadModal = false"
       @save="saveKtp"
+      @aiScanComplete="handleKtpAIScan"
     >
-      <template #form-fields>
+      <template #form-fields="{ disabled }">
         <div class="grid grid-cols-2 gap-x-4 gap-y-3">
           <div class="col-span-2">
             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">NIK <span class="text-red-500">*</span></label>
             <input
               v-model="ktpFormData.nik"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="16 digit NIK"
               maxlength="16"
             />
@@ -489,7 +491,8 @@
             <input
               v-model="ktpFormData.nama_ktp"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -498,7 +501,8 @@
             <input
               v-model="ktpFormData.tempat_lahir_ktp"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
           
@@ -507,7 +511,8 @@
             <input
               v-model="ktpFormData.tanggal_lahir_ktp"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="DD-MM-YYYY"
             />
           </div>
@@ -516,7 +521,8 @@
             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Jenis Kelamin</label>
             <select
               v-model="ktpFormData.jenis_kelamin"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             >
               <option value="LAKI-LAKI">Laki-laki</option>
               <option value="PEREMPUAN">Perempuan</option>
@@ -527,7 +533,8 @@
             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Golongan Darah</label>
             <select
               v-model="ktpFormData.golongan_darah"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             >
               <option value="A">A</option>
               <option value="B">B</option>
@@ -541,7 +548,8 @@
             <textarea
               v-model="ktpFormData.alamat_ktp"
               rows="2"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="Alamat lengkap sesuai KTP"
             ></textarea>
           </div>
@@ -551,7 +559,8 @@
             <input
               v-model="ktpFormData.rt_rw"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="000/000"
             />
           </div>
@@ -561,7 +570,8 @@
             <input
               v-model="ktpFormData.kelurahan_desa"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -570,7 +580,8 @@
             <input
               v-model="ktpFormData.kecamatan"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -579,7 +590,8 @@
             <input
               v-model="ktpFormData.kota_kabupaten"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -588,7 +600,8 @@
             <input
               v-model="ktpFormData.provinsi"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -596,7 +609,8 @@
             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Agama</label>
             <select
               v-model="ktpFormData.agama"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             >
               <option value="ISLAM">Islam</option>
               <option value="KRISTEN">Kristen</option>
@@ -611,7 +625,8 @@
             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Status Perkawinan</label>
             <select
               v-model="ktpFormData.status_perkawinan"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             >
               <option value="BELUM KAWIN">Belum Kawin</option>
               <option value="KAWIN">Kawin</option>
@@ -625,7 +640,8 @@
             <input
               v-model="ktpFormData.pekerjaan"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="Contoh: PELAJAR/MAHASISWA"
             />
           </div>
@@ -635,7 +651,8 @@
             <input
               v-model="ktpFormData.kewarganegaraan"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="WNI"
             />
           </div>
@@ -645,7 +662,8 @@
             <input
               v-model="ktpFormData.berlaku_hingga"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="SEUMUR HIDUP"
             />
           </div>
@@ -655,7 +673,8 @@
             <input
               v-model="ktpFormData.tanggal_terbit_ktp"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="DD-MM-YYYY"
             />
           </div>
@@ -672,15 +691,17 @@
       :existing-file-url="npwp?.file_npwp_personel_url"
       @close="showNpwpUploadModal = false"
       @save="saveNpwp"
+      @aiScanComplete="handleNpwpAIScan"
     >
-      <template #form-fields>
+      <template #form-fields="{ disabled }">
         <div class="grid grid-cols-2 gap-x-4 gap-y-3">
           <div class="col-span-2 sm:col-span-1">
             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Nomor NPWP <span class="text-red-500">*</span></label>
             <input
               v-model="npwpFormData.nomor_npwp_personel"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="XX.XXX.XXX.X-XXX.XXX"
             />
           </div>
@@ -690,7 +711,8 @@
             <input
               v-model="npwpFormData.nik_npwp_personel"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               maxlength="16"
             />
           </div>
@@ -700,7 +722,8 @@
             <input
               v-model="npwpFormData.nama_npwp_personel"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -709,7 +732,8 @@
              <input
                v-model="npwpFormData.kpp_npwp_personel"
                type="text"
-               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+               :disabled="disabled"
+               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
                placeholder="Contoh: KPP Pratama Jakarta Pusat"
              />
            </div>
@@ -719,7 +743,8 @@
             <textarea
               v-model="npwpFormData.alamat_npwp_personel"
               rows="2"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             ></textarea>
           </div>
         </div>
@@ -735,14 +760,16 @@
       :existing-file-url="ijazah?.file_ijazah_url"
       @close="showIjazahUploadModal = false"
       @save="saveIjazah"
+      @aiScanComplete="handleIjazahAIScan"
     >
-      <template #form-fields>
+      <template #form-fields="{ disabled }">
         <div class="grid grid-cols-2 gap-x-4 gap-y-3">
           <div class="col-span-1">
             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Jenjang <span class="text-red-500">*</span></label>
             <select
               v-model="ijazahFormData.jenjang_pendidikan"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             >
               <option value="">Pilih</option>
               <option value="SMA/SMK">SMA/SMK</option>
@@ -758,7 +785,8 @@
              <input
                v-model="ijazahFormData.ipk"
                type="text"
-               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+               :disabled="disabled"
+               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
                placeholder="3.50"
              />
            </div>
@@ -768,7 +796,8 @@
             <input
               v-model="ijazahFormData.nama_institusi_pendidikan"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -777,7 +806,8 @@
             <input
               v-model="ijazahFormData.fakultas"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -786,7 +816,8 @@
             <input
               v-model="ijazahFormData.program_studi"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -795,7 +826,8 @@
             <input
               v-model="ijazahFormData.nomor_ijazah"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
 
@@ -804,7 +836,8 @@
               <input
                 v-model="ijazahFormData.tahun_masuk"
                 type="text"
-                class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+                :disabled="disabled"
+                class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
                 placeholder="2015"
               />
             </div>
@@ -813,7 +846,8 @@
               <input
                 v-model="ijazahFormData.tahun_lulus"
                 type="text"
-                class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+                :disabled="disabled"
+                class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
                 placeholder="2019"
               />
             </div>
@@ -823,7 +857,8 @@
             <input
               v-model="ijazahFormData.gelar_akademik"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="S.T., S.Kom., dll"
             />
           </div>
@@ -840,15 +875,17 @@
       :existing-file-url="cv?.file_cv_url"
       @close="showCvUploadModal = false"
       @save="saveCv"
+      @aiScanComplete="handleCvAIScan"
     >
-      <template #form-fields>
+      <template #form-fields="{ disabled }">
         <div class="grid grid-cols-2 gap-x-4 gap-y-3">
           <div class="col-span-2">
             <label class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap</label>
             <input
               v-model="cvFormData.nama_lengkap_cv"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
             />
           </div>
           
@@ -857,7 +894,8 @@
             <textarea
               v-model="cvFormData.ringkasan_profil"
               rows="2"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="Profesional berpengalaman..."
             ></textarea>
           </div>
@@ -867,7 +905,8 @@
             <input
               v-model="cvFormData.keahlian_utama"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="Project Management, AutoCAD, dll"
             />
           </div>
@@ -877,7 +916,8 @@
             <input
               v-model="cvFormData.total_pengalaman_tahun"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="5"
             />
           </div>
@@ -887,7 +927,8 @@
              <input
                v-model="cvFormData.bahasa_dikuasai"
                type="text"
-               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+               :disabled="disabled"
+               class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
                placeholder="Indonesia, Inggris"
              />
            </div>
@@ -897,7 +938,8 @@
             <input
               v-model="cvFormData.pengalaman_kerja_terakhir"
               type="text"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="Senior Engineer di PT ABC"
             />
           </div>
@@ -907,7 +949,8 @@
             <textarea
               v-model="cvFormData.sertifikasi_profesional"
               rows="2"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white"
+              :disabled="disabled"
+              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
               placeholder="PMP, SKA Ahli, dll"
             ></textarea>
           </div>
@@ -1268,6 +1311,31 @@ const saveCv = async (file) => {
     // Error toast already shown by composable
     console.error('Save CV error:', err)
   }
+}
+
+// AI Scan Completion Handlers
+const handleKtpAIScan = (data) => {
+  console.log('[AI SCAN] Auto-filling KTP form:', data)
+  ktpFormData.value = { ...ktpFormData.value, ...data }
+  success('KTP data berhasil di-scan! Silakan periksa dan edit jika perlu.')
+}
+
+const handleNpwpAIScan = (data) => {
+  console.log('[AI SCAN] Auto-filling NPWP form:', data)
+  npwpFormData.value = { ...npwpFormData.value, ...data }
+  success('NPWP data berhasil di-scan! Silakan periksa dan edit jika perlu.')
+}
+
+const handleIjazahAIScan = (data) => {
+  console.log('[AI SCAN] Auto-filling Ijazah form:', data)
+  ijazahFormData.value = { ...ijazahFormData.value, ...data }
+  success('Ijazah data berhasil di-scan! Silakan periksa dan edit jika perlu.')
+}
+
+const handleCvAIScan = (data) => {
+  console.log('[AI SCAN] Auto-filling CV form:', data)
+  cvFormData.value = { ...cvFormData.value, ...data }
+  success('CV data berhasil di-scan! Silakan periksa dan edit jika perlu.')
 }
 
 // Fetch Data

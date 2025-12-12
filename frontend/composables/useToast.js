@@ -5,10 +5,10 @@ export const useToast = () => {
     type: 'info',
     title: '',
     message: '',
-    duration: 3000
+    duration: 8000
   })
 
-  const showToast = (type, title, message, duration = 3000) => {
+  const showToast = (type, title, message, duration = 8000) => {
     toast.value = {
       show: true,
       type,
@@ -25,7 +25,7 @@ export const useToast = () => {
   const success = (...args) => {
     // If only one parameter, treat it as message with default title
     if (args.length === 1) {
-      showToast('success', 'Berhasil', args[0], 3000)
+      showToast('success', 'Berhasil', args[0], 8000)
     } else {
       showToast('success', args[0], args[1], args[2])
     }
@@ -34,7 +34,7 @@ export const useToast = () => {
   const error = (...args) => {
     // If only one parameter, treat it as message with default title
     if (args.length === 1) {
-      showToast('error', 'Gagal', args[0], 3000)
+      showToast('error', 'Gagal', args[0], 8000)
     } else {
       showToast('error', args[0], args[1], args[2])
     }
@@ -43,7 +43,7 @@ export const useToast = () => {
   const warning = (...args) => {
     // If only one parameter, treat it as message with default title
     if (args.length === 1) {
-      showToast('warning', 'Peringatan', args[0], 3000)
+      showToast('warning', 'Peringatan', args[0], 8000)
     } else {
       showToast('warning', args[0], args[1], args[2])
     }
@@ -52,7 +52,7 @@ export const useToast = () => {
   const info = (...args) => {
     // If only one parameter, treat it as message with default title
     if (args.length === 1) {
-      showToast('info', 'Informasi', args[0], 3000)
+      showToast('info', 'Informasi', args[0], 8000)
     } else {
       showToast('info', args[0], args[1], args[2])
     }

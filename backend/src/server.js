@@ -141,6 +141,7 @@ import driveRoutes from './routes/drive.routes.js';
 import kbliRoutes from './routes/kbli.routes.js';
 import recentActivitiesRoutes from './routes/recentActivities.routes.js';
 import sheetsPermissionRoutes from './routes/sheetsPermission.routes.js';
+import aiRoutes from './routes/ai.routes.js';
 
 // Use routes
 app.use('/api/auth', oauth2AuthRoutes); // OAuth2 authentication
@@ -151,6 +152,7 @@ app.use('/api/drive', driveRoutes); // Google Drive folder management
 app.use('/api/kbli', kbliRoutes); // KBLI master data and company KBLI
 app.use('/api/activities', recentActivitiesRoutes); // Recent activities with author
 app.use('/api/sheets', sheetsPermissionRoutes); // Google Sheets permission management
+app.use('/api/ai', aiRoutes); // AI-powered document scanning with Gemini
 
 // Error handling middleware
 app.use((err, req, res, next) => {
