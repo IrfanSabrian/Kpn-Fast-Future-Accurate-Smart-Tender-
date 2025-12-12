@@ -562,91 +562,121 @@ class GoogleSheetsService {
         const newNameClean = newNamaLengkap ? newNamaLengkap.trim() : '';
 
         if (newNameClean && oldNameClean && newNameClean !== oldNameClean) {
-          console.log(`🔄 Attempting to rename folder from "${oldNameClean}" to "${newNameClean}"...`);
+          console.log(`🔄 [RENAME PERSONEL] Starting rename process: "${oldNameClean}" → "${newNameClean}"`);
 
           // Find "02. Personel" folder
           let personelParentFolder = null;
           
           if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
             personelParentFolder = { id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID };
-            console.log(`📁 Using configured Personel Folder ID: ${personelParentFolder.id}`);
+            console.log(`📁 [RENAME PERSONEL] Using configured Personel Folder ID: ${personelParentFolder.id}`);
           } else {
-            console.log('🔍 Searching for "02. Personel" folder structure...');
+            console.log('🔍 [RENAME PERSONEL] Searching for "02. Personel" folder structure...');
             const dataFolder = await oauth2GoogleService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
             if (dataFolder) {
+              console.log(`📁 [RENAME PERSONEL] Found Data folder: ${dataFolder.id}`);
               personelParentFolder = await oauth2GoogleService.findFolderByName('02. Personel', dataFolder.id);
+              if (personelParentFolder) {
+                console.log(`📁 [RENAME PERSONEL] Found "02. Personel" folder: ${personelParentFolder.id}`);
+              }
             }
           }
 
-          if (personelParentFolder) {
-            console.log(`📂 Parent folder found: ${personelParentFolder.id}. Checking for folder "${oldNameClean}"...`);
+          if (!personelParentFolder) {
+            console.error('❌ [RENAME PERSONEL] Parent folder "02. Personel" not found - cannot rename folder and files');
+            return { success: true, message: 'Personnel updated (folder rename skipped - parent folder not found)' };
+          }
+
+          console.log(`📂 [RENAME PERSONEL] Parent folder found: ${personelParentFolder.id}. Searching for folder "${oldNameClean}"...`);
+          
+          // Try to find the folder first to verify existence
+          const existingFolder = await oauth2GoogleService.findFolderByName(oldNameClean, personelParentFolder.id);
+          
+          if (!existingFolder) {
+            console.warn(`⚠️ [RENAME PERSONEL] Folder "${oldNameClean}" not found in parent ${personelParentFolder.id} - cannot rename`);
+            return { success: true, message: 'Personnel updated (folder rename skipped - folder not found)' };
+          }
+
+          console.log(`✅ [RENAME PERSONEL] Found folder to rename: "${oldNameClean}" (ID: ${existingFolder.id})`);
+
+          // === STEP 1: RENAME ALL DOCUMENT PDF FILES FIRST ===
+          try {
+            console.log(`📄 [RENAME PERSONEL] Step 1: Renaming document PDF files inside folder "${oldNameClean}"...`);
             
-            // Try to find the folder first to verify existence
-            const existingFolder = await oauth2GoogleService.findFolderByName(oldNameClean, personelParentFolder.id);
+            // Define document subfolders and their file patterns
+            const documentFolders = [
+              { folderName: '01. Kartu Tanda Penduduk', oldFileName: `KTP ${oldNameClean}.pdf`, newFileName: `KTP ${newNameClean}.pdf` },
+              { folderName: '02. NPWP', oldFileName: `NPWP ${oldNameClean}.pdf`, newFileName: `NPWP ${newNameClean}.pdf` },
+              { folderName: '03. Ijazah', oldFileName: `Ijazah ${oldNameClean}.pdf`, newFileName: `Ijazah ${newNameClean}.pdf` },
+              { folderName: '04. Daftar Riwayat Hidup', oldFileName: `Daftar Riwayat Hidup ${oldNameClean}.pdf`, newFileName: `Daftar Riwayat Hidup ${newNameClean}.pdf` }
+            ];
             
-            if (existingFolder) {
-              // Rename folder from old name to new name
-              await oauth2GoogleService.renameFolder(oldNameClean, newNameClean, personelParentFolder.id);
-              console.log(`✅ Renamed folder successfully: "${oldNameClean}" → "${newNameClean}"`);
-              
-              // === RENAME ALL DOCUMENT PDF FILES ===
+            let renamedFilesCount = 0;
+            let skippedFilesCount = 0;
+
+            for (const docFolder of documentFolders) {
               try {
-                console.log(`📄 Attempting to rename document PDF files...`);
+                console.log(`🔍 [RENAME PERSONEL] Looking for subfolder "${docFolder.folderName}" in folder ID ${existingFolder.id}...`);
                 
-                // Find the renamed folder
-                const renamedFolder = await oauth2GoogleService.findFolderByName(newNameClean, personelParentFolder.id);
+                // Find document subfolder
+                const subfolder = await oauth2GoogleService.findFolderByName(docFolder.folderName, existingFolder.id);
                 
-                if (renamedFolder) {
-                  // Define document subfolders and their file patterns
-                  const documentFolders = [
-                    { folderName: '01. Kartu Tanda Penduduk', oldFileName: `KTP ${oldNameClean}.pdf`, newFileName: `KTP ${newNameClean}.pdf` },
-                    { folderName: '02. NPWP', oldFileName: `NPWP ${oldNameClean}.pdf`, newFileName: `NPWP ${newNameClean}.pdf` },
-                    { folderName: '03. Ijazah', oldFileName: `Ijazah ${oldNameClean}.pdf`, newFileName: `Ijazah ${newNameClean}.pdf` },
-                    { folderName: '04. Daftar Riwayat Hidup', oldFileName: `Daftar Riwayat Hidup ${oldNameClean}.pdf`, newFileName: `Daftar Riwayat Hidup ${newNameClean}.pdf` }
-                  ];
-                  
-                  for (const docFolder of documentFolders) {
-                    try {
-                      // Find document subfolder
-                      const subfolder = await oauth2GoogleService.findFolderByName(docFolder.folderName, renamedFolder.id);
-                      
-                      if (subfolder) {
-                        // Find file with old name
-                        const file = await oauth2GoogleService.findFileByName(docFolder.oldFileName, subfolder.id);
-                        
-                        if (file) {
-                          // Rename file
-                          await oauth2GoogleService.renameFileById(file.id, docFolder.newFileName);
-                          console.log(`✅ Renamed file: "${docFolder.oldFileName}" → "${docFolder.newFileName}"`);
-                        } else {
-                          console.log(`ℹ️  File not found: "${docFolder.oldFileName}" in ${docFolder.folderName}`);
-                        }
-                      } else {
-                        console.log(`ℹ️  Subfolder not found: "${docFolder.folderName}"`);
-                      }
-                    } catch (fileError) {
-                      console.warn(`⚠️  Error renaming file in ${docFolder.folderName}:`, fileError.message);
-                      // Continue with other files even if one fails
-                    }
-                  }
-                  
-                  console.log(`✅ Finished renaming document PDF files`);
-                } else {
-                  console.warn(`⚠️  Could not find renamed folder "${newNameClean}" to rename files`);
+                if (!subfolder) {
+                  console.log(`ℹ️  [RENAME PERSONEL] Subfolder not found: "${docFolder.folderName}" - skipping`);
+                  skippedFilesCount++;
+                  continue;
                 }
-              } catch (filesError) {
-                console.error('❌ Error renaming document PDF files:', filesError);
-                // Don't throw, folder rename was successful
+
+                console.log(`📁 [RENAME PERSONEL] Found subfolder "${docFolder.folderName}" (ID: ${subfolder.id})`);
+                console.log(`🔍 [RENAME PERSONEL] Looking for file "${docFolder.oldFileName}" in subfolder...`);
+                
+                // Find file with old name
+                const file = await oauth2GoogleService.findFileByName(docFolder.oldFileName, subfolder.id);
+                
+                if (!file) {
+                  console.log(`ℹ️  [RENAME PERSONEL] File not found: "${docFolder.oldFileName}" in ${docFolder.folderName} - skipping`);
+                  skippedFilesCount++;
+                  continue;
+                }
+
+                console.log(`📄 [RENAME PERSONEL] Found file "${docFolder.oldFileName}" (ID: ${file.id})`);
+                console.log(`🔄 [RENAME PERSONEL] Renaming file to "${docFolder.newFileName}"...`);
+                
+                // Rename file
+                await oauth2GoogleService.renameFileById(file.id, docFolder.newFileName);
+                renamedFilesCount++;
+                console.log(`✅ [RENAME PERSONEL] Successfully renamed file: "${docFolder.oldFileName}" → "${docFolder.newFileName}"`);
+              } catch (fileError) {
+                console.error(`❌ [RENAME PERSONEL] Error renaming file in ${docFolder.folderName}:`, fileError.message);
+                // Continue with other files even if one fails
+                skippedFilesCount++;
               }
-            } else {
-              console.warn(`⚠️ Could not rename folder: Folder "${oldNameClean}" not found in parent ${personelParentFolder.id}`);
             }
+            
+            console.log(`✅ [RENAME PERSONEL] Finished renaming PDF files: ${renamedFilesCount} renamed, ${skippedFilesCount} skipped`);
+          } catch (filesError) {
+            console.error('❌ [RENAME PERSONEL] Error during PDF file renaming:', filesError);
+            // Continue to folder rename even if file renaming fails
+          }
+
+          // === STEP 2: RENAME THE FOLDER ===
+          try {
+            console.log(`🔄 [RENAME PERSONEL] Step 2: Renaming folder "${oldNameClean}" to "${newNameClean}"...`);
+            await oauth2GoogleService.renameFolder(oldNameClean, newNameClean, personelParentFolder.id);
+            console.log(`✅ [RENAME PERSONEL] Successfully renamed folder: "${oldNameClean}" → "${newNameClean}"`);
+          } catch (folderRenameError) {
+            console.error(`❌ [RENAME PERSONEL] Error renaming folder:`, folderRenameError);
+            throw folderRenameError; // Throw this error as it's critical
+          }
+        } else {
+          if (!newNameClean || !oldNameClean) {
+            console.log(`ℹ️  [RENAME PERSONEL] Skipping rename: empty name (old: "${oldNameClean}", new: "${newNameClean}")`);
           } else {
-            console.warn('⚠️ Could not rename folder: Parent folder "02. Personel" not found');
+            console.log(`ℹ️  [RENAME PERSONEL] Skipping rename: names are the same ("${oldNameClean}")`);
           }
         }
       } catch (folderError) {
-        console.error('❌ Error renaming personel folder:', folderError);
+        console.error('❌ [RENAME PERSONEL] Error in rename process:', folderError);
         // Don't throw error, continue with personnel update
       }
 
@@ -743,29 +773,49 @@ class GoogleSheetsService {
         // Continue to delete folder even if document deletion fails
       }
 
-      // === DELETE GOOGLE DRIVE FOLDER ===
+      // === DELETE GOOGLE DRIVE FOLDER (INCLUDES ALL FILES INSIDE) ===
       try {
         if (namaLengkap) {
+          console.log(`🗑️  [DELETE PERSONEL] Starting folder deletion for: "${namaLengkap}"`);
+          
           // Find "02. Personel" folder
           let personelParentFolder = null;
           
           if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
             personelParentFolder = { id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID };
+            console.log(`📁 [DELETE PERSONEL] Using configured Personel Folder ID: ${personelParentFolder.id}`);
           } else {
+            console.log(`🔍 [DELETE PERSONEL] Searching for "02. Personel" folder...`);
             const dataFolder = await oauth2GoogleService.findFolderByName('Data', process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID);
             if (dataFolder) {
+              console.log(`📁 [DELETE PERSONEL] Found Data folder: ${dataFolder.id}`);
               personelParentFolder = await oauth2GoogleService.findFolderByName('02. Personel', dataFolder.id);
+              if (personelParentFolder) {
+                console.log(`📁 [DELETE PERSONEL] Found "02. Personel" folder: ${personelParentFolder.id}`);
+              }
             }
           }
 
-          if (personelParentFolder) {
-            // Delete folder with personnel name
-            await oauth2GoogleService.deleteFolder(namaLengkap, personelParentFolder.id);
-            console.log(`✅ Deleted folder for personel: ${namaLengkap}`);
+          if (!personelParentFolder) {
+            console.warn('⚠️  [DELETE PERSONEL] Parent folder "02. Personel" not found - cannot delete folder');
+          } else {
+            console.log(`🔍 [DELETE PERSONEL] Searching for folder "${namaLengkap}" in parent ${personelParentFolder.id}...`);
+            
+            // Delete folder with personnel name (this will also delete all files inside)
+            const result = await oauth2GoogleService.deleteFolder(namaLengkap, personelParentFolder.id);
+            
+            if (result.success) {
+              console.log(`✅ [DELETE PERSONEL] Successfully deleted folder and all contents for: "${namaLengkap}"`);
+              console.log(`   ℹ️  All PDF files (KTP, NPWP, Ijazah, CV) were also deleted with the folder`);
+            } else {
+              console.warn(`⚠️  [DELETE PERSONEL] ${result.message}`);
+            }
           }
+        } else {
+          console.warn('⚠️  [DELETE PERSONEL] Personnel name is empty - cannot delete folder');
         }
       } catch (folderError) {
-        console.error('❌ Error deleting personel folder:', folderError);
+        console.error('❌ [DELETE PERSONEL] Error deleting personel folder:', folderError);
         // Don't throw error, personnel is already deleted from sheet
       }
 

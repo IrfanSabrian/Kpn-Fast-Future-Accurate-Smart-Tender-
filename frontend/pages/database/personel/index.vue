@@ -278,10 +278,11 @@
     <!-- Delete Confirmation Dialog -->
     <ConfirmDialog
       :show="showDeleteConfirm"
-      title="Konfirmasi Hapus"
+      title="Hapus Personel?"
       :message="`Apakah Anda yakin ingin menghapus personel ${deletePersonelData?.nama_lengkap}? Folder personel di Google Drive juga akan dihapus.`"
-      confirmText="Ya, Hapus Personel"
-      loadingText="Menghapus..."
+      confirm-text="Hapus"
+      cancel-text="Batal"
+      loading-text="Menghapus..."
       :loading="saving"
       type="danger"
       @confirm="confirmDelete"

@@ -922,6 +922,9 @@
       :message="`Dokumen ${getDocumentLabel(deleteDocumentType)} akan dihapus permanen. Lanjutkan?`"
       confirm-text="Hapus"
       cancel-text="Batal"
+      loading-text="Menghapus..."
+      :loading="isDeletingDocument"
+      type="danger"
       @confirm="handleDeleteDocument"
       @cancel="showDeleteConfirm = false"
     />
@@ -1124,9 +1127,15 @@ const openDeleteConfirm = (docType) => {
 // Use composable for document handlers (pass toast functions)
 const documentHandlers = usePersonnelDocuments(personId, apiBaseUrl, success, showError)
 
+// Delete Document Loading State
+const isDeletingDocument = ref(false)
+
 // Delete Document Handler
 const handleDeleteDocument = async () => {
+  if (isDeletingDocument.value) return
+
   try {
+    isDeletingDocument.value = true
     const docType = deleteDocumentType.value
     const docTypeLabel = getDocumentLabel(docType)
     
@@ -1159,6 +1168,8 @@ const handleDeleteDocument = async () => {
   } catch (err) {
     // Error toast already shown by composable
     console.error('Delete document error:', err)
+  } finally {
+    isDeletingDocument.value = false
   }
 }
 
