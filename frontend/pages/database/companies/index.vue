@@ -52,6 +52,24 @@
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-200 to-slate-100 dark:from-slate-700 dark:to-slate-800 group-hover:from-blue-500 group-hover:to-cyan-400 transition-all duration-300"></div>
 
         <div class="p-5 flex flex-col h-full relative">
+            <!-- Action Buttons (Top Right - Always Visible on Hover) -->
+            <div class="absolute top-3 right-3 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
+               <button
+                 @click.stop="openEditModal(company)"
+                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-700/90 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-600 shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-600 hover:scale-105 transition-all duration-200"
+                 title="Edit Perusahaan"
+               >
+                 <i class="fas fa-pen text-xs"></i>
+               </button>
+               <button
+                 @click.stop="openDeleteConfirm(company)"
+                 class="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-700/90 text-red-500 hover:bg-red-50 dark:hover:bg-slate-600 shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-600 hover:scale-105 transition-all duration-200"
+                 title="Hapus Perusahaan"
+               >
+                 <i class="fas fa-trash-alt text-xs"></i>
+               </button>
+            </div>
+
           <!-- Card Header layout -->
           <div class="flex items-start gap-4 mb-4">
             <!-- Compact Logo -->
@@ -122,190 +140,408 @@
     </div>
 
     <!-- Add Company Modal -->
-    <Teleport to="body">
-      <Transition
-        enter-active-class="transition-all duration-300 ease-out"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition-all duration-200 ease-in"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-if="isModalOpen"
-          class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          @click.self="closeModal"
-        >
-          <Transition
-            enter-active-class="transition-all duration-300 ease-out"
-            enter-from-class="opacity-0 scale-95 translate-y-4"
-            enter-to-class="opacity-100 scale-100 translate-y-0"
-            leave-active-class="transition-all duration-200 ease-in"
-            leave-from-class="opacity-100 scale-100 translate-y-0"
-            leave-to-class="opacity-0 scale-95 translate-y-4"
-          >
-            <div
-              v-if="isModalOpen"
-              class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              <!-- Modal Header -->
-              <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-5 flex justify-between items-center rounded-t-2xl z-10">
-                <div>
-                  <h2 class="text-xl font-bold text-white">Tambah Perusahaan Baru</h2>
-                  <p class="text-blue-100 text-sm mt-1">Lengkapi data profil perusahaan</p>
-                </div>
-                <button
-                  @click="closeModal"
-                  class="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
-                >
-                  <i class="fas fa-times text-xl"></i>
-                </button>
+    <BaseModal
+      :show="isModalOpen"
+      title="Tambah Perusahaan"
+      @close="closeModal"
+    >
+      <template #default>
+        <div class="px-1">
+          <!-- Info Block -->
+          <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl flex items-start gap-4 mb-6 border border-blue-100 dark:border-blue-800">
+             <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center flex-shrink-0 text-blue-600 dark:text-blue-300">
+               <i class="fas fa-building text-lg"></i>
+             </div>
+             <div>
+               <h4 class="text-sm font-bold text-blue-800 dark:text-blue-300 mb-1">Data Perusahaan</h4>
+               <p class="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
+                 Lengkapi profil perusahaan.
+               </p>
+             </div>
+          </div>
+
+          <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left Column: Inputs (2/3 width) -->
+            <div class="flex-1 space-y-5">
+              <!-- Nama Perusahaan -->
+              <div class="group">
+                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">
+                   Nama Perusahaan
+                   <span class="text-red-500">*</span>
+                 </label>
+                 <div class="relative">
+                   <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <i class="fas fa-building text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                   </div>
+                   <input
+                     v-model="formData.nama_perusahaan"
+                     type="text"
+                     placeholder="Contoh: PT. Karya Perkasa Nasional"
+                     class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+                   />
+                 </div>
               </div>
 
-              <!-- Modal Body -->
-              <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
-                <!-- Nama Perusahaan (Full Width) -->
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    Nama Perusahaan <span class="text-red-500">*</span>
-                  </label>
+              <!-- Phone & Email Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div class="group">
+                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">No. Telepon</label>
+                   <div class="relative">
+                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fas fa-phone text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                     </div>
+                     <input
+                       v-model="formData.no_telp"
+                       type="tel"
+                       placeholder="08123456789"
+                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+                     />
+                   </div>
+                 </div>
+                 <div class="group">
+                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">Email</label>
+                   <div class="relative">
+                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fas fa-envelope text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                     </div>
+                     <input
+                       v-model="formData.email"
+                       type="email"
+                       placeholder="info@perusahaan.com"
+                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+                     />
+                   </div>
+                 </div>
+              </div>
+
+              <!-- Year & Status Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div class="group">
+                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">Tahun Berdiri</label>
+                   <div class="relative">
+                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fas fa-history text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                     </div>
+                     <input
+                       v-model="formData.tahun_berdiri"
+                       type="number"
+                       min="1900"
+                       :max="new Date().getFullYear()"
+                       placeholder="2024"
+                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+                     />
+                   </div>
+                 </div>
+                 <div class="group">
+                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">Status</label>
+                   <div class="relative">
+                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fas fa-map-marker-alt text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                     </div>
+                     <select
+                       v-model="formData.status"
+                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm appearance-none"
+                     >
+                       <option value="Pusat">Pusat</option>
+                       <option value="Cabang">Cabang</option>
+                     </select>
+                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                     </div>
+                   </div>
+                 </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Logo Upload (1/3 width) -->
+            <div class="w-full lg:w-72 flex-shrink-0">
+              <div class="group h-full flex flex-col">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">
+                  Logo Perusahaan
+                </label>
+                <div
+                  class="flex-grow relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:border-blue-500 transition-all cursor-pointer bg-slate-50 dark:bg-slate-800/50 flex flex-col items-center justify-center min-h-[200px]"
+                  @click="$refs.logoInput.click()"
+                  @dragover.prevent="isDragging = true"
+                  @dragleave.prevent="isDragging = false"
+                  @drop.prevent="handleFileDrop"
+                  :class="{ 'border-blue-500 bg-blue-50 dark:bg-blue-900/10': isDragging }"
+                >
                   <input
-                    v-model="formData.nama_perusahaan"
-                    type="text"
-                    required
-                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="PT. Contoh Perusahaan"
+                    ref="logoInput"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    @change="handleFileChange"
+                    class="hidden"
                   />
-                </div>
-
-                <!-- No Telp & Email (2 Columns) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                      No. Telepon
-                    </label>
-                    <input
-                      v-model="formData.no_telp"
-                      type="tel"
-                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="08123456789"
-                    />
+                  <div v-if="!logoPreview" class="space-y-3">
+                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto text-blue-500">
+                       <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                    </div>
+                    <div class="space-y-1">
+                      <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        Upload Logo
+                      </p>
+                      <p class="text-xs text-slate-500">JPG, PNG, GIF (Max 50MB)</p>
+                    </div>
                   </div>
-                  <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                      Email
-                    </label>
-                    <input
-                      v-model="formData.email"
-                      type="email"
-                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="info@perusahaan.com"
-                    />
-                  </div>
-                </div>
-
-                <!-- Tahun Berdiri & Status (2 Columns) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                      Tahun Berdiri
-                    </label>
-                    <input
-                      v-model="formData.tahun_berdiri"
-                      type="number"
-                      min="1900"
-                      :max="new Date().getFullYear()"
-                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="2020"
-                    />
-                  </div>
-                  <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                      Status
-                    </label>
-                    <select
-                      v-model="formData.status"
-                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    >
-                      <option value="Pusat">Pusat</option>
-                      <option value="Cabang">Cabang</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Logo Upload -->
-                <div>
-                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                    Logo Perusahaan
-                  </label>
-                  <div class="flex flex-col gap-4">
-                    <!-- File Input -->
-                    <div
-                      class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer"
-                      @click="$refs.logoInput.click()"
-                      @dragover.prevent="isDragging = true"
-                      @dragleave.prevent="isDragging = false"
-                      @drop.prevent="handleFileDrop"
-                      :class="{ 'border-blue-500 bg-blue-50 dark:bg-blue-900/10': isDragging }"
-                    >
-                      <input
-                        ref="logoInput"
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                        @change="handleFileChange"
-                        class="hidden"
-                      />
-                      <div v-if="!logoPreview">
-                        <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-3"></i>
-                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          Klik atau drag & drop logo di sini
-                        </p>
-                        <p class="text-xs text-slate-500 mt-1">JPG, PNG, GIF, atau WEBP (Max 50MB)</p>
+                  <div v-else class="w-full h-full flex flex-col items-center">
+                    <div class="relative w-full aspect-square mb-3 rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+                       <img :src="logoPreview" alt="Logo Preview" class="max-w-full max-h-full object-contain" />
+                    </div>
+                    <div class="w-full flex items-center justify-between gap-2 px-1">
+                      <div class="flex-1 text-left min-w-0">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ logoFile.name }}</p>
+                        <p class="text-[10px] text-slate-500">{{ formatFileSize(logoFile.size) }}</p>
                       </div>
-                      <div v-else class="flex items-center gap-4">
-                        <img :src="logoPreview" alt="Logo Preview" class="w-24 h-24 object-contain rounded-lg border border-slate-200 dark:border-slate-600" />
-                        <div class="flex-1 text-left">
-                          <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ logoFile.name }}</p>
-                          <p class="text-xs text-slate-500">{{ formatFileSize(logoFile.size) }}</p>
-                        </div>
-                        <button
-                          type="button"
-                          @click.stop="clearLogo"
-                          class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors"
-                        >
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        @click.stop="clearLogo"
+                        class="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors shadow-sm"
+                        title="Hapus Logo"
+                      >
+                        <i class="fas fa-trash-alt text-xs"></i>
+                      </button>
                     </div>
                   </div>
                 </div>
-
-                <!-- Actions -->
-                <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                  <button
-                    type="button"
-                    @click="closeModal"
-                    :disabled="isSubmitting"
-                    class="px-6 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="!formData.nama_perusahaan || isSubmitting"
-                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
-                    <i v-else class="fas fa-save"></i>
-                    <span>{{ isSubmitting ? 'Menyimpan...' : 'Simpan' }}</span>
-                  </button>
-                </div>
-              </form>
+              </div>
             </div>
-          </Transition>
+          </div>
         </div>
-      </Transition>
-    </Teleport>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            @click="closeModal"
+            class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+            :disabled="isSubmitting"
+          >
+            Batal
+          </button>
+          <button
+            @click="handleSubmit"
+            :disabled="!formData.nama_perusahaan || isSubmitting"
+            class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-md hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform active:scale-95"
+          >
+            <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ isSubmitting ? 'Menyimpan...' : 'Simpan Perusahaan' }}
+          </button>
+        </div>
+      </template>
+    </BaseModal>
+
+    <!-- Edit Company Modal -->
+    <BaseModal
+      :show="isEditModalOpen"
+      title="Edit Perusahaan"
+      @close="closeEditModal"
+    >
+      <template #default>
+        <div class="px-1">
+          <!-- Info Block -->
+          <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl flex items-start gap-4 mb-6 border border-amber-100 dark:border-amber-800">
+             <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800 flex items-center justify-center flex-shrink-0 text-amber-600 dark:text-amber-300">
+               <i class="fas fa-edit text-lg"></i>
+             </div>
+             <div>
+               <h4 class="text-sm font-bold text-amber-800 dark:text-amber-300 mb-1">Update Data</h4>
+               <p class="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">
+                 Data yang diubah akan langsung tersimpan.
+               </p>
+             </div>
+          </div>
+
+          <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left Column: Inputs (2/3 width) -->
+            <div class="flex-1 space-y-5">
+              <!-- Nama Perusahaan -->
+              <div class="group">
+                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">
+                   Nama Perusahaan
+                   <span class="text-red-500">*</span>
+                 </label>
+                 <div class="relative">
+                   <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                      <i class="fas fa-building text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                   </div>
+                   <input
+                     v-model="editFormData.nama_perusahaan"
+                     type="text"
+                     placeholder="Contoh: CV. Karya Profesional Nusantara"
+                     class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+                   />
+                 </div>
+              </div>
+
+              <!-- Phone & Email Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div class="group">
+                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">No. Telepon</label>
+                   <div class="relative">
+                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fas fa-phone text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                     </div>
+                     <input
+                       v-model="editFormData.no_telp"
+                       type="tel"
+                       placeholder="08123456789"
+                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+                     />
+                   </div>
+                 </div>
+                 <div class="group">
+                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">Email</label>
+                   <div class="relative">
+                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fas fa-envelope text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                     </div>
+                     <input
+                       v-model="editFormData.email"
+                       type="email"
+                       placeholder="info@perusahaan.com"
+                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+                     />
+                   </div>
+                 </div>
+              </div>
+
+              <!-- Year & Status Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div class="group">
+                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">Tahun Berdiri</label>
+                   <div class="relative">
+                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fas fa-history text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                     </div>
+                     <input
+                       v-model="editFormData.tahun_berdiri"
+                       type="number"
+                       min="1900"
+                       :max="new Date().getFullYear()"
+                       placeholder="2024"
+                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+                     />
+                   </div>
+                 </div>
+                 <div class="group">
+                   <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">Status</label>
+                   <div class="relative">
+                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fas fa-map-marker-alt text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                     </div>
+                     <select
+                       v-model="editFormData.status"
+                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm appearance-none"
+                     >
+                       <option value="Pusat">Pusat</option>
+                       <option value="Cabang">Cabang</option>
+                     </select>
+                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                     </div>
+                   </div>
+                 </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Logo Upload (1/3 width) -->
+            <div class="w-full lg:w-72 flex-shrink-0">
+               <div class="group h-full flex flex-col">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">
+                  Logo Perusahaan
+                </label>
+                <div
+                  class="flex-grow relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:border-blue-500 transition-all cursor-pointer bg-slate-50 dark:bg-slate-800/50 flex flex-col items-center justify-center min-h-[200px]"
+                  @click="$refs.logoInput.click()"
+                  @dragover.prevent="isDragging = true"
+                  @dragleave.prevent="isDragging = false"
+                  @drop.prevent="handleFileDrop"
+                  :class="{ 'border-blue-500 bg-blue-50 dark:bg-blue-900/10': isDragging }"
+                >
+                  <input
+                    ref="logoInput"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    @change="handleFileChange"
+                    class="hidden"
+                  />
+                  <div v-if="!logoPreview" class="space-y-3">
+                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto text-blue-500">
+                       <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                    </div>
+                    <div class="space-y-1">
+                      <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        Upload Logo
+                      </p>
+                      <p class="text-xs text-slate-500">JPG, PNG, GIF (Max 50MB)</p>
+                    </div>
+                  </div>
+                  <div v-else class="w-full h-full flex flex-col items-center">
+                    <div class="relative w-full aspect-square mb-3 rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+                       <img :src="logoPreview" alt="Logo Preview" class="max-w-full max-h-full object-contain" />
+                    </div>
+                    <div class="w-full flex items-center justify-between gap-2 px-1">
+                      <div class="flex-1 text-left min-w-0">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ logoFile.name }}</p>
+                        <p class="text-[10px] text-slate-500">{{ formatFileSize(logoFile.size) }}</p>
+                      </div>
+                      <button
+                        type="button"
+                        @click.stop="clearLogo"
+                        class="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors shadow-sm"
+                        title="Hapus Logo"
+                      >
+                        <i class="fas fa-trash-alt text-xs"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            @click="closeEditModal"
+            class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+            :disabled="isSubmitting"
+          >
+            Batal
+          </button>
+          <button
+            @click="handleEdit"
+            :disabled="!editFormData.nama_perusahaan || isSubmitting"
+            class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-md hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform active:scale-95"
+          >
+            <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan' }}
+          </button>
+        </div>
+      </template>
+    </BaseModal>
+
+    <!-- Delete Confirmation Dialog -->
+    <ConfirmDialog
+      :show="isDeleteModalOpen"
+      title="Hapus Perusahaan?"
+      :message="`Apakah Anda yakin ingin menghapus ${companyToDelete?.nama_perusahaan}? Data yang dihapus tidak dapat dikembalikan.`"
+      confirm-text="Ya, Hapus"
+      cancel-text="Batal"
+      loading-text="Menghapus..."
+      :loading="isDeleting"
+      type="danger"
+      @confirm="handleDelete"
+      @cancel="closeDeleteModal"
+    />
 
     <!-- Toast Notification -->
     <BaseToast
@@ -321,6 +557,8 @@
 
 <script setup>
 import BaseToast from '~/components/BaseToast.vue'
+import BaseModal from '~/components/BaseModal.vue'
+import ConfirmDialog from '~/components/ConfirmDialog.vue'
 
 definePageMeta({
   layout: 'dashboard'
@@ -339,11 +577,24 @@ const imageErrors = ref({})
 
 // Modal state
 const isModalOpen = ref(false)
+const isEditModalOpen = ref(false)
+const isDeleteModalOpen = ref(false)
 const isSubmitting = ref(false)
+const isDeleting = ref(false)
 const isDragging = ref(false)
+const companyToDelete = ref(null)
+const companyToEdit = ref(null)
 
 // Form data
 const formData = ref({
+  nama_perusahaan: '',
+  no_telp: '',
+  email: '',
+  tahun_berdiri: '',
+  status: 'Pusat'
+})
+
+const editFormData = ref({
   nama_perusahaan: '',
   no_telp: '',
   email: '',
@@ -594,6 +845,123 @@ const fetchCompanies = async () => {
     console.error('❌ Fetch error:', err)
   } finally {
     loading.value = false
+  }
+}
+
+// === Edit Functions ===
+
+const openEditModal = (company) => {
+  companyToEdit.value = company
+  editFormData.value = {
+    nama_perusahaan: company.nama_perusahaan || '',
+    no_telp: company.no_telp || '',
+    email: company.email || '',
+    tahun_berdiri: company.tahun_berdiri || '',
+    status: company.status || 'Pusat'
+  }
+  isEditModalOpen.value = true
+}
+
+const closeEditModal = () => {
+  if (!isSubmitting.value) {
+    isEditModalOpen.value = false
+    companyToEdit.value = null
+    editFormData.value = {
+      nama_perusahaan: '',
+      no_telp: '',
+      email: '',
+      tahun_berdiri: '',
+      status: 'Pusat'
+    }
+    // Reset logo state
+    logoFile.value = null
+    logoPreview.value = ''
+    isDragging.value = false
+  }
+}
+
+const handleEdit = async () => {
+  if (!editFormData.value.nama_perusahaan || !companyToEdit.value) {
+    showError('Nama perusahaan wajib diisi!')
+    return
+  }
+
+  isSubmitting.value = true
+
+  try {
+    console.log(` Updating company: ${companyToEdit.value.id_perusahaan}`)
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyToEdit.value.id_perusahaan}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(editFormData.value)
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Gagal mengupdate perusahaan')
+    }
+
+    console.log('✅ Company updated successfully')
+    success('Perusahaan berhasil diupdate!')
+    
+    closeEditModal()
+    await fetchCompanies()
+
+  } catch (err) {
+    console.error('❌ Update error:', err)
+    showError('Gagal mengupdate perusahaan: ' + err.message)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// === Delete Functions ===
+
+const openDeleteConfirm = (company) => {
+  companyToDelete.value = company
+  isDeleteModalOpen.value = true
+}
+
+const closeDeleteModal = () => {
+  if (!isDeleting.value) {
+    isDeleteModalOpen.value = false
+    companyToDelete.value = null
+  }
+}
+
+const handleDelete = async () => {
+  if (!companyToDelete.value) return
+
+  isDeleting.value = true
+
+  try {
+    console.log(`🗑️  Deleting company: ${companyToDelete.value.id_perusahaan}`)
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyToDelete.value.id_perusahaan}`, {
+      method:  'DELETE'
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Gagal menghapus perusahaan')
+    }
+
+    console.log('✅ Company deleted successfully')
+    success('Perusahaan berhasil dihapus!')
+    
+    closeDeleteModal()
+    await fetchCompanies()
+
+  } catch (err) {
+    console.error('❌ Delete error:', err)
+    showError('Gagal menghapus perusahaan: ' + err.message)
+  } finally {
+    isDeleting.value = false
   }
 }
 

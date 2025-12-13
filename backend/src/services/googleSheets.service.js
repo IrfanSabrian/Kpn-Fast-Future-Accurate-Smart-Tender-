@@ -256,7 +256,26 @@ class GoogleSheetsService {
         },
       });
 
-      return { success: true, message: 'Company profile updated successfully' };
+      // Check if nama_perusahaan changed - rename Google Drive folder
+      const result = { success: true, message: 'Company profile updated successfully' };
+      
+      if (data.nama_perusahaan && data.nama_perusahaan !== allProfiles[index].nama_perusahaan) {
+        try {
+          const folderNumber = String(index + 1).padStart(2, '0');
+          const oldFolderName = `${folderNumber}. ${allProfiles[index].nama_perusahaan}`;
+          const newFolderName = `${folderNumber}. ${data.nama_perusahaan}`;
+          const parentFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+          
+          await oauth2GoogleService.renameFolder(oldFolderName, newFolderName, parentFolderId);
+          console.log(` Company folder renamed: "${oldFolderName}"  "${newFolderName}"`);
+          result.folderRenamed = true;
+        } catch (driveError) {
+          console.error(' Failed to rename Google Drive folder:', driveError);
+          result.folderRenameError = driveError.message;
+        }
+      }
+
+      return result;
     } catch (error) {
       console.error('Error updating profil perusahaan:', error);
       throw new Error(`Failed to update profile: ${error.message}`);
@@ -269,8 +288,32 @@ class GoogleSheetsService {
    */
   async deleteProfilPerusahaan(id) {
     try {
-      // Cascade delete related data from all dependent tables
-      console.log(`Starting cascade delete for company ${id}...`);
+      // Get company data first to get folder name
+      const company = await this.getProfilPerusahaanById(id);
+      
+      if (!company) {
+        throw new Error(`Company with ID ${id} not found`);
+      }
+
+      // Delete Google Drive folder and all contents FIRST
+      try {
+        const allCompanies = await this.getAllProfilPerusahaan();
+        const companyIndex = allCompanies.findIndex(c => c.id_perusahaan === id);
+        
+        if (companyIndex !== -1 && company.nama_perusahaan) {
+          const folderNumber = String(companyIndex + 1).padStart(2, '0');
+          const folderName = `${folderNumber}. ${company.nama_perusahaan}`;
+          const parentFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+          
+          console.log(`  Deleting company folder: "${folderName}" and all documents...`);
+          await oauth2GoogleService.deleteFolder(folderName, parentFolderId);
+          console.log(` Company folder and all documents deleted: "${folderName}"`);
+        }
+      } catch (driveError) {
+        console.error(' Failed to delete Google Drive folder:', driveError);
+        // Continue with delete even if folder deletion fails
+      }
+
       
       await this.deleteSheetDataMany('db_akta', 'id_perusahaan', id);
       await this.deleteSheetDataMany('db_pejabat', 'id_perusahaan', id);
