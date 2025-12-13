@@ -1072,8 +1072,8 @@ const getInitials = (name) => {
 
 // === LOGO HANDLER (Complete Logic) ===
 const getCompanyLogoUrl = (c) => {
-  // PRIORITY 1: Local logo (lokal_logo) - Faster & more reliable
-  if (c?.lokal_logo) return c.lokal_logo.startsWith('/') ? c.lokal_logo : '/' + c.lokal_logo
+  // PRIORITY 1: Cloudinary URL (logo_cloud) - Cloud-hosted, fast & reliable!
+  if (c?.logo_cloud) return c.logo_cloud
   
   // PRIORITY 2: Google Drive (logo_perusahaan) - Fallback
   const driveUrl = c?.logo_perusahaan || c?.logo_url
@@ -1091,7 +1091,7 @@ const getCompanyLogoUrl = (c) => {
 
 const shouldShowLogo = (c) => {
   if (imageErrors.value[c?.id_perusahaan]) return false // Show initials if error
-  return !!(c?.lokal_logo || c?.logo_perusahaan || c?.logo_url)
+  return !!(c?.logo_cloud || c?.logo_perusahaan || c?.logo_url)
 }
 
 const handleImageError = (e, c) => {

@@ -1,8 +1,38 @@
 import express from 'express';
+import multer from 'multer';
 import * as companyController from '../controllers/company.controller.js';
 import googleSheetsService from '../services/googleSheets.service.js';
 
 const router = express.Router();
+
+// Multer configuration for file upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = process.env.UPLOAD_PATH || './uploads';
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = file.originalname.split('.').pop();
+    cb(null, `company-logo-${uniqueSuffix}.${ext}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 52428800 // 50MB default
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept images only
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed.'));
+    }
+  }
+});
 
 // ========================================
 // MAIN COMPANY ROUTES
@@ -14,8 +44,8 @@ router.get('/', companyController.getAllCompanies);
 // Get company by ID (overview only)
 router.get('/:id', companyController.getCompanyById);
 
-// Add new company
-router.post('/', companyController.addCompany);
+// Add new company with logo upload
+router.post('/', upload.single('logo'), companyController.addCompany);
 
 // Update company by ID
 router.put('/:id', companyController.updateCompany);

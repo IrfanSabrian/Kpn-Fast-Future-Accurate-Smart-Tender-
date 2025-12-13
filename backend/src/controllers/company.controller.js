@@ -5,6 +5,8 @@
  */
 
 import googleSheetsService from '../services/googleSheets.service.js';
+import cloudinaryService from '../services/cloudinary.service.js';
+import oauth2GoogleService from '../services/oauth2Google.service.js';
 
 export const getAllCompanies = async (req, res) => {
   try {
@@ -18,7 +20,7 @@ export const getAllCompanies = async (req, res) => {
       email: company.email,
       tahun_berdiri: company.tahun_berdiri,
       status: company.status,
-      lokal_logo: company.lokal_logo,
+      logo_cloud: company.logo_cloud,
       logo_perusahaan: company.logo_perusahaan
     }));
     
@@ -225,10 +227,17 @@ export const getCompanyKbli = async (req, res) => {
 
 export const addCompany = async (req, res) => {
   try {
-    const data = req.body;
+    console.log('📝 Adding new company...');
+    
+    // Parse data from form-data (sent from frontend)
+    const { nama_perusahaan, no_telp, email, tahun_berdiri, status } = req.body;
+    const logoFile = req.file; // Multer middleware akan inject ini
 
-    // Basic validation
-    if (!data.nama_perusahaan) {
+    console.log('📄 Request data:', { nama_perusahaan, no_telp, email, tahun_berdiri, status });
+    console.log('📷 Logo file:', logoFile ? `${logoFile.originalname} (${logoFile.size} bytes)` : 'No logo');
+
+    // Validation
+    if (!nama_perusahaan) {
       return res.status(400).json({
         success: false,
         message: 'Company name (nama_perusahaan) is required',
@@ -236,7 +245,129 @@ export const addCompany = async (req, res) => {
       });
     }
 
-    const result = await googleSheetsService.addProfilPerusahaan(data);
+    let logoCloudUrl = '';
+    let logoDriveUrl = '';
+
+    // If logo file is provided, upload to Cloudinary AND Google Drive
+    if (logoFile) {
+      console.log('📤 Logo file detected, uploading to Cloudinary and Google Drive...');
+
+      // Upload to Cloudinary
+      try {
+        console.log('☁️  Uploading to Cloudinary...');
+        
+        // Check if Cloudinary is configured
+        if (!cloudinaryService.isConfigured()) {
+          console.warn('⚠️  Cloudinary not configured, skipping...');
+          console.warn('   Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env');
+        } else {
+          const cloudinaryResult = await cloudinaryService.uploadCompanyLogo(
+            logoFile.path,
+            nama_perusahaan,
+            `Logo ${nama_perusahaan}`
+          );
+          logoCloudUrl = cloudinaryResult.url;
+          console.log('✅ Cloudinary upload success:', logoCloudUrl);
+        }
+      } catch (cloudinaryError) {
+        // Determine error type for better user feedback
+        const isNetworkError = cloudinaryError.code === 'NETWORK_ERROR' || 
+                               cloudinaryError.code === 'ENOTFOUND' ||
+                               cloudinaryError.message.includes('Cannot connect to Cloudinary');
+        
+        if (isNetworkError) {
+          console.error('❌ Cloudinary upload failed: NETWORK ERROR');
+          console.error('   Reason: Cannot reach Cloudinary servers');
+          console.error('   This is likely due to:');
+          console.error('   • No internet connection');
+          console.error('   • DNS resolution failure');
+          console.error('   • Firewall/proxy blocking api.cloudinary.com');
+          console.error('   ');
+          console.error('   💡 To fix:');
+          console.error('   1. Check your internet connection');
+          console.error('   2. Try accessing https://cloudinary.com in your browser');
+          console.error('   3. Check firewall/antivirus settings');
+          console.error('   4. Try using a VPN or different network');
+          console.error('   ');
+          console.warn('⚠️  Continuing with Google Drive upload only...');
+        } else if (cloudinaryError.code === 'CLOUDINARY_NOT_CONFIGURED') {
+          console.error('❌ Cloudinary upload failed: NOT CONFIGURED');
+          console.error('   Please add Cloudinary credentials to .env file');
+        } else {
+          console.error('❌ Cloudinary upload failed:', cloudinaryError.message);
+          console.error('   Stack:', cloudinaryError.stack);
+        }
+        
+        // Continue without cloudinary URL - graceful degradation
+      }
+
+      // Note: DO NOT delete temporary file yet - Google Drive upload needs it!
+    }
+
+    // Get current companies count to determine folder number
+    const existingCompanies = await googleSheetsService.getAllCompanies();
+    const folderNumber = String(existingCompanies.length + 1).padStart(2, '0');
+
+    // Upload to Google Drive with folder number
+    if (logoFile && !logoDriveUrl) {
+      try {
+        console.log('📂 Uploading to Google Drive...');
+        const driveResult = await uploadLogoToDrive(logoFile, nama_perusahaan, folderNumber);
+        logoDriveUrl = driveResult.webViewLink;
+        console.log('✅ Google Drive upload success:', logoDriveUrl);
+      } catch (driveError) {
+        console.error('❌ Google Drive upload failed:', driveError.message);
+        console.error('   Stack:', driveError.stack);
+        // Continue without drive URL
+      }
+
+      // Clean up temporary file after BOTH uploads complete
+      if (logoFile && logoFile.path) {
+        try {
+          const fs = await import('fs/promises');
+          await fs.unlink(logoFile.path);
+          console.log('🗑️  Temporary file deleted:', logoFile.path);
+        } catch (cleanupError) {
+          console.warn('⚠️  Could not delete temporary file:', cleanupError.message);
+        }
+      }
+    }
+
+    console.log('📊 Upload Summary:');
+    console.log('   Cloudinary URL:', logoCloudUrl || 'NOT UPLOADED');
+    console.log('   Google Drive URL:', logoDriveUrl || 'NOT UPLOADED');
+
+    // Get current date and time for tanggal_input
+    const now = new Date();
+    const tanggalInput = now.toISOString().slice(0, 19).replace('T', ' ');
+
+    // Get author from OAuth2 Google Service (logged in user)
+    let author = 'system';
+    try {
+      const userInfo = await oauth2GoogleService.getUserInfo();
+      author = userInfo.name || userInfo.email || 'system';
+    } catch (error) {
+      console.warn('⚠️  Could not get user info for author:', error.message);
+    }
+
+    // Save company profile to Google Sheets
+    const companyData = {
+      nama_perusahaan,
+      no_telp: no_telp || '',
+      email: email || '',
+      tahun_berdiri: tahun_berdiri || '',
+      status: status || 'Pusat',
+      logo_perusahaan: logoDriveUrl,
+      logo_cloud: logoCloudUrl,
+      tanggal_input: tanggalInput,
+      author: author
+    };
+
+    console.log('💾 Saving to database:', companyData);
+
+    const result = await googleSheetsService.addProfilPerusahaan(companyData);
+
+    console.log('✅ Company added successfully:', result.data);
 
     res.status(201).json({
       success: true,
@@ -244,7 +375,8 @@ export const addCompany = async (req, res) => {
       data: result.data,
     });
   } catch (error) {
-    console.error('Error in addCompany:', error);
+    console.error('❌ Error in addCompany:', error);
+    console.error('   Stack:', error.stack);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to add company profile',
@@ -252,6 +384,65 @@ export const addCompany = async (req, res) => {
     });
   }
 };
+
+/**
+ * Helper function to get file extension from mimetype
+ */
+function getExtensionFromMimetype(mimetype) {
+  const mimetypeMap = {
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+    'image/svg+xml': '.svg'
+  };
+  return mimetypeMap[mimetype] || '.png'; // Default to .png
+}
+
+/**
+ * Helper function to upload logo to Google Drive
+ * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/1.0 Logo & Kop/Logo [nama_perusahaan]
+ * @param {Object} file - Multer file object
+ * @param {string} namaPerusahaan - Company name
+ * @param {string} folderNumber - Folder number (e.g., '01', '02')
+ */
+async function uploadLogoToDrive(file, namaPerusahaan, folderNumber) {
+  const basePerusahaanFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+  
+  if (!basePerusahaanFolderId) {
+    throw new Error('GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env');
+  }
+
+  // Folder structure: [folderNumber. nama_perusahaan]/1.0 Logo & Kop/Logo [nama_perusahaan].ext
+  // Example: 01. CV. VERUS CONSULTANT ENGINEERING/1.0 Logo & Kop/Logo CV. VERUS....png
+  const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
+  const folderPath = [companyFolderName, '1.0 Logo & Kop'];
+  
+  // Get file extension from original filename or mimetype
+  const path = await import('path');
+  const fileExtension = path.extname(file.originalname) || getExtensionFromMimetype(file.mimetype);
+  const fileName = `Logo ${namaPerusahaan}${fileExtension}`;
+
+
+  // Read file as buffer
+  const fs = await import('fs/promises');
+  const fileBuffer = await fs.readFile(file.path);
+
+  // Upload using oauth2GoogleService
+  const result = await oauth2GoogleService.uploadPdfFile(
+    fileBuffer,
+    fileName,
+    file.mimetype,
+    folderPath,
+    basePerusahaanFolderId
+  );
+
+  // NOTE: File cleanup is handled by the controller after all uploads complete
+  // Don't delete here because we're doing parallel uploads
+
+  return result;
+}
 
 export const updateCompany = async (req, res) => {
   try {

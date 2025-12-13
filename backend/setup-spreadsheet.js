@@ -101,8 +101,8 @@ async function insertData(sheets, spreadsheetId, sheetName, data) {
 // SPREADSHEET 1: PERUSAHAAN
 const dataPerusahaan = {
   db_profil_perusahaan: [
-    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'status', 'profil_perusahaan_url', 'logo_perusahaan', 'kop_perusahaan', 'lokal_logo', 'tanggal_input', 'author'],
-    ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', 'Pusat', 'https://drive.google.com/file/d/1h2iwwLjjmieDP7AvsVd2Qq0MnWCcccuK/view?usp=drive_link', 'https://drive.google.com/file/d/1Gssm8bTZqVHPb_V0ZsT_Y8cseeANUjH1/view?usp=drive_link', 'https://drive.google.com/file/d/1Qga2ikIWx3Drz0uoPOxeVGYp-EXsSOBO/view?usp=drive_link', '/assets/logo/Logo CV. VERUS CONSULTANT ENGINEERING.png', '2025-12-10 18:42:00', 'system']
+    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'status', 'profil_perusahaan_url', 'logo_perusahaan', 'kop_perusahaan', 'logo_cloud', 'tanggal_input', 'author'],
+    ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', 'Pusat', 'https://drive.google.com/file/d/1h2iwwLjjmieDP7AvsVd2Qq0MnWCcccuK/view?usp=drive_link', 'https://drive.google.com/file/d/1Gssm8bTZqVHPb_V0ZsT_Y8cseeANUjH1/view?usp=drive_link', 'https://drive.google.com/file/d/1Qga2ikIWx3Drz0uoPOxeVGYp-EXsSOBO/view?usp=drive_link', 'https://res.cloudinary.com/dflqp8ulk/image/upload/v1765636024/kpn-fast/company-logos/Logo%20CV.%20VERUS%20CONSULTANT%20ENGINEERING.png', '2025-12-10 18:42:00', 'system']
   ],
   
   db_perusahaan_kbli: [

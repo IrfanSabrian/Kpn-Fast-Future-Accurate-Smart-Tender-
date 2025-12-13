@@ -1,8 +1,31 @@
 <template>
   <div class="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors duration-300 font-sans">
     
+    <!-- Mobile Overlay Backdrop -->
+    <div 
+      v-if="isSidebarOpen" 
+      @click="closeSidebar"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
+      :class="isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+    ></div>
+
+    <!-- Mobile Menu Toggle Button -->
+    <button 
+      @click="toggleSidebar"
+      class="fixed top-4 left-4 z-50 lg:hidden w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+      :class="{ 'left-[296px]': isSidebarOpen }"
+    >
+      <i class="fas text-lg transition-transform duration-300" :class="isSidebarOpen ? 'fa-times rotate-90' : 'fa-bars'"></i>
+    </button>
+
     <!-- ENGINEERING SIDEBAR (Control Panel) -->
-    <aside class="fixed left-0 top-0 z-50 h-screen w-[280px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col text-slate-600 dark:text-slate-300 shadow-xl transition-colors duration-300">
+    <aside 
+      class="fixed left-0 top-0 z-50 h-screen w-[280px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col text-slate-600 dark:text-slate-300 shadow-xl transition-all duration-300"
+      :class="{
+        '-translate-x-full lg:translate-x-0': !isSidebarOpen,
+        'translate-x-0': isSidebarOpen
+      }"
+    >
       
       <!-- Brand Header -->
       <div class="h-24 flex items-center px-6 border-b border-slate-100 dark:border-white/5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
@@ -24,6 +47,7 @@
           <h3 class="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-4 px-3">General</h3>
           <div class="space-y-1">
              <NuxtLink to="/" 
+               @click="handleNavClick"
                class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold transition-all group hover:bg-slate-50 dark:hover:bg-slate-800"
                active-class="bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shadow-sm"
              >
@@ -43,6 +67,7 @@
           <h3 class="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-4 px-3">Master Data</h3>
           <div class="space-y-1">
              <NuxtLink to="/database/companies" 
+               @click="handleNavClick"
                class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold transition-all group hover:bg-slate-50 dark:hover:bg-slate-800"
                active-class="bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shadow-sm"
              >
@@ -50,6 +75,7 @@
                <span>Perusahaan</span>
              </NuxtLink>
              <NuxtLink to="/database/personel" 
+               @click="handleNavClick"
                class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-bold transition-all group hover:bg-slate-50 dark:hover:bg-slate-800"
                active-class="bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/20 shadow-sm"
              >
@@ -69,7 +95,7 @@
       <!-- User Profile / Footer -->
       <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
         <div class="flex items-center gap-3 group cursor-pointer" @click="showProfileModal = true" title="Lihat profil">
-           <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-700 shadow-lg relative">
+           <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-700 shadow-lg relative shrink-0">
              <!-- Loading State -->
              <div v-if="loadingProfile" class="absolute inset-0 bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
              
@@ -96,7 +122,7 @@
                <h4 class="text-sm font-bold text-slate-800 dark:text-white truncate" :title="userProfile.name">
                  {{ userProfile.name }}
                </h4>
-               <span class="text-[9px] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-mono border border-blue-100 dark:border-blue-800">
+               <span class="hidden sm:inline text-[9px] bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-mono border border-blue-100 dark:border-blue-800">
                  {{ userProfile.role }}
                </span>
              </div>
@@ -105,7 +131,7 @@
              </p>
            </div>
            
-           <button @click.stop="toggleTheme" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
+           <button @click.stop="toggleTheme" class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors shrink-0">
               <i class="fas" :class="isDark ? 'fa-sun' : 'fa-moon'"></i>
            </button>
         </div>
@@ -114,8 +140,8 @@
     </aside>
 
     <!-- Main Content Area -->
-    <div class="ml-[280px] flex-1 flex flex-col min-h-screen transition-all duration-300">
-       <main class="flex-1 relative">
+    <div class="flex-1 flex flex-col min-h-screen transition-all duration-300 lg:ml-[280px]">
+       <main class="flex-1 relative pt-20 lg:pt-0">
           <!-- Optional top fade for seamless scroll feeling -->
           <div class="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-slate-50 to-transparent dark:from-slate-950 z-10 pointer-events-none"></div>
           <slot />
@@ -280,6 +306,24 @@ const route = useRoute()
 const config = useRuntimeConfig()
 const apiUrl = config.public.apiBaseUrl || 'http://localhost:5000'
 const { isDark, toggleTheme, initTheme } = useTheme()
+
+// Sidebar state for responsive
+const isSidebarOpen = ref(false)
+
+const toggleSidebar = () => {
+  isSidebarOpen.value = !isSidebarOpen.value
+}
+
+const closeSidebar = () => {
+  isSidebarOpen.value = false
+}
+
+const handleNavClick = () => {
+  // Auto-close sidebar on mobile after navigation
+  if (window.innerWidth < 1024) { // lg breakpoint
+    closeSidebar()
+  }
+}
 
 // Toast ref
 const toast = ref(null)
@@ -529,6 +573,13 @@ const confirmLogout = async () => {
   }
 }
 
+// Auto-close sidebar on window resize to desktop
+const handleResize = () => {
+  if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+    closeSidebar()
+  }
+}
+
 let syncInterval
 onMounted(() => {
   initTheme()
@@ -537,6 +588,8 @@ onMounted(() => {
   if (process.client) {
     const savedTime = localStorage.getItem('auth_last_sync')
     if (savedTime) lastSyncTime.value = new Date(savedTime)
+    
+    window.addEventListener('resize', handleResize)
   }
   
   syncInterval = setInterval(() => { lastSyncCheck.value = Date.now() }, 30000)
@@ -550,6 +603,9 @@ onMounted(() => {
 onUnmounted(() => {
   if (syncInterval) clearInterval(syncInterval)
   window.removeEventListener('oauth-completed', fetchUserProfile)
+  if (process.client) {
+    window.removeEventListener('resize', handleResize)
+  }
 })
 </script>
 

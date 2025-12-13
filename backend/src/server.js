@@ -157,7 +157,7 @@ import aiRoutes from './routes/ai.routes.js';
 
 // Use routes
 app.use('/api/auth', oauth2AuthRoutes); // OAuth2 authentication
-app.use('/api/companies', databaseRoutes); // Unified database routes for companies
+app.use('/api/companies', databaseRoutes); // Company management (GET, POST, PUT, DELETE) with file upload
 app.use('/api/personnel', personnelRoutes); // Personnel management
 app.use('/api/personnel-documents', personnelDocumentsRoutes); // Personnel documents (KTP, NPWP, Ijazah, CV)
 app.use('/api/drive', driveRoutes); // Google Drive folder management

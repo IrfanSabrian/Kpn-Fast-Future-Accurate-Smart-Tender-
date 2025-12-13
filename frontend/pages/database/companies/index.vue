@@ -22,6 +22,14 @@
             <div class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Data</div>
             <div class="text-xl font-mono font-bold text-slate-700 dark:text-slate-200">{{ companies.length }}</div>
           </div>
+          <!-- Add Company Button -->
+          <button
+            @click="isModalOpen = true"
+            class="group flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+          >
+            <i class="fas fa-plus text-sm group-hover:rotate-90 transition-transform duration-300"></i>
+            <span>Tambah Perusahaan</span>
+          </button>
         </div>
       </div>
     </div>
@@ -113,6 +121,192 @@
       <p class="text-sm text-slate-500 mb-6">Belum ada entitas perusahaan terdaftar dalam sistem.</p>
     </div>
 
+    <!-- Add Company Modal -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="isModalOpen"
+          class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          @click.self="closeModal"
+        >
+          <Transition
+            enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="opacity-0 scale-95 translate-y-4"
+            enter-to-class="opacity-100 scale-100 translate-y-0"
+            leave-active-class="transition-all duration-200 ease-in"
+            leave-from-class="opacity-100 scale-100 translate-y-0"
+            leave-to-class="opacity-0 scale-95 translate-y-4"
+          >
+            <div
+              v-if="isModalOpen"
+              class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              <!-- Modal Header -->
+              <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-5 flex justify-between items-center rounded-t-2xl z-10">
+                <div>
+                  <h2 class="text-xl font-bold text-white">Tambah Perusahaan Baru</h2>
+                  <p class="text-blue-100 text-sm mt-1">Lengkapi data profil perusahaan</p>
+                </div>
+                <button
+                  @click="closeModal"
+                  class="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+                >
+                  <i class="fas fa-times text-xl"></i>
+                </button>
+              </div>
+
+              <!-- Modal Body -->
+              <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
+                <!-- Nama Perusahaan (Full Width) -->
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    Nama Perusahaan <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="formData.nama_perusahaan"
+                    type="text"
+                    required
+                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="PT. Contoh Perusahaan"
+                  />
+                </div>
+
+                <!-- No Telp & Email (2 Columns) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      No. Telepon
+                    </label>
+                    <input
+                      v-model="formData.no_telp"
+                      type="tel"
+                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="08123456789"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Email
+                    </label>
+                    <input
+                      v-model="formData.email"
+                      type="email"
+                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="info@perusahaan.com"
+                    />
+                  </div>
+                </div>
+
+                <!-- Tahun Berdiri & Status (2 Columns) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Tahun Berdiri
+                    </label>
+                    <input
+                      v-model="formData.tahun_berdiri"
+                      type="number"
+                      min="1900"
+                      :max="new Date().getFullYear()"
+                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="2020"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Status
+                    </label>
+                    <select
+                      v-model="formData.status"
+                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    >
+                      <option value="Pusat">Pusat</option>
+                      <option value="Cabang">Cabang</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Logo Upload -->
+                <div>
+                  <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    Logo Perusahaan
+                  </label>
+                  <div class="flex flex-col gap-4">
+                    <!-- File Input -->
+                    <div
+                      class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer"
+                      @click="$refs.logoInput.click()"
+                      @dragover.prevent="isDragging = true"
+                      @dragleave.prevent="isDragging = false"
+                      @drop.prevent="handleFileDrop"
+                      :class="{ 'border-blue-500 bg-blue-50 dark:bg-blue-900/10': isDragging }"
+                    >
+                      <input
+                        ref="logoInput"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                        @change="handleFileChange"
+                        class="hidden"
+                      />
+                      <div v-if="!logoPreview">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-slate-400 mb-3"></i>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                          Klik atau drag & drop logo di sini
+                        </p>
+                        <p class="text-xs text-slate-500 mt-1">JPG, PNG, GIF, atau WEBP (Max 50MB)</p>
+                      </div>
+                      <div v-else class="flex items-center gap-4">
+                        <img :src="logoPreview" alt="Logo Preview" class="w-24 h-24 object-contain rounded-lg border border-slate-200 dark:border-slate-600" />
+                        <div class="flex-1 text-left">
+                          <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ logoFile.name }}</p>
+                          <p class="text-xs text-slate-500">{{ formatFileSize(logoFile.size) }}</p>
+                        </div>
+                        <button
+                          type="button"
+                          @click.stop="clearLogo"
+                          class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors"
+                        >
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <button
+                    type="button"
+                    @click="closeModal"
+                    :disabled="isSubmitting"
+                    class="px-6 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    :disabled="!formData.nama_perusahaan || isSubmitting"
+                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-lg shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <i v-if="isSubmitting" class="fas fa-spinner fa-spin"></i>
+                    <i v-else class="fas fa-save"></i>
+                    <span>{{ isSubmitting ? 'Menyimpan...' : 'Simpan' }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </Transition>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Toast Notification -->
     <BaseToast
       :show="toast.show"
@@ -143,6 +337,161 @@ const loading = ref(true)
 const companies = ref([])
 const imageErrors = ref({})
 
+// Modal state
+const isModalOpen = ref(false)
+const isSubmitting = ref(false)
+const isDragging = ref(false)
+
+// Form data
+const formData = ref({
+  nama_perusahaan: '',
+  no_telp: '',
+  email: '',
+  tahun_berdiri: '',
+  status: 'Pusat'
+})
+
+// Logo handling
+const logoFile = ref(null)
+const logoPreview = ref('')
+
+// === Modal Functions ===
+
+const closeModal = () => {
+  if (!isSubmitting.value) {
+    isModalOpen.value = false
+    resetForm()
+  }
+}
+
+const resetForm = () => {
+  formData.value = {
+    nama_perusahaan: '',
+    no_telp: '',
+    email: '',
+    tahun_berdiri: '',
+    status: 'Pusat'
+  }
+  logoFile.value = null
+  logoPreview.value = ''
+  isDragging.value = false
+}
+
+// === File Upload Functions ===
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    processLogoFile(file)
+  }
+}
+
+const handleFileDrop = (event) => {
+  isDragging.value = false
+  const file = event.dataTransfer.files[0]
+  if (file) {
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      showError('Format file tidak valid. Gunakan JPG, PNG, GIF, atau WEBP.')
+      return
+    }
+    processLogoFile(file)
+  }
+}
+
+const processLogoFile = (file) => {
+  // Validate file size (50MB)
+  const maxSize = 50 * 1024 * 1024
+  if (file.size > maxSize) {
+    showError('Ukuran file terlalu besar. Maksimal 50MB.')
+    return
+  }
+
+  logoFile.value = file
+  
+  // Create preview
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    logoPreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+const clearLogo = () => {
+  logoFile.value = null
+  logoPreview.value = ''
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+}
+
+// === Form Submission ===
+
+const handleSubmit = async () => {
+  if (!formData.value.nama_perusahaan) {
+    showError('Nama perusahaan wajib diisi!')
+    return
+  }
+
+  isSubmitting.value = true
+
+  try {
+    // Prepare FormData for multipart/form-data
+    const submitData = new FormData()
+    submitData.append('nama_perusahaan', formData.value.nama_perusahaan)
+    submitData.append('no_telp', formData.value.no_telp || '')
+    submitData.append('email', formData.value.email || '')
+    submitData.append('tahun_berdiri', formData.value.tahun_berdiri || '')
+    submitData.append('status', formData.value.status)
+    
+    // Append logo file if exists
+    if (logoFile.value) {
+      submitData.append('logo', logoFile.value)
+    }
+
+    console.log('📤 Submitting company data...')
+    console.log('📄 Form Data:', {
+      nama_perusahaan: formData.value.nama_perusahaan,
+      no_telp: formData.value.no_telp,
+      email: formData.value.email,
+      tahun_berdiri: formData.value.tahun_berdiri,
+      status: formData.value.status,
+      hasLogo: !!logoFile.value
+    })
+
+    const response = await fetch(`${apiBaseUrl}/companies`, {
+      method: 'POST',
+      body: submitData
+      // Don't set Content-Type header - browser will set it automatically with boundary for FormData
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.message || 'Gagal menambahkan perusahaan')
+    }
+
+    console.log('✅ Company added successfully:', result)
+    success('Perusahaan berhasil ditambahkan!')
+    
+    // Close modal and refresh data
+    closeModal()
+    await fetchCompanies()
+
+  } catch (err) {
+    console.error('❌ Submit error:', err)
+    showError('Gagal menambahkan perusahaan: ' + err.message)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
 // === Helpers ===
 
 const getInitials = (name) => {
@@ -154,20 +503,17 @@ const getInitials = (name) => {
   return name.slice(0, 2).toUpperCase()
 }
 
-// === LOGO HANDLER (Local First, Google Drive as Fallback) ===
+// === LOGO HANDLER (Cloudinary First, Google Drive as Fallback) ===
 const getCompanyLogoUrl = (company) => {
   console.log('🔍 DEBUG Logo for', company.nama_perusahaan)
-  console.log('  - lokal_logo:', company.lokal_logo)
+  console.log('  - logo_cloud:', company.logo_cloud)
   console.log('  - logo_perusahaan:', company.logo_perusahaan)
   console.log('  - logo_url:', company.logo_url)
   
-  // PRIORITY 1: Local asset (lokal_logo) - Faster & more reliable!
-  if (company.lokal_logo) {
-    const localPath = company.lokal_logo.startsWith('/') 
-      ? company.lokal_logo 
-      : '/' + company.lokal_logo
-    console.log('  ✅ Using local asset (Priority 1):', localPath)
-    return localPath
+  // PRIORITY 1: Cloudinary URL (logo_cloud) - Cloud-hosted, fast & reliable!
+  if (company.logo_cloud) {
+    console.log('  ✅ Using Cloudinary URL (Priority 1):', company.logo_cloud)
+    return company.logo_cloud
   }
   
   // PRIORITY 2: Google Drive (logo_perusahaan) - Fallback
@@ -205,7 +551,7 @@ const shouldShowLogo = (company) => {
   // If error cached, show initials instead
   if (imageErrors.value[company.id_perusahaan]) return false
   // Check if valid logo source exists (prioritize local)
-  return !!(company.lokal_logo || company.logo_perusahaan || company.logo_url)
+  return !!(company.logo_cloud || company.logo_perusahaan || company.logo_url)
 }
 
 const handleImageError = (e, company) => {

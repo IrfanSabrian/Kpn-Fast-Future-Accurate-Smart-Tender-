@@ -169,13 +169,13 @@ class GoogleSheetsService {
       const nextRow = (currentDataResponse.data.values?.length || 0) + 1;
 
       // Generate ID if not provided
-      if (!data.id_perusahaan) {
-        // Simple ID generation based on timestamp to avoid collision/count issues
-        // Or keep existing logic if preferred, but count based is risky if rows deleted
-        // Let's stick to existing logic for consistency but safer
-        const count = (currentDataResponse.data.values?.length || 1); 
-        data.id_perusahaan = `C${String(count).padStart(3, '0')}`;
-      }
+    if (!data.id_perusahaan) {
+      // Simple ID generation based on timestamp to avoid collision/count issues
+      // Or keep existing logic if preferred, but count based is risky if rows deleted
+      // Let's stick to existing logic for consistency but safer
+      const count = (currentDataResponse.data.values?.length || 1); 
+      data.id_perusahaan = `COMP${String(count).padStart(3, '0')}`;
+    }  
 
       // Map data to headers
       const values = headers.map(header => {
@@ -1134,7 +1134,7 @@ class GoogleSheetsService {
 
     // Generate folder number (based on current count + 1)
     const folderNumber = String(companies.length + 1).padStart(2, '0');
-    const folderName = `${folderNumber}.(${data.nama_perusahaan})`;
+    const folderName = `${folderNumber}. ${data.nama_perusahaan}`;
 
     // Add data to Google Sheets
     const result = await this.addSheetData('db_profil_perusahaan', headers, data);
@@ -1191,8 +1191,8 @@ class GoogleSheetsService {
           const folderNumber = String(companyIndex + 1).padStart(2, '0');
           
           // Old and new folder names
-          const oldFolderName = `${folderNumber}.(${currentCompany.nama_perusahaan})`;
-          const newFolderName = `${folderNumber}.(${data.nama_perusahaan})`;
+        const oldFolderName = `${folderNumber}. ${currentCompany.nama_perusahaan}`;
+        const newFolderName = `${folderNumber}. ${data.nama_perusahaan}`;
           
           // Rename folder in Google Drive
           const folder = await oauth2GoogleService.renameFolder(oldFolderName, newFolderName);
@@ -1232,8 +1232,8 @@ class GoogleSheetsService {
     if (companyIndex !== -1) {
       try {
         // Generate folder number and name
-        const folderNumber = String(companyIndex + 1).padStart(2, '0');
-        const folderName = `${folderNumber}.(${company.nama_perusahaan})`;
+      const folderNumber = String(companyIndex + 1).padStart(2, '0');
+      const folderName = `${folderNumber}. ${company.nama_perusahaan}`;
         
         // Delete folder in Google Drive
         await oauth2GoogleService.deleteFolder(folderName);
