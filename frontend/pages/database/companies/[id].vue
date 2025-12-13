@@ -1072,34 +1072,32 @@ const getInitials = (name) => {
 
 // === LOGO HANDLER (Complete Logic) ===
 const getCompanyLogoUrl = (c) => {
-  // PRIORITY 1: Local
+  // PRIORITY 1: Local logo (lokal_logo) - Faster & more reliable
   if (c?.lokal_logo) return c.lokal_logo.startsWith('/') ? c.lokal_logo : '/' + c.lokal_logo
-  // PRIORITY 2: Drive
-  const url = c?.logo_perusahaan || c?.logo_url
-  if (url?.includes('drive.google.com')) {
+  
+  // PRIORITY 2: Google Drive (logo_perusahaan) - Fallback
+  const driveUrl = c?.logo_perusahaan || c?.logo_url
+  if (driveUrl?.includes('drive.google.com')) {
     let id = ''
-    if (url.includes('/d/')) id = url.split('/d/')[1].split('/')[0]
-    else if (url.includes('id=')) id = url.split('id=')[1].split('&')[0]
+    if (driveUrl.includes('/d/')) id = driveUrl.split('/d/')[1].split('/')[0]
+    else if (driveUrl.includes('id=')) id = driveUrl.split('id=')[1].split('&')[0]
     if (id) return `https://drive.google.com/uc?export=download&id=${id}`
+    return driveUrl
   }
-  return url || ''
+  
+  // No valid source - will show initials
+  return ''
 }
 
 const shouldShowLogo = (c) => {
-  if (imageErrors.value[c?.id_perusahaan]) return true // Let fallback handle it
+  if (imageErrors.value[c?.id_perusahaan]) return false // Show initials if error
   return !!(c?.lokal_logo || c?.logo_perusahaan || c?.logo_url)
 }
 
 const handleImageError = (e, c) => {
-  const currentSrc = e.target.src
-  if (currentSrc.includes('drive.google.com')) {
-     e.target.src = `/assets/logos/${c.id_perusahaan}.svg`
-     return
-  }
-  if (!currentSrc.includes(`${c.id_perusahaan}.svg`)) {
-     e.target.src = `/assets/logos/${c.id_perusahaan}.svg`
-     return
-  }
+  console.error('❌ Image load error for', c.nama_perusahaan)
+  console.log('  🔄 Falling back to initials display')
+  // Mark as error - will show initials instead
   imageErrors.value[c.id_perusahaan] = true
 }
 

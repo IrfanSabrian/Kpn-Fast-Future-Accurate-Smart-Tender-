@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>KPN FAST Future Accurate Smart Tender</title>
     <HTA:APPLICATION
         ID="KPN_FAST_RELOADED"
@@ -21,7 +21,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: 'Segoe UI', sans-serif; 
+            font-family: 'Segoe UI', 'Segoe UI Emoji', sans-serif; 
             background-color: #121212; 
             color: #e0e0e0;
             padding: 0; 
@@ -105,7 +105,7 @@
             color: #bdbdbd; 
             text-align: center; 
             border: 1px solid #333; 
-            font-family: monospace;
+            font-family: 'Consolas', 'Segoe UI Emoji', monospace;
         }
 
         .footer-controls {
@@ -168,12 +168,16 @@
         .terminal-content {
             flex: 1;
             padding: 10px;
-            font-family: 'Consolas', 'Courier New', monospace;
+            /* Use font stack with emoji support */
+            font-family: 'Consolas', 'Courier New', 'Segoe UI Emoji', 'Segoe UI Symbol', monospace;
             font-size: 12px; /* Increased font size */
             color: #ccc;
             overflow-y: auto;
             white-space: pre-wrap;
             word-wrap: break-word;
+            /* Better emoji rendering */
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
         }
     </style>
     
@@ -217,22 +221,75 @@
             document.getElementById("message").innerText = "> " + msg;
         }
 
+        // Track if user is at bottom for each terminal
+        var isAtBottom = {
+            termFrontend: true,
+            termBackend: true
+        };
+
+        // Check if element is scrolled to bottom
+        function isScrolledToBottom(el) {
+            // Allow 5px tolerance
+            return Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 5;
+        }
+
+        // Scroll to bottom if needed
+        function scrollToBottomIfNeeded(el, elementId) {
+            if (isAtBottom[elementId]) {
+                el.scrollTop = el.scrollHeight;
+            }
+        }
+
+        // Handle scroll event to detect user scrolling
+        function handleScroll(elementId) {
+            var el = document.getElementById(elementId);
+            if (el) {
+                isAtBottom[elementId] = isScrolledToBottom(el);
+            }
+        }
+
         function readLogFile(path, elementId) {
             try {
                 if (fso.FileExists(path)) {
-                    var file = fso.OpenTextFile(path, 1, false);
-                    var content = file.ReadAll();
-                    file.Close();
+                    // Use ADODB.Stream for UTF-8 support
+                    var stream = new ActiveXObject("ADODB.Stream");
+                    stream.Type = 2; // adTypeText
+                    stream.Charset = "utf-8";
+                    stream.Open();
+                    stream.LoadFromFile(path);
+                    var content = stream.ReadText();
+                    stream.Close();
                     
+                    // Remove ANSI color codes only
                     content = content.replace(/\x1b\[[0-9;]*m/g, "");
                     
                     var el = document.getElementById(elementId);
-                    // Only update if content changed to avoid flickering/scroll jump
+                    
+                    // Only update if content changed to avoid flickering
                     if (el.innerText !== content) {
                         el.innerText = content;
+                        // Auto-scroll to bottom if user is already at bottom
+                        scrollToBottomIfNeeded(el, elementId);
                     }
                 }
-            } catch(e) {}
+            } catch(e) {
+                // Fallback to basic read if ADODB.Stream fails
+                try {
+                    if (fso.FileExists(path)) {
+                        var file = fso.OpenTextFile(path, 1, false);
+                        var content = file.ReadAll();
+                        file.Close();
+                        
+                        content = content.replace(/\x1b\[[0-9;]*m/g, "");
+                        
+                        var el = document.getElementById(elementId);
+                        if (el.innerText !== content) {
+                            el.innerText = content;
+                            scrollToBottomIfNeeded(el, elementId);
+                        }
+                    }
+                } catch(e2) {}
+            }
         }
 
         function runBackend() {
@@ -476,11 +533,11 @@
             <div class="terminal-container">
                 <div class="terminal-box">
                     <div class="terminal-title">Frontend Log</div>
-                    <div class="terminal-content" id="termFrontend"></div>
+                    <div class="terminal-content" id="termFrontend" onscroll="handleScroll('termFrontend')"></div>
                 </div>
                 <div class="terminal-box">
                     <div class="terminal-title">Backend Log</div>
-                    <div class="terminal-content" id="termBackend"></div>
+                    <div class="terminal-content" id="termBackend" onscroll="handleScroll('termBackend')"></div>
                 </div>
             </div>
         </div>

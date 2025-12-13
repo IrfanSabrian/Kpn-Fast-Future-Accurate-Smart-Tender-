@@ -75,6 +75,12 @@ app.get('/', (req, res) => {
         url: process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
           ? `https://drive.google.com/drive/folders/${process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID}`
           : 'Not configured'
+      },
+      ai: {
+        status: process.env.GOOGLE_GEMINI_API_KEY ? 'configured' : 'not configured',
+        type: 'Google Gemini AI',
+        model: 'gemini-2.5-flash',
+        features: ['KTP Scanning', 'NPWP Scanning', 'Ijazah Scanning', 'CV Scanning']
       }
     }
   });
@@ -127,6 +133,12 @@ app.get('/api', (req, res) => {
         url: process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
           ? `https://drive.google.com/drive/folders/${process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID}`
           : 'Not configured'
+      },
+      ai: {
+        status: process.env.GOOGLE_GEMINI_API_KEY ? 'configured' : 'not configured',
+        type: 'Google Gemini AI',
+        model: 'gemini-2.5-flash',
+        features: ['KTP Scanning', 'NPWP Scanning', 'Ijazah Scanning', 'CV Scanning']
       }
     }
   });
@@ -175,11 +187,65 @@ app.use((req, res) => {
   });
 });
 
+// Import Gemini AI service for verification
+import geminiAIService from './services/geminiAI.service.js';
+
+// Helper to clean emoji for better HTA compatibility
+// Set USE_CLEAN_LOGS=true in .env to enable
+function cleanLog(text) {
+  if (process.env.USE_CLEAN_LOGS !== 'true') return text;
+  
+  const emojiMap = {
+    '🚀': '>>',
+    '📍': '>>',
+    '🌐': '>>',
+    '✅': '[OK]',
+    '❌': '[X]',
+    '⚠️': '[!]',
+    '🔍': '>>',
+    '✨': '>>',
+  };
+  
+  let cleaned = text;
+  for (const [emoji, replacement] of Object.entries(emojiMap)) {
+    cleaned = cleaned.split(emoji).join(replacement);
+  }
+  return cleaned;
+}
+
+// Function to verify Gemini API
+async function verifyGeminiAPI() {
+  console.log(cleanLog('\n🔍 Checking Gemini AI API...'));
+  
+  if (!process.env.GOOGLE_GEMINI_API_KEY) {
+    console.log(cleanLog('⚠️  Gemini API Key: NOT CONFIGURED'));
+    console.log('   Set GOOGLE_GEMINI_API_KEY in .env to enable AI document scanning');
+    return false;
+  }
+  
+  try {
+    await geminiAIService.initialize();
+    console.log(cleanLog('✅ Gemini AI API: VERIFIED & READY'));
+    console.log(`   Model: gemini-2.5-flash`);
+    return true;
+  } catch (error) {
+    console.log(cleanLog('❌ Gemini AI API: VERIFICATION FAILED'));
+    console.log(`   Error: ${error.message}`);
+    console.log('   AI document scanning will not be available');
+    return false;
+  }
+}
+
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 KPN FAST Backend running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-  console.log(`🌐 API URL: http://localhost:${PORT}`);
+app.listen(PORT, async () => {
+  console.log(cleanLog(`🚀 KPN FAST Backend running on port ${PORT}`));
+  console.log(cleanLog(`📍 Environment: ${process.env.NODE_ENV}`));
+  console.log(cleanLog(`🌐 API URL: http://localhost:${PORT}`));
+  
+  // Verify Gemini API on startup
+  await verifyGeminiAPI();
+  
+  console.log(cleanLog('\n✨ Server is ready to accept requests\n'));
 });
 
 export default app;

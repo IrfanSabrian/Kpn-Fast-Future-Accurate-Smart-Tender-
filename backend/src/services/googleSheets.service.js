@@ -99,7 +99,7 @@ class GoogleSheetsService {
       }
 
       // Use the correct sheet name directly
-      const profilTabName = 'db_profil';
+      const profilTabName = 'db_profil_perusahaan';
 
       // Read all data
       const response = await this.sheets.spreadsheets.values.get({
@@ -148,7 +148,7 @@ class GoogleSheetsService {
 
     try {
       const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
-      const profilTabName = 'db_profil';
+      const profilTabName = 'db_profil_perusahaan';
 
       // Get headers from the first row
       const headerResponse = await this.sheets.spreadsheets.values.get({
@@ -221,7 +221,7 @@ class GoogleSheetsService {
       }
 
       const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
-      const profilTabName = 'db_profil';
+      const profilTabName = 'db_profil_perusahaan';
 
       // Row number
       const rowNumber = index + 2;
@@ -399,7 +399,7 @@ class GoogleSheetsService {
 
       // Expected headers - db_personel
       const headers = [
-        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input', 'author'
+        'id_personel', 'nama_lengkap', 'alamat_domisili', 'no_hp', 'tanggal_input', 'author'
       ];
 
       // Auto-generate ID (Basic)
@@ -539,7 +539,7 @@ class GoogleSheetsService {
       const rowNumber = index + 2;
 
       const headers = [
-        'id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input'
+        'id_personel', 'nama_lengkap', 'alamat_domisili', 'no_hp', 'tanggal_input'
       ];
 
       // Merge data (this update is imperfect as it only updates db_personel, not joined tables)
@@ -1104,7 +1104,7 @@ class GoogleSheetsService {
 
   // --- 1. DB PERUSAHAAN ---
   async getAllCompanies() {
-    return this.getSheetData('db_profil');
+    return this.getSheetData('db_profil_perusahaan');
   }
 
   async getCompanyById(id) {
@@ -1137,7 +1137,7 @@ class GoogleSheetsService {
     const folderName = `${folderNumber}.(${data.nama_perusahaan})`;
 
     // Add data to Google Sheets
-    const result = await this.addSheetData('db_profil', headers, data);
+    const result = await this.addSheetData('db_profil_perusahaan', headers, data);
 
     // Create folder in Google Drive
     try {
@@ -1177,7 +1177,7 @@ class GoogleSheetsService {
     }
 
     // Update data in Google Sheets
-    const result = await this.updateSheetData('db_profil', headers, 'id_perusahaan', id, data);
+    const result = await this.updateSheetData('db_profil_perusahaan', headers, 'id_perusahaan', id, data);
 
     // Check if nama_perusahaan changed
     if (data.nama_perusahaan && data.nama_perusahaan !== currentCompany.nama_perusahaan) {
@@ -1248,7 +1248,7 @@ class GoogleSheetsService {
     }
 
     // Delete company data from Google Sheets
-    const result = await this.deleteSheetData('db_profil', 'id_perusahaan', id);
+    const result = await this.deleteSheetData('db_profil_perusahaan', 'id_perusahaan', id);
 
     // Add folder deletion info to result
     result.folderDeleted = folderDeleted;
@@ -2159,11 +2159,11 @@ class GoogleSheetsService {
         data.tanggal_input = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       }
 
-      // Auto-fill author from OAuth2 user (username tanpa @domain)
+      // Auto-fill author from OAuth2 user (gunakan nama lengkap)
       if (headers.includes('author') && !data.author) {
         try {
           const userInfo = await oauth2GoogleService.getUserInfo();
-          data.author = userInfo.username; // Tanpa @gmail.com
+          data.author = userInfo.name || userInfo.username; // Gunakan nama lengkap
         } catch (error) {
           console.warn('Could not get user info for author, using "system":', error.message);
           data.author = 'system';

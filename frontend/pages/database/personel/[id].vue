@@ -47,6 +47,24 @@
         
         <!-- Contact Info Card (Mirip Company Overview) -->
         <div class="relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm group">
+             <!-- Edit/Delete Buttons (Top Right) -->
+             <div class="absolute top-4 right-4 flex items-center gap-2 z-20">
+               <button
+                 @click="openEditContactInfo"
+                 class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center border border-blue-100 dark:border-blue-800"
+                 title="Edit Kontak"
+               >
+                 <i class="fas fa-edit text-xs"></i>
+               </button>
+               <button
+                 @click="openDeleteContactConfirm"
+                 class="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center justify-center border border-red-100 dark:border-red-800"
+                 title="Hapus Kontak"
+               >
+                 <i class="fas fa-trash text-xs"></i>
+               </button>
+             </div>
+
              <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                 <i class="fas fa-user-circle text-9xl"></i>
              </div>
@@ -971,6 +989,73 @@
       @confirm="handleDeleteDocument"
       @cancel="showDeleteConfirm = false"
     />
+
+    <!-- Edit Contact Info Modal -->
+    <BaseModal :show="showEditContactModal" @close="showEditContactModal = false" maxWidth="2xl">
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+            <i class="fas fa-address-book"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Edit Informasi Kontak</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Alamat domisili dan nomor telepon</p>
+          </div>
+        </div>
+      </template>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">No. Telepon</label>
+          <input
+            v-model="contactFormData.no_hp"
+            type="text"
+            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            placeholder="08123456789"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Alamat Domisili</label>
+          <textarea
+            v-model="contactFormData.alamat_domisili"
+            rows="3"
+            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+            placeholder="Alamat lengkap domisili"
+          ></textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button
+            @click="showEditContactModal = false"
+            class="px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            @click="saveContactInfo"
+            :disabled="isSavingContact"
+            class="px-4 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ isSavingContact ? 'Menyimpan...' : 'Simpan' }}
+          </button>
+        </div>
+      </div>
+    </BaseModal>
+
+    <!-- Confirm Dialog for Contact Deletion -->
+    <ConfirmDialog
+      :show="showDeleteContactConfirm"
+      title="Hapus Informasi Kontak?"
+      message="Alamat domisili dan nomor telepon akan dihapus. Lanjutkan?"
+      confirm-text="Hapus"
+      cancel-text="Batal"
+      loading-text="Menghapus..."
+      :loading="isDeletingContact"
+      type="danger"
+      @confirm="handleDeleteContact"
+      @cancel="showDeleteContactConfirm = false"
+    />
   </div>
 </template>
 
@@ -1026,6 +1111,13 @@ const deleteDocumentType = ref('')
 // Old Modal States (keep for backward compatibility)
 const showKtpModal = ref(false)
 const showNpwpModal = ref(false)
+
+// Contact Info Modal States
+const showEditContactModal = ref(false)
+const showDeleteContactConfirm = ref(false)
+const contactFormData = ref({ no_hp: '', alamat_domisili: '' })
+const isSavingContact = ref(false)
+const isDeletingContact = ref(false)
 
 // Helper
 const getInitials = (name) => {
@@ -1336,6 +1428,101 @@ const handleCvAIScan = (data) => {
   console.log('[AI SCAN] Auto-filling CV form:', data)
   cvFormData.value = { ...cvFormData.value, ...data }
   success('CV data berhasil di-scan! Silakan periksa dan edit jika perlu.')
+}
+
+// Contact Info Handlers
+const openEditContactInfo = () => {
+  contactFormData.value = {
+    no_hp: person.value?.no_hp || '',
+    alamat_domisili: person.value?.alamat_domisili || ''
+  }
+  showEditContactModal.value = true
+}
+
+const saveContactInfo = async () => {
+  if (isSavingContact.value) return
+  
+  try {
+    isSavingContact.value = true
+    
+    // Update personel data (only alamat_domisili and no_hp)
+    const response = await fetch(`${apiBaseUrl}/personnel/${personId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        alamat_domisili: contactFormData.value.alamat_domisili,
+        no_hp: contactFormData.value.no_hp
+      })
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Failed to update contact info')
+    }
+    
+    // Close modal
+    showEditContactModal.value = false
+    
+    // Show success toast
+    success('Informasi kontak berhasil diperbarui')
+    
+    // Reload data
+    setTimeout(async () => {
+      await fetchPersonDetail()
+    }, 500)
+  } catch (err) {
+    console.error('Save contact error:', err)
+    showError('Gagal menyimpan informasi kontak: ' + err.message)
+  } finally {
+    isSavingContact.value = false
+  }
+}
+
+const openDeleteContactConfirm = () => {
+  showDeleteContactConfirm.value = true
+}
+
+const handleDeleteContact = async () => {
+  if (isDeletingContact.value) return
+  
+  try {
+    isDeletingContact.value = true
+    
+    // Delete contact info by setting empty values
+    const response = await fetch(`${apiBaseUrl}/personnel/${personId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        alamat_domisili: '',
+        no_hp: ''
+      })
+    })
+    
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Failed to delete contact info')
+    }
+    
+    // Close confirm dialog
+    showDeleteContactConfirm.value = false
+    
+    // Show success toast
+    success('Informasi kontak berhasil dihapus')
+    
+    // Reload data
+    setTimeout(async () => {
+      await fetchPersonDetail()
+    }, 500)
+  } catch (err) {
+    console.error('Delete contact error:', err)
+    showError('Gagal menghapus informasi kontak: ' + err.message)
+  } finally {
+    isDeletingContact.value = false
+  }
 }
 
 // Fetch Data

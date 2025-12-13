@@ -100,9 +100,9 @@ async function insertData(sheets, spreadsheetId, sheetName, data) {
 
 // SPREADSHEET 1: PERUSAHAAN
 const dataPerusahaan = {
-  db_profil: [
-    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'npwp', 'status', 'profil_perusahaan_url', 'logo_perusahaan', 'kop_perusahaan', 'lokal_logo', 'tanggal_input', 'author'],
-    ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', '96.730.481.7-707.000', 'Pusat', 'https://drive.google.com/file/d/1h2iwwLjjmieDP7AvsVd2Qq0MnWCcccuK/view?usp=drive_link', 'https://drive.google.com/file/d/1Gssm8bTZqVHPb_V0ZsT_Y8cseeANUjH1/view?usp=drive_link', 'https://drive.google.com/file/d/1Qga2ikIWx3Drz0uoPOxeVGYp-EXsSOBO/view?usp=drive_link', '/assets/logo/Logo CV. VERUS CONSULTANT ENGINEERING.png', '2025-12-10 18:42:00', 'system']
+  db_profil_perusahaan: [
+    ['id_perusahaan', 'nama_perusahaan', 'alamat', 'no_telp', 'email', 'tahun_berdiri', 'status', 'profil_perusahaan_url', 'logo_perusahaan', 'kop_perusahaan', 'lokal_logo', 'tanggal_input', 'author'],
+    ['COMP001', 'CV. VERUS CONSULTANT ENGINEERING', 'Jl. Tanjung Raya, Gg. Saigon Utama 1 no. 77, Desa/Kelurahan Saigon, Kec. Pontianak Timur, Kota Pontianak, Provinsi Kalimantan Barat', '08565172259', 'verus.ce19@gmail.com', '2020', 'Pusat', 'https://drive.google.com/file/d/1h2iwwLjjmieDP7AvsVd2Qq0MnWCcccuK/view?usp=drive_link', 'https://drive.google.com/file/d/1Gssm8bTZqVHPb_V0ZsT_Y8cseeANUjH1/view?usp=drive_link', 'https://drive.google.com/file/d/1Qga2ikIWx3Drz0uoPOxeVGYp-EXsSOBO/view?usp=drive_link', '/assets/logo/Logo CV. VERUS CONSULTANT ENGINEERING.png', '2025-12-10 18:42:00', 'system']
   ],
   
   db_perusahaan_kbli: [
@@ -186,9 +186,9 @@ const dataPerusahaan = {
 const dataPersonel = {
   // Master data personel - SUMBER DATA UTAMA
   db_personel: [
-    ['id_personel', 'nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'alamat_domisili', 'no_hp', 'tanggal_input', 'author'],
-    ['PRS001', 'KAMARULLAH', 'PARIT BUGIS', '1992-01-23', 'JL. PROF. M. YAMIN GG. PEMANGKAT 2 NO. 8.10', '08565172259', '2025-12-10 18:42:00', 'system'],
-    ['PRS002', 'RUKIAH', 'NIBUNG', '1998-07-05', 'JL. TANJUNG RAYA 2 GG. SAIGON UTAMA 1 NO. 77', '08123456789', '2025-12-10 18:42:00', 'system']
+    ['id_personel', 'nama_lengkap', 'alamat_domisili', 'no_hp', 'tanggal_input', 'author'],
+    ['PRS001', 'KAMARULLAH', 'PARIT BUGIS', '08565172259', '2025-12-10 18:42:00', 'system'],
+    ['PRS002', 'RUKIAH', 'NIBUNG', '08123456789', '2025-12-10 18:42:00', 'system']
   ],
   
   // Data KTP - Hanya data spesifik KTP
@@ -303,7 +303,7 @@ async function setupSpreadsheets() {
   console.log('✅ ========================================\n');
   console.log('📋 Summary:');
   console.log(`   - PERUSAHAAN: 12 sheets`);
-  console.log(`     • db_profil, db_perusahaan_kbli, db_akta, db_pejabat`);
+  console.log(`     • db_profil_perusahaan, db_perusahaan_kbli, db_akta, db_pejabat`);
   console.log(`     • db_sbu, db_nib, db_kta, db_sertifikat_standar`);
   console.log(`     • db_npwp_perusahaan, db_kswp, db_spt, db_pengalaman`);
   console.log(`   - COMP001: CV. VERUS CONSULTANT ENGINEERING`);

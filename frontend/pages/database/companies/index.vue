@@ -154,16 +154,15 @@ const getInitials = (name) => {
   return name.slice(0, 2).toUpperCase()
 }
 
-// === LOGO HANDLER (Hybrid: Local First, Google Drive Fallback) ===
+// === LOGO HANDLER (Local First, Google Drive as Fallback) ===
 const getCompanyLogoUrl = (company) => {
   console.log('🔍 DEBUG Logo for', company.nama_perusahaan)
   console.log('  - lokal_logo:', company.lokal_logo)
   console.log('  - logo_perusahaan:', company.logo_perusahaan)
   console.log('  - logo_url:', company.logo_url)
   
-  // PRIORITY 1: Local asset (fastest & most reliable)
+  // PRIORITY 1: Local asset (lokal_logo) - Faster & more reliable!
   if (company.lokal_logo) {
-    // Ensure path starts with /
     const localPath = company.lokal_logo.startsWith('/') 
       ? company.lokal_logo 
       : '/' + company.lokal_logo
@@ -171,68 +170,49 @@ const getCompanyLogoUrl = (company) => {
     return localPath
   }
   
-  // PRIORITY 2: Google Drive URL or logo_perusahaan
-  const url = company.logo_perusahaan || company.logo_url
+  // PRIORITY 2: Google Drive (logo_perusahaan) - Fallback
+  const driveUrl = company.logo_perusahaan || company.logo_url
   
-  if (!url) {
-    console.log('  ❌ No URL found, trying default fallback')
-    const localPath = `/assets/logos/${company.id_perusahaan}.svg`
-    console.log('  🔄 Fallback to default:', localPath)
-    return localPath
-  }
-  
-  // If URL starts with /, it's a local path - use as is
-  if (url.startsWith('/')) {
-    console.log('  ✅ Using local path from logo_perusahaan:', url)
-    return url
-  }
-  
-  // If it's a Google Drive URL, convert it
-  if (url.includes('drive.google.com')) {
+  if (driveUrl && driveUrl.includes('drive.google.com')) {
     let id = ''
-    const parts = url.split('/')
+    const parts = driveUrl.split('/')
     const dIndex = parts.indexOf('d')
     if (dIndex !== -1 && parts[dIndex + 1]) {
       id = parts[dIndex + 1]
-    } else if (url.includes('id=')) {
-      id = url.split('id=')[1].split('&')[0]
+    } else if (driveUrl.includes('id=')) {
+      id = driveUrl.split('id=')[1].split('&')[0]
     }
     
     if (id) {
       const finalUrl = `https://drive.google.com/uc?export=download&id=${id}`
-      console.log('  ⚠️ Using Google Drive (Priority 2):', finalUrl)
+      console.log('  🔄 Using Google Drive (Priority 2 - Fallback):', finalUrl)
       return finalUrl
     }
   }
   
-  console.log('  ⚠️ Using original URL:', url)
-  return url
+  // PRIORITY 3: Direct URL (if starts with /)
+  if (driveUrl && driveUrl.startsWith('/')) {
+    console.log('  ✅ Using local path from logo_perusahaan:', driveUrl)
+    return driveUrl
+  }
+  
+  // No valid source - will show initials instead
+  console.log('  ℹ️ No valid logo source - will show initials')
+  return ''
 }
 
 const shouldShowLogo = (company) => {
-  // Always try to show logo - we have fallback now
-  if (imageErrors.value[company.id_perusahaan]) {
-    console.log('  ⚠️ Image error cached for', company.nama_perusahaan, '- will try fallback')
-    // Don't return false - let it try fallback
-  }
-  return true
+  // If error cached, show initials instead
+  if (imageErrors.value[company.id_perusahaan]) return false
+  // Check if valid logo source exists (prioritize local)
+  return !!(company.lokal_logo || company.logo_perusahaan || company.logo_url)
 }
 
 const handleImageError = (e, company) => {
   console.error('❌ Image load error for', company.nama_perusahaan)
+  console.log('  🔄 Falling back to initials display')
   
-  // If current src is Google Drive, try local fallback
-  const currentSrc = e.target.src
-  if (currentSrc.includes('drive.google.com')) {
-    console.log('  🔄 Google Drive failed, trying local fallback...')
-    const localPath = `/assets/logos/${company.id_perusahaan}.svg`
-    e.target.src = localPath
-    // Don't mark as error yet, give local a chance
-    return
-  }
-  
-  // If local also failed, mark as error and show initials
-  console.log('  ❌ All sources failed, showing initials')
+  // Mark as error - will show initials instead
   imageErrors.value[company.id_perusahaan] = true
 }
 
