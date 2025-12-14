@@ -84,6 +84,9 @@ router.get('/:id/pengalaman', companyController.getCompanyPengalaman);
 // Get company's KBLI data
 router.get('/:id/kbli', companyController.getCompanyKbli);
 
+// Get company's Cek (bank checks) data
+router.get('/:id/cek', companyController.getCompanyCek);
+
 // ========================================
 // CRUD FOR SUB-MODULES
 // ========================================

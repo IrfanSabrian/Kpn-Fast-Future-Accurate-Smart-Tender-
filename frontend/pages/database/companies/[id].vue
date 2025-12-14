@@ -567,6 +567,89 @@
             </div>
          </div>
 
+         <!-- 4.5 CEK (BANK CHECKS) TAB - Simplified Layout -->
+         <div v-else-if="activeTab === 'cek'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left: Cek List (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+               <div v-if="subModules.cek?.length > 0" class="space-y-3">
+                  <div v-for="item in subModules.cek" :key="item.id_cek" 
+                       @click="selectItem('cek', item)"
+                       class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
+                       :class="selectedItems.cek?.id_cek === item.id_cek 
+                          ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20' 
+                          : 'border-slate-200 dark:border-slate-700'">
+                     
+                     <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                         <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0">
+                                  <i class="fas fa-money-check"></i>
+                              </div>
+                              <div>
+                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NO. REKENING</div>
+                                  <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1 font-mono">{{ item.no_rekening || '-' }}</h4>
+                              </div>
+                         </div>
+                     </div>
+
+                     <div class="space-y-0.5 mt-4">
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NAMA BANK</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.nama_bank || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO. REKENING</div>
+                            <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.no_rekening || '-' }}</div>
+                        </div>
+                     </div>
+
+                     <div v-if="selectedItems.cek?.id_cek === item.id_cek" class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold">
+                        <i class="fas fa-check-circle"></i> <span>PREVIEWING DOCUMENT</span>
+                     </div>
+                  </div>
+               </div>
+
+                <!-- Empty State -->
+                <div v-else class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
+                    <i class="fas fa-money-check text-4xl mb-3 opacity-30"></i>
+                    <p class="text-sm font-medium">Belum ada data Cek.</p>
+                </div>
+            </div>
+
+            <!-- Right: PDF Preview (5 cols) -->
+            <div class="lg:col-span-5 flex flex-col h-full">
+               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                     <div>
+                         <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
+                            <i class="fas fa-file-pdf text-red-500"></i>
+                            Dokumen Cek
+                         </h3>
+                         <p v-if="selectedItems.cek" class="text-xs text-slate-500 mt-1">{{ selectedItems.cek.nama_bank }} - {{ selectedItems.cek.no_rekening }}</p>
+                     </div>
+                     <div class="flex gap-2" v-if="getSelectedDocUrl('cek')">
+                        <a :href="getSelectedDocUrl('cek')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
+                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
+                        </a>
+                     </div>
+                  </div>
+                  
+                  <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
+                     <iframe 
+                        v-if="getSelectedDocUrl('cek')" 
+                        :key="getSelectedDocUrl('cek')"
+                        :src="getPreviewUrl(getSelectedDocUrl('cek'))" 
+                        class="w-full h-full absolute inset-0 border-none"
+                     ></iframe>
+                     <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                        <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
+                        <p class="text-sm">{{ selectedItems.cek ? 'Dokumen tidak tersedia' : 'Pilih cek untuk preview' }}</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
         <!-- 5. NIB, SBU, KTA, SERTIFIKAT TABS - Redesigned with Complete Info -->
         <div v-if="['nib', 'sbu', 'kta', 'sertifikat'].includes(activeTab)" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
            <!-- Left: Data List (7 cols) -->
@@ -1015,7 +1098,7 @@ const companyId = route.params.id
 const company = ref(null)
 const subModules = ref({
    akta: [], pejabat: [], nib: [], sbu: [], kta: [], sertifikat: [],
-   npwp: [], kswp: [], spt: [], pkp: [], kontrak: [], kbli: []
+   npwp: [], kswp: [], spt: [], pkp: [], kontrak: [], kbli: [], cek: []
 })
 const activeTab = ref('overview')
 const loadingTab = ref(false)
@@ -1046,7 +1129,8 @@ const selectedItems = ref({
    kta: null,
    sertifikat: null,
    kontrak: null,
-   spt: null
+   spt: null,
+   cek: null
 })
 
 // Tabs Configuration (Re-ordered & Renamed)
@@ -1059,7 +1143,8 @@ const tabs = [
   { id: 'kta', label: 'KTA', icon: 'fas fa-id-card-alt', count: 0 },
   { id: 'sertifikat', label: 'Sertifikat', icon: 'fas fa-award', count: 0 },
   { id: 'pajak', label: 'Data Pajak', icon: 'fas fa-wallet', count: 0 }, // Grouped
-  { id: 'kontrak', label: 'Pengalaman', icon: 'fas fa-briefcase', count: 0 }, // New
+  { id: 'kontrak', label: 'Pengalaman', icon: 'fas fa-briefcase', count: 0 },
+  { id: 'cek', label: 'Cek', icon: 'fas fa-money-check', count: 0 }, // Bank checks
 ]
 
 // Helper Functions
@@ -1123,7 +1208,8 @@ const getDocumentUrl = (item, tabId) => {
       kta: item.kta_url,
       sertifikat: item.sertifikat_standar_url,
       kontrak: item.kontrak_url || item.url_dokumen,
-      spt: item.spt_url
+      spt: item.spt_url,
+      cek: item.url_cek
    }
    return urlMap[tabId] || item.url_dokumen || item.kontrak_url || ''
 }
@@ -1304,6 +1390,21 @@ const fetchPengalaman = async () => {
    }
 }
 
+// Fetch Cek data
+const fetchCek = async () => {
+   try {
+      const res = await fetch(`${apiBaseUrl}/companies/${companyId}/cek`)
+      if(res.ok) {
+         subModules.value.cek = await res.json()
+         tabs.find(t => t.id === 'cek').count = subModules.value.cek.length
+         if (subModules.value.cek.length) selectedItems.value.cek = subModules.value.cek[0]
+         console.log('✅ Cek Data loaded:', subModules.value.cek.length, 'items')
+      }
+   } catch(e) {
+      console.error('Error fetching Cek:', e)
+   }
+}
+
 // Lazy load data when tab changes
 const loadedTabs = ref(['overview']) // Track which tabs have been loaded
 
@@ -1338,6 +1439,9 @@ watch(activeTab, async (newTab) => {
             break
          case 'kontrak':
             await fetchPengalaman()
+            break
+         case 'cek':
+            await fetchCek()
             break
       }
       

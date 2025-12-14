@@ -225,6 +225,19 @@ export const getCompanyKbli = async (req, res) => {
   }
 };
 
+// GET /api/companies/:id/cek
+export const getCompanyCek = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cekData = await googleSheetsService.getSheetData('db_cek');
+    const filtered = cekData.filter(item => item.id_perusahaan === id);
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanyCek:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const addCompany = async (req, res) => {
   try {
     console.log('📝 Adding new company...');

@@ -177,8 +177,8 @@ const dataPerusahaan = {
   ],
   
   db_cek: [
-    ['id_cek', 'id_perusahaan','url_cek', 'tanggal_input'],
-    ['CEK001', 'COMP001', 'https://drive.google.com/file/d/1yA_HyCM_YNnO0fUWhAAiIBvqxKcNHwlH/view?usp=drive_link', '2025-12-10 18:42:00']
+    ['id_cek', 'id_perusahaan','no_rekening','nama_bank','url_cek', 'tanggal_input'],
+    ['CEK001', 'COMP001','1504002132','Bank Kalbar','https://drive.google.com/file/d/1yA_HyCM_YNnO0fUWhAAiIBvqxKcNHwlH/view?usp=drive_link', '2025-12-10 18:42:00']
   ]
 };
 
