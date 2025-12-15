@@ -591,6 +591,35 @@ class OAuth2GoogleService {
     }
   }
 
+  /**
+   * Download file content from Drive
+   * @param {string} fileId - ID of the file to download
+   * @returns {Promise<Buffer>} File content as buffer
+   */
+  async downloadFile(fileId) {
+    await this.initialize();
+
+    if (!this.isAuthenticated()) {
+      throw new Error('User not authenticated. Please login first.');
+    }
+
+    try {
+      const response = await this.drive.files.get(
+        {
+          fileId: fileId,
+          alt: 'media'
+        },
+        { responseType: 'arraybuffer' }
+      );
+
+      console.log(`✅ File downloaded: ${fileId}`);
+      return Buffer.from(response.data);
+    } catch (error) {
+      console.error(`❌ Error downloading file ${fileId}:`, error);
+      throw new Error(`Failed to download file: ${error.message}`);
+    }
+  }
+
   // ==================== GOOGLE SHEETS METHODS ====================
   // Future: Add Sheets methods here if needed (read, write, etc.)
   // For now, googleSheets.service.js still uses Service Account (which works fine for Sheets)

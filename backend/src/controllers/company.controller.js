@@ -518,3 +518,66 @@ export const deleteCompany = async (req, res) => {
     });
   }
 };
+
+/**
+ * Proxy endpoint to serve company kop image from Google Drive
+ * GET /api/companies/:id/kop
+ */
+export const getCompanyKop = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🖼️  GET /api/companies/${id}/kop - Fetching kop image`);
+
+    // Get company data to extract kop URL
+    const company = await googleSheetsService.getProfilPerusahaanById(id);
+    
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: `Company with ID ${id} not found`,
+      });
+    }
+
+    if (!company.kop_perusahaan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Company kop not available',
+      });
+    }
+
+    // Extract file ID from Google Drive URL
+    const fileId = oauth2GoogleService.extractFileIdFromUrl(company.kop_perusahaan);
+    
+    if (!fileId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid kop URL format',
+      });
+    }
+
+    console.log(`  📥 Downloading kop from Google Drive (ID: ${fileId})`);
+
+    // Download file content from Google Drive using OAuth
+    const fileBuffer = await oauth2GoogleService.downloadFile(fileId);
+
+    // Set CORS headers to allow frontend access
+    res.set({
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Cross-Origin-Resource-Policy': 'cross-origin', // Allow cross-origin image loading
+      'Content-Type': 'image/png', // Adjust based on actual file type
+      'Content-Length': fileBuffer.length,
+      'Cache-Control': 'public, max-age=86400', // Cache for 1 day
+    });
+
+    console.log(`  ✅ Kop image served successfully (${fileBuffer.length} bytes)`);
+    res.send(fileBuffer);
+  } catch (error) {
+    console.error('❌ Error in getCompanyKop:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get company kop',
+    });
+  }
+};

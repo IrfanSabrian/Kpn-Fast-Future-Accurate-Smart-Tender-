@@ -53,6 +53,9 @@ router.put('/:id', companyController.updateCompany);
 // Delete company by ID
 router.delete('/:id', companyController.deleteCompany);
 
+// Get company kop image (proxy from Google Drive)
+router.get('/:id/kop', companyController.getCompanyKop);
+
 // ========================================
 // SUB-MODULE ROUTES - Lazy Loading
 // ========================================

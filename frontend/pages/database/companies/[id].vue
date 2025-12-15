@@ -3,7 +3,7 @@
     <!-- Technical Header (Full Width) -->
     <header class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-200">
       <div class="max-w-[1800px] mx-auto px-4 md:px-6 h-16 md:h-24 flex items-center justify-between">
-        <div class="flex items-center gap-4 md:gap-6 w-full">
+        <div class="flex items-center gap-4 md:gap-6 flex-1 min-w-0">
           <button @click="router.push('/database/companies')" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 transition-colors border border-slate-100 dark:border-slate-700">
             <i class="fas fa-arrow-left"></i>
           </button>
@@ -39,6 +39,13 @@
                  </div>
                </div>
              </div>
+          </div>
+        </div>
+        
+        <!-- Kop (Letterhead) di sisi kanan -->
+        <div v-if="shouldShowKop(company)" class="hidden md:flex items-center justify-end ml-4">
+          <div class="h-16 md:h-20 max-w-[200px] lg:max-w-[300px] flex items-center justify-end">
+            <img :src="getCompanyKopUrl(company)" class="h-full w-auto object-contain" @error="(e) => handleKopImageError(e, company)" alt="Company Letterhead" />
           </div>
         </div>
       </div>
@@ -1102,7 +1109,8 @@ const subModules = ref({
 })
 const activeTab = ref('overview')
 const loadingTab = ref(false)
-const imageErrors = ref({})
+const imageErrors = ref({}) // Track logo image errors
+const kopImageErrors = ref({}) // Track kop image errors
 
 // SPT Modal state
 const showSptModal = ref(false)
@@ -1186,6 +1194,42 @@ const handleImageError = (e, c) => {
   imageErrors.value[c.id_perusahaan] = true
 }
 
+// === KOP (LETTERHEAD) HANDLER ===
+const getCompanyKopUrl = (c) => {
+  if (!c) return ''
+  
+  console.log('🔍 Getting kop URL for:', c.nama_perusahaan)
+  console.log('  - kop_perusahaan field:', c.kop_perusahaan)
+  
+  // PRIORITY 1: Google Drive kop_perusahaan field
+  if (c?.kop_perusahaan) {
+    // Use backend proxy endpoint to serve kop image
+    // Backend will fetch from Google Drive using OAuth credentials
+    const kopProxyUrl = `${apiBaseUrl}/companies/${c.id_perusahaan}/kop`
+    console.log('  ✅ Using backend proxy for kop:', kopProxyUrl)
+    return kopProxyUrl
+  }
+  
+  console.log('  ❌ No kop_perusahaan found')
+  // No kop available
+  return ''
+}
+
+const shouldShowKop = (c) => {
+  if (!c) return false
+  if (kopImageErrors.value[c?.id_perusahaan]) return false
+  const kopUrl = getCompanyKopUrl(c)
+  const shouldShow = !!kopUrl
+  console.log('🎯 Should show kop for', c.nama_perusahaan, ':', shouldShow)
+  return shouldShow
+}
+
+const handleKopImageError = (e, c) => {
+  console.warn('⚠️ Kop image load error for', c.nama_perusahaan)
+  console.log('  🔄 Hiding kop display')
+  kopImageErrors.value[c.id_perusahaan] = true
+}
+
 const getPreviewUrl = (url) => {
    if (!url) return ''
    if (url.includes('drive.google.com')) {
@@ -1235,6 +1279,11 @@ const fetchCompanyDetail = async () => {
       if(companyRes.ok) {
          company.value = await companyRes.json()
          console.log('✅ Company profile loaded:', company.value)
+         console.log('🔑 Company fields check:')
+         console.log('  - logo_perusahaan:', company.value.logo_perusahaan)
+         console.log('  - logo_cloud:', company.value.logo_cloud)
+         console.log('  - kop_perusahaan:', company.value.kop_perusahaan)
+         console.log('  - id_perusahaan:', company.value.id_perusahaan)
       }
       
       // Fetch KBLI for overview tab
