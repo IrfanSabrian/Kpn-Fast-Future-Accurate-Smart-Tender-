@@ -143,6 +143,7 @@
     <BaseModal
       :show="isModalOpen"
       title="Tambah Perusahaan"
+      max-width="4xl"
       @close="closeModal"
     >
       <template #default>
@@ -176,7 +177,7 @@
                    <input
                      v-model="formData.nama_perusahaan"
                      type="text"
-                     placeholder="Contoh: PT. Karya Perkasa Nasional"
+                     placeholder="Contoh: CV. Karya Profesional Nusantara"
                      class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
                    />
                  </div>
@@ -255,12 +256,12 @@
 
             <!-- Right Column: Logo Upload (1/3 width) -->
             <div class="w-full lg:w-72 flex-shrink-0">
-              <div class="group h-full flex flex-col">
+              <div class="group flex flex-col">
                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">
                   Logo Perusahaan
                 </label>
                 <div
-                  class="flex-grow relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:border-blue-500 transition-all cursor-pointer bg-slate-50 dark:bg-slate-800/50 flex flex-col items-center justify-center min-h-[200px]"
+                  class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:border-blue-500 transition-all cursor-pointer bg-slate-50 dark:bg-slate-800/50 flex flex-col items-center justify-center h-[250px]"
                   @click="$refs.logoInput.click()"
                   @dragover.prevent="isDragging = true"
                   @dragleave.prevent="isDragging = false"
@@ -285,8 +286,8 @@
                       <p class="text-xs text-slate-500">JPG, PNG, GIF (Max 50MB)</p>
                     </div>
                   </div>
-                  <div v-else class="w-full h-full flex flex-col items-center">
-                    <div class="relative w-full aspect-square mb-3 rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+                  <div v-else class="w-full h-full flex flex-col items-center justify-between">
+                    <div class="relative flex-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden mb-3">
                        <img :src="logoPreview" alt="Logo Preview" class="max-w-full max-h-full object-contain" />
                     </div>
                     <div class="w-full flex items-center justify-between gap-2 px-1">
@@ -338,6 +339,7 @@
     <BaseModal
       :show="isEditModalOpen"
       title="Edit Perusahaan"
+      max-width="4xl"
       @close="closeEditModal"
     >
       <template #default>
@@ -450,12 +452,12 @@
 
             <!-- Right Column: Logo Upload (1/3 width) -->
             <div class="w-full lg:w-72 flex-shrink-0">
-               <div class="group h-full flex flex-col">
+               <div class="group flex flex-col">
                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">
                   Logo Perusahaan
                 </label>
                 <div
-                  class="flex-grow relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:border-blue-500 transition-all cursor-pointer bg-slate-50 dark:bg-slate-800/50 flex flex-col items-center justify-center min-h-[200px]"
+                  class="relative border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:border-blue-500 transition-all cursor-pointer bg-slate-50 dark:bg-slate-800/50 flex flex-col items-center justify-center h-[250px]"
                   @click="$refs.logoInput.click()"
                   @dragover.prevent="isDragging = true"
                   @dragleave.prevent="isDragging = false"
@@ -480,22 +482,24 @@
                       <p class="text-xs text-slate-500">JPG, PNG, GIF (Max 50MB)</p>
                     </div>
                   </div>
-                  <div v-else class="w-full h-full flex flex-col items-center">
-                    <div class="relative w-full aspect-square mb-3 rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+                  <div v-else class="w-full h-full flex flex-col items-center justify-between">
+                    <div class="relative flex-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden mb-3">
                        <img :src="logoPreview" alt="Logo Preview" class="max-w-full max-h-full object-contain" />
                     </div>
                     <div class="w-full flex items-center justify-between gap-2 px-1">
                       <div class="flex-1 text-left min-w-0">
-                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ logoFile.name }}</p>
-                        <p class="text-[10px] text-slate-500">{{ formatFileSize(logoFile.size) }}</p>
+                        <p v-if="logoFile" class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ logoFile.name }}</p>
+                        <p v-else class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">Logo Existing</p>
+                        <p v-if="logoFile" class="text-[10px] text-slate-500">{{ formatFileSize(logoFile.size) }}</p>
+                        <p v-else class="text-[10px] text-slate-500">Sudah terupload</p>
                       </div>
                       <button
                         type="button"
                         @click.stop="clearLogo"
                         class="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors shadow-sm"
-                        title="Hapus Logo"
+                        :title="logoFile ? 'Hapus Logo' : 'Ganti Logo'"
                       >
-                        <i class="fas fa-trash-alt text-xs"></i>
+                        <i :class="logoFile ? 'fas fa-trash-alt' : 'fas fa-sync-alt'" class="text-xs"></i>
                       </button>
                     </div>
                   </div>
@@ -731,6 +735,9 @@ const handleSubmit = async () => {
     console.log('✅ Company added successfully:', result)
     success('Perusahaan berhasil ditambahkan!')
     
+    // Reset submitting state first to allow closing
+    isSubmitting.value = false
+    
     // Close modal and refresh data
     closeModal()
     await fetchCompanies()
@@ -738,7 +745,6 @@ const handleSubmit = async () => {
   } catch (err) {
     console.error('❌ Submit error:', err)
     showError('Gagal menambahkan perusahaan: ' + err.message)
-  } finally {
     isSubmitting.value = false
   }
 }
@@ -859,6 +865,17 @@ const openEditModal = (company) => {
     tahun_berdiri: company.tahun_berdiri || '',
     status: company.status || 'Pusat'
   }
+  
+  // Set existing logo as preview (prioritize Cloudinary, fallback to Google Drive)
+  if (company.logo_cloud) {
+    logoPreview.value = company.logo_cloud
+  } else if (company.logo_perusahaan) {
+    logoPreview.value = company.logo_perusahaan
+  } else {
+    logoPreview.value = ''
+    logoFile.value = null
+  }
+  
   isEditModalOpen.value = true
 }
 
@@ -908,13 +925,13 @@ const handleEdit = async () => {
     console.log('✅ Company updated successfully')
     success('Perusahaan berhasil diupdate!')
     
+    isSubmitting.value = false
     closeEditModal()
     await fetchCompanies()
 
   } catch (err) {
     console.error('❌ Update error:', err)
     showError('Gagal mengupdate perusahaan: ' + err.message)
-  } finally {
     isSubmitting.value = false
   }
 }
@@ -954,13 +971,14 @@ const handleDelete = async () => {
     console.log('✅ Company deleted successfully')
     success('Perusahaan berhasil dihapus!')
     
+    // Reset deleting state first to allow modal closing
+    isDeleting.value = false
     closeDeleteModal()
     await fetchCompanies()
 
   } catch (err) {
     console.error('❌ Delete error:', err)
     showError('Gagal menghapus perusahaan: ' + err.message)
-  } finally {
     isDeleting.value = false
   }
 }

@@ -491,6 +491,7 @@ export const updateCompany = async (req, res) => {
 export const deleteCompany = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`🗑️  DELETE /api/companies/${id}`);
 
     const result = await googleSheetsService.deleteProfilPerusahaan(id);
 
@@ -500,7 +501,7 @@ export const deleteCompany = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error in deleteCompany:', error);
+    console.error('❌ Error in deleteCompany:', error);
     
     if (error.message.includes('not found')) {
       return res.status(404).json({

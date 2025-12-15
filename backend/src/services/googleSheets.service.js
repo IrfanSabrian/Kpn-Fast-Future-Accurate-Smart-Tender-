@@ -12,6 +12,7 @@ import { google } from 'googleapis';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import oauth2GoogleService from './oauth2Google.service.js';
+import cloudinary from 'cloudinary';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -256,25 +257,192 @@ class GoogleSheetsService {
         },
       });
 
-      // Check if nama_perusahaan changed - rename Google Drive folder
+      // Check if nama_perusahaan changed - rename everything related
       const result = { success: true, message: 'Company profile updated successfully' };
       
       if (data.nama_perusahaan && data.nama_perusahaan !== allProfiles[index].nama_perusahaan) {
+        const oldCompanyName = allProfiles[index].nama_perusahaan;
+        const newCompanyName = data.nama_perusahaan;
+        const folderNumber = String(index + 1).padStart(2, '0');
+        const oldFolderName = `${folderNumber}. ${oldCompanyName}`;
+        const newFolderName = `${folderNumber}. ${newCompanyName}`;
+        
+        console.log(`🔄 Company name changed: "${oldCompanyName}" → "${newCompanyName}"`);
+        
+        // 1. Rename Cloudinary logo (if exists) by re-uploading with new name
+        if (allProfiles[index].logo_cloud) {
+          try {
+            console.log(`☁️  Updating Cloudinary logo name...`);
+            
+            const oldUrl = allProfiles[index].logo_cloud;
+            console.log(`   Old logo URL: ${oldUrl}`);
+            
+            // Configure Cloudinary
+            const cloudinaryV2 = cloudinary.v2;
+            cloudinaryV2.config({
+              cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+              api_key: process.env.CLOUDINARY_API_KEY,
+              api_secret: process.env.CLOUDINARY_API_SECRET
+            });
+            
+            // Check if configured
+            const config = cloudinaryV2.config();
+            if (config.cloud_name && config.api_key && config.api_secret) {
+              // Extract old public_id
+              const publicIdMatch = oldUrl.match(/\/upload\/(?:v\d+\/)?(.+)\.\w+$/);
+              
+              if (publicIdMatch) {
+                const oldPublicId = decodeURIComponent(publicIdMatch[1]);
+                const uploadFolder = process.env.CLOUDINARY_UPLOAD_FOLDER || 'kpn-fast/company-logos';
+                const newPublicId = `Logo ${newCompanyName}`;
+                
+                console.log(`   Old Public ID: ${oldPublicId}`);
+                console.log(`   New Public ID: ${newPublicId}`);
+                console.log(`   Strategy: Download → Upload → Delete`);
+                
+                try {
+                  // Step 1: Upload from existing URL with new name
+                  console.log(`   📥 Uploading logo with new name...`);
+                  const uploadResult = await cloudinaryV2.uploader.upload(oldUrl, {
+                    folder: uploadFolder,
+                    public_id: newPublicId,
+                    overwrite: true,
+                    resource_type: 'image'
+                  });
+                  
+                  console.log(`   ✅ Logo uploaded with new name`);
+                  console.log(`   New URL: ${uploadResult.secure_url}`);
+                  
+                  // Step 2: Delete old logo
+                  console.log(`   🗑️  Deleting old logo...`);
+                  const deleteResult = await cloudinaryV2.uploader.destroy(oldPublicId);
+                  
+                  if (deleteResult.result === 'ok') {
+                    console.log(`   ✅ Old logo deleted`);
+                  } else {
+                    console.log(`   ℹ️  Old logo delete result: ${deleteResult.result}`);
+                  }
+                  
+                  // Update the logo URL in the data
+                  updatedData.logo_cloud = uploadResult.secure_url;
+                  console.log(`✅ Logo successfully renamed in Cloudinary`);
+                  result.cloudinaryRenamed = true;
+                  result.newLogoUrl = uploadResult.secure_url;
+                  
+                } catch (cloudinaryOpError) {
+                  console.error(`❌ Cloudinary operation error:`, cloudinaryOpError.message);
+                  result.cloudinaryRenameError = cloudinaryOpError.message;
+                }
+              } else {
+                console.log(`⚠️  Could not extract public_id from URL`);
+              }
+            } else {
+              console.log(`ℹ️  Cloudinary not configured, skipping logo rename`);
+            }
+          } catch (cloudinaryError) {
+            console.error('❌ Failed to rename Cloudinary logo:', cloudinaryError.message);
+            result.cloudinaryRenameError = cloudinaryError.message;
+          }
+        }
+        
+        // 2. Rename Google Drive folder
         try {
-          const folderNumber = String(index + 1).padStart(2, '0');
-          const oldFolderName = `${folderNumber}. ${allProfiles[index].nama_perusahaan}`;
-          const newFolderName = `${folderNumber}. ${data.nama_perusahaan}`;
           const parentFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
           
           await oauth2GoogleService.renameFolder(oldFolderName, newFolderName, parentFolderId);
-          console.log(` Company folder renamed: "${oldFolderName}"  "${newFolderName}"`);
+          console.log(`✅ Company folder renamed: "${oldFolderName}" → "${newFolderName}"`);
           result.folderRenamed = true;
+          
+          // 3. Rename logo file inside "1.0 Logo & Kop" subfolder
+          try {
+            console.log(`📁 Finding "1.0 Logo & Kop" subfolder...`);
+            
+            // Find the renamed company folder
+            const companyFolder = await oauth2GoogleService.findFolderByName(newFolderName, parentFolderId);
+            
+            if (companyFolder) {
+              // Find "1.0 Logo & Kop" subfolder
+              const logoFolder = await oauth2GoogleService.findFolderByName('1.0 Logo & Kop', companyFolder.id);
+              
+              if (logoFolder) {
+                console.log(`📁 Found "1.0 Logo & Kop" folder (ID: ${logoFolder.id})`);
+                
+                // Try to find logo file with common extensions
+                const oldLogoFileName = `Logo ${oldCompanyName}`;
+                const possibleExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.svg'];
+                
+                console.log(`🔍 Searching for logo file: "${oldLogoFileName}"...`);
+                
+                let logoFile = null;
+                let foundExtension = '';
+                
+                // Try each extension
+                for (const ext of possibleExtensions) {
+                  const fullFileName = `${oldLogoFileName}${ext}`;
+                  logoFile = await oauth2GoogleService.findFileByName(fullFileName, logoFolder.id);
+                  
+                  if (logoFile) {
+                    foundExtension = ext;
+                    console.log(`📄 Found logo file: "${fullFileName}" (ID: ${logoFile.id})`);
+                    break;
+                  }
+                }
+                
+                if (logoFile) {
+                  const newLogoFileName = `Logo ${newCompanyName}${foundExtension}`;
+                  
+                  console.log(`🔄 Renaming to: "${newLogoFileName}"`);
+                  
+                  await oauth2GoogleService.renameFileById(logoFile.id, newLogoFileName);
+                  console.log(`✅ Logo file renamed: "${oldLogoFileName}${foundExtension}" → "${newLogoFileName}"`);
+                  result.logoFileRenamed = true;
+                } else {
+                  console.log(`ℹ️  Logo file not found in "1.0 Logo & Kop"`);
+                }
+              } else {
+                console.log(`ℹ️  "1.0 Logo & Kop" subfolder not found`);
+              }
+            }
+          } catch (logoFileError) {
+            console.error('❌ Failed to rename logo file:', logoFileError.message);
+            result.logoFileRenameError = logoFileError.message;
+          }
+          
         } catch (driveError) {
-          console.error(' Failed to rename Google Drive folder:', driveError);
+          console.error('❌ Failed to rename Google Drive folder:', driveError.message);
           result.folderRenameError = driveError.message;
         }
+        
+        // 4. Update Google Sheets with new logo URL if Cloudinary was renamed
+        if (result.newLogoUrl && result.cloudinaryRenamed) {
+          try {
+            console.log(`📊 Updating logo URL in Google Sheets...`);
+            
+            // Re-map data with new logo URL
+            const finalData = { ...updatedData, logo_cloud: result.newLogoUrl };
+            const values = headers.map(header => {
+              const key = header.toLowerCase().replace(/\s+/g, '_');
+              return finalData[key] || '';
+            });
+            
+            // Update row again with new logo URL
+            await this.sheets.spreadsheets.values.update({
+              spreadsheetId,
+              range: `${profilTabName}!A${rowNumber}`,
+              valueInputOption: 'RAW',
+              resource: {
+                values: [values],
+              },
+            });
+            
+            console.log(`✅ Logo URL updated in Google Sheets`);
+            result.sheetUpdated = true;
+          } catch (sheetError) {
+            console.error('❌ Failed to update sheet with new logo URL:', sheetError.message);
+            result.sheetUpdateError = sheetError.message;
+          }
+        }
       }
-
       return result;
     } catch (error) {
       console.error('Error updating profil perusahaan:', error);
@@ -283,54 +451,116 @@ class GoogleSheetsService {
   }
 
   /**
-   * Delete company profile by ID with CASCADE DELETE
-   * @param {string} id - Company ID
-   */
-  async deleteProfilPerusahaan(id) {
-    try {
-      // Get company data first to get folder name
-      const company = await this.getProfilPerusahaanById(id);
-      
-      if (!company) {
-        throw new Error(`Company with ID ${id} not found`);
-      }
-
-      // Delete Google Drive folder and all contents FIRST
-      try {
-        const allCompanies = await this.getAllProfilPerusahaan();
-        const companyIndex = allCompanies.findIndex(c => c.id_perusahaan === id);
-        
-        if (companyIndex !== -1 && company.nama_perusahaan) {
-          const folderNumber = String(companyIndex + 1).padStart(2, '0');
-          const folderName = `${folderNumber}. ${company.nama_perusahaan}`;
-          const parentFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
-          
-          console.log(`  Deleting company folder: "${folderName}" and all documents...`);
-          await oauth2GoogleService.deleteFolder(folderName, parentFolderId);
-          console.log(` Company folder and all documents deleted: "${folderName}"`);
-        }
-      } catch (driveError) {
-        console.error(' Failed to delete Google Drive folder:', driveError);
-        // Continue with delete even if folder deletion fails
-      }
-
-      
-      await this.deleteSheetDataMany('db_akta', 'id_perusahaan', id);
-      await this.deleteSheetDataMany('db_pejabat', 'id_perusahaan', id);
-      await this.deleteSheetDataMany('db_nib', 'id_perusahaan', id);
-      await this.deleteSheetDataMany('db_pengalaman_perusahaan', 'id_perusahaan', id);
-      await this.deleteSheetDataMany('db_project', 'id_perusahaan', id);
-      await this.deleteSheetDataMany('db_personel', 'id_perusahaan', id);
-      
-      console.log(`Cascade delete completed, now deleting company profile ${id}...`);
-
-      // Finally delete the company profile itself
-      return await this.deleteSheetData('db_perusahaan', 'id_perusahaan', id);
-    } catch (error) {
-      console.error('Error in deleteProfilPerusahaan:', error);
-      throw new Error(`Failed to delete company profile: ${error.message}`);
+ * Delete company profile by ID with CASCADE DELETE
+ * @param {string} id - Company ID
+ */
+async deleteProfilPerusahaan(id) {
+  try {
+    // Get company data first to get folder name and logo URLs
+    const company = await this.getProfilPerusahaanById(id);
+    
+    if (!company) {
+      throw new Error(`Company with ID ${id} not found`);
     }
+
+    console.log(`🗑️  Starting deletion process for company: ${company.nama_perusahaan}`);
+
+    // 1. Delete logo from Cloudinary (if exists)
+    if (company.logo_cloud) {
+      try {
+        console.log(`☁️  Deleting logo from Cloudinary...`);
+        console.log(`   Logo URL: ${company.logo_cloud}`);
+        
+        // Configure Cloudinary
+        const cloudinaryV2 = cloudinary.v2;
+        cloudinaryV2.config({
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET
+        });
+        
+        // Check if configured
+        const config = cloudinaryV2.config();
+        if (!config.cloud_name || !config.api_key || !config.api_secret) {
+          console.log(`ℹ️  Cloudinary not configured, skipping logo deletion`);
+          console.log(`   Cloud Name: ${config.cloud_name ? 'Set' : 'Missing'}`);
+          console.log(`   API Key: ${config.api_key ? 'Set' : 'Missing'}`);
+          console.log(`   API Secret: ${config.api_secret ? 'Set' : 'Missing'}`);
+        } else {
+          // Extract public_id from URL
+          const publicIdMatch = company.logo_cloud.match(/\/upload\/(?:v\d+\/)?(.+)\.\w+$/);
+          
+          if (publicIdMatch) {
+            // URL decode the public_id (to handle spaces and special characters)
+            const publicId = decodeURIComponent(publicIdMatch[1]);
+            console.log(`   Public ID to delete: ${publicId}`);
+            
+            // Delete from Cloudinary
+            const result = await cloudinaryV2.uploader.destroy(publicId);
+            
+            console.log(`   Cloudinary delete result:`, result);
+            
+            if (result.result === 'ok') {
+              console.log(`✅ Logo deleted from Cloudinary successfully`);
+            } else if (result.result === 'not found') {
+              console.log(`⚠️  Logo not found in Cloudinary (may already be deleted)`);
+            } else {
+              console.log(`⚠️  Unexpected Cloudinary result: ${result.result}`);
+            }
+          } else {
+            console.log(`⚠️  Could not extract public_id from URL: ${company.logo_cloud}`);
+          }
+        }
+      } catch (cloudinaryError) {
+        console.error('❌ Failed to delete logo from Cloudinary:', cloudinaryError);
+        console.error('   Error details:', cloudinaryError.message);
+        // Continue with delete even if Cloudinary deletion fails
+      }
+    } else {
+      console.log(`ℹ️  No Cloudinary logo to delete (logo_cloud is empty)`);
+    }
+
+    // 2. Delete Google Drive folder and all contents
+    try {
+      const allCompanies = await this.getAllProfilPerusahaan();
+      const companyIndex = allCompanies.findIndex(c => c.id_perusahaan === id);
+      
+      if (companyIndex !== -1 && company.nama_perusahaan) {
+        const folderNumber = String(companyIndex + 1).padStart(2, '0');
+        const folderName = `${folderNumber}. ${company.nama_perusahaan}`;
+        const parentFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+        
+        console.log(`📂 Deleting company folder: \"${folderName}\" and all documents...`);
+        await oauth2GoogleService.deleteFolder(folderName, parentFolderId);
+        console.log(`✅ Company folder and all documents deleted: \"${folderName}\"`);
+      }
+    } catch (driveError) {
+      console.error('❌ Failed to delete Google Drive folder:', driveError.message);
+      // Continue with delete even if folder deletion fails
+    }
+
+    // 3. Cascade delete all related data from Google Sheets
+    console.log(`📊 Deleting related data from Google Sheets...`);
+    await this.deleteSheetDataMany('db_akta', 'id_perusahaan', id);
+    await this.deleteSheetDataMany('db_pejabat', 'id_perusahaan', id);
+    await this.deleteSheetDataMany('db_nib', 'id_perusahaan', id);
+    await this.deleteSheetDataMany('db_pengalaman_perusahaan', 'id_perusahaan', id);
+    await this.deleteSheetDataMany('db_project', 'id_perusahaan', id);
+    await this.deleteSheetDataMany('db_personel', 'id_perusahaan', id);
+    
+    console.log(`✅ Cascade delete completed, now deleting company profile ${id}...`);
+
+    // 4. Finally delete the company profile itself from db_profil_perusahaan
+    const result = await this.deleteSheetData('db_profil_perusahaan', 'id_perusahaan', id);
+    
+    console.log(`✅ Company ${company.nama_perusahaan} successfully deleted!`);
+    
+    return result;
+  } catch (error) {
+    console.error('❌ Error in deleteProfilPerusahaan:', error);
+    throw new Error(`Failed to delete company profile: ${error.message}`);
   }
+}
 
   // ========================================
   // DATA personel
