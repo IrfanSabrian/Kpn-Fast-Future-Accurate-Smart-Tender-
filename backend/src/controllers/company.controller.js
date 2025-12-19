@@ -244,10 +244,14 @@ export const addCompany = async (req, res) => {
     
     // Parse data from form-data (sent from frontend)
     const { nama_perusahaan, no_telp, email, tahun_berdiri, status } = req.body;
-    const logoFile = req.file; // Multer middleware akan inject ini
+    
+    // Handle multiple files
+    const logoFile = req.files?.logo?.[0];
+    const kopFile = req.files?.kop?.[0];
 
     console.log('📄 Request data:', { nama_perusahaan, no_telp, email, tahun_berdiri, status });
     console.log('📷 Logo file:', logoFile ? `${logoFile.originalname} (${logoFile.size} bytes)` : 'No logo');
+    console.log('🖼️  Kop file:', kopFile ? `${kopFile.originalname} (${kopFile.size} bytes)` : 'No kop');
 
     // Validation
     if (!nama_perusahaan) {
@@ -260,6 +264,7 @@ export const addCompany = async (req, res) => {
 
     let logoCloudUrl = '';
     let logoDriveUrl = '';
+    let kopDriveUrl = '';
 
     // If logo file is provided, upload to Cloudinary AND Google Drive
     if (logoFile) {
@@ -324,22 +329,39 @@ export const addCompany = async (req, res) => {
     // Upload to Google Drive with folder number
     if (logoFile && !logoDriveUrl) {
       try {
-        console.log('📂 Uploading to Google Drive...');
+        console.log('📂 Uploading logo to Google Drive...');
         const driveResult = await uploadLogoToDrive(logoFile, nama_perusahaan, folderNumber);
         logoDriveUrl = driveResult.webViewLink;
-        console.log('✅ Google Drive upload success:', logoDriveUrl);
+        console.log('✅ Google Drive logo upload success:', logoDriveUrl);
       } catch (driveError) {
-        console.error('❌ Google Drive upload failed:', driveError.message);
+        console.error('❌ Google Drive logo upload failed:', driveError.message);
         console.error('   Stack:', driveError.stack);
         // Continue without drive URL
       }
+    }
 
-      // Clean up temporary file after BOTH uploads complete
-      if (logoFile && logoFile.path) {
+    // Upload Kop to Google Drive (NO Cloudinary)
+    if (kopFile) {
+      try {
+        console.log('📂 Uploading kop to Google Drive...');
+        const kopResult = await uploadKopToDrive(kopFile, nama_perusahaan, folderNumber);
+        kopDriveUrl = kopResult.webViewLink;
+        console.log('✅ Google Drive kop upload success:', kopDriveUrl);
+      } catch (kopError) {
+        console.error('❌ Google Drive kop upload failed:', kopError.message);
+        console.error('   Stack:', kopError.stack);
+        // Continue without kop URL
+      }
+    }
+
+    // Clean up temporary files after ALL uploads complete
+    const filesToCleanup = [logoFile, kopFile].filter(Boolean);
+    for (const file of filesToCleanup) {
+      if (file?.path) {
         try {
           const fs = await import('fs/promises');
-          await fs.unlink(logoFile.path);
-          console.log('🗑️  Temporary file deleted:', logoFile.path);
+          await fs.unlink(file.path);
+          console.log('🗑️  Temporary file deleted:', file.path);
         } catch (cleanupError) {
           console.warn('⚠️  Could not delete temporary file:', cleanupError.message);
         }
@@ -347,8 +369,9 @@ export const addCompany = async (req, res) => {
     }
 
     console.log('📊 Upload Summary:');
-    console.log('   Cloudinary URL:', logoCloudUrl || 'NOT UPLOADED');
-    console.log('   Google Drive URL:', logoDriveUrl || 'NOT UPLOADED');
+    console.log('   Logo Cloudinary:', logoCloudUrl || 'NOT UPLOADED');
+    console.log('   Logo Drive:', logoDriveUrl || 'NOT UPLOADED');
+    console.log('   Kop Drive:', kopDriveUrl || 'NOT UPLOADED');
 
     // Get current date and time for tanggal_input
     const now = new Date();
@@ -372,6 +395,7 @@ export const addCompany = async (req, res) => {
       status: status || 'Pusat',
       logo_perusahaan: logoDriveUrl,
       logo_cloud: logoCloudUrl,
+      kop_perusahaan: kopDriveUrl,
       tanggal_input: tanggalInput,
       author: author
     };
@@ -457,18 +481,233 @@ async function uploadLogoToDrive(file, namaPerusahaan, folderNumber) {
   return result;
 }
 
+/**
+ * Helper function to upload kop to Google Drive
+ * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/1.0 Logo & Kop/Kop [nama_perusahaan]
+ * @param {Object} file - Multer file object
+ * @param {string} namaPerusahaan - Company name
+ * @param {string} folderNumber - Folder number (e.g., '01', '02')
+ */
+async function uploadKopToDrive(file, namaPerusahaan, folderNumber) {
+  const basePerusahaanFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+  
+  if (!basePerusahaanFolderId) {
+    throw new Error('GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env');
+  }
+
+  // Folder structure: [folderNumber. nama_perusahaan]/[index].0 Logo & Kop/Kop [nama_perusahaan].ext
+  // folderNumber is like "01", "02" but subfolder uses just the index number (1, 2)
+  const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
+  const companyIndex = parseInt(folderNumber, 10); // Remove leading zero: "01" -> 1
+  const folderPath = [companyFolderName, `${companyIndex}.0 Logo & Kop`];
+  
+  // Get file extension from original filename or mimetype
+  const path = await import('path');
+  const fileExtension = path.extname(file.originalname) || getExtensionFromMimetype(file.mimetype);
+  const fileName = `Kop ${namaPerusahaan}${fileExtension}`;
+
+  // Read file as buffer
+  const fs = await import('fs/promises');
+  const fileBuffer = await fs.readFile(file.path);
+
+  // Upload using oauth2GoogleService
+  const result = await oauth2GoogleService.uploadPdfFile(
+    fileBuffer,
+    fileName,
+    file.mimetype,
+    folderPath,
+    basePerusahaanFolderId
+  );
+
+  // NOTE: File cleanup is handled by the controller after all uploads complete
+  return result;
+}
+
+/**
+ * Helper function to upload company profile PDF to Google Drive
+ * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/1.1 Profil Perusahaan/Profil Perusahaan [nama_perusahaan].pdf
+ * @param {Object} file - Multer file object
+ * @param {string} namaPerusahaan - Company name
+ * @param {string} folderNumber - Folder number (e.g., '01', '02')
+ */
+async function uploadCompanyProfileToDrive(file, namaPerusahaan, folderNumber) {
+  const basePerusahaanFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+  
+  if (!basePerusahaanFolderId) {
+    throw new Error('GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env');
+  }
+
+  // Folder structure: [folderNumber. nama_perusahaan]/[index].1 Profil Perusahaan/Profil Perusahaan [nama_perusahaan].pdf
+  // folderNumber is like "01", "02" but subfolder uses just the index number (1, 2)
+  const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
+  const companyIndex = parseInt(folderNumber, 10); // Remove leading zero: "01" -> 1
+  const folderPath = [companyFolderName, `${companyIndex}.1 Profil Perusahaan`];
+  
+  const fileName = `Profil Perusahaan ${namaPerusahaan}.pdf`;
+
+  // Read file as buffer
+  const fs = await import('fs/promises');
+  const fileBuffer = await fs.readFile(file.path);
+
+  // Upload using oauth2GoogleService (supports PDF)
+  const result = await oauth2GoogleService.uploadPdfFile(
+    fileBuffer,
+    fileName,
+    'application/pdf',
+    folderPath,
+    basePerusahaanFolderId
+  );
+
+  // NOTE: File cleanup is handled by the controller after all uploads complete
+  return result;
+}
+
 export const updateCompany = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = req.body;
+    console.log(`🔄 UPDATE /api/companies/${id}`);
+    
+    // Parse data
+    const { nama_perusahaan, no_telp, email, tahun_berdiri, status } = req.body;
+    
+    // Handle files
+    const logoFile = req.files?.logo?.[0];
+    const kopFile = req.files?.kop?.[0];
+    const companyProfileFile = req.files?.companyProfile?.[0];
 
-    const result = await googleSheetsService.updateProfilPerusahaan(id, data);
+    console.log('📄 Update payload:', { nama_perusahaan, no_telp, email, year: tahun_berdiri, status });
+    console.log('📷 New logo:', logoFile ? 'Yes' : 'No');
+    console.log('🖼️  New kop:', kopFile ? 'Yes' : 'No');
+    console.log('📋 New company profile PDF:', companyProfileFile ? 'Yes' : 'No');
 
+    // 1. Get all companies to find folder number (needed for Drive upload)
+    // We need folder number to upload to correct Drive folder: "[No]. [Nama Perusahaan]"
+    const allCompanies = await googleSheetsService.getAllProfilPerusahaan();
+    const companyIndex = allCompanies.findIndex(c => c.id_perusahaan === id);
+
+    if (companyIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: `Company with ID ${id} not found`,
+      });
+    }
+
+    const existingCompany = allCompanies[companyIndex];
+    // Folder number is index + 1 (padded '01', '02', etc.)
+    const folderNumber = String(companyIndex + 1).padStart(2, '0');
+    
+    console.log(`📂 Company Folder: ${folderNumber}. ${existingCompany.nama_perusahaan}`);
+
+    // Prepare URL holders (keep existing if no new file)
+    let logoCloudUrl = existingCompany.logo_cloud;
+    let logoDriveUrl = existingCompany.logo_perusahaan;
+    let kopDriveUrl = existingCompany.kop_perusahaan;
+    let companyProfileUrl = existingCompany.profil_perusahaan_url;
+
+    // 2. Upload New Logo if provided
+    if (logoFile) {
+      console.log('📤 Processing new Logo...');
+      
+      // Upload to Cloudinary
+      try {
+        if (cloudinaryService.isConfigured()) {
+          const cloudinaryResult = await cloudinaryService.uploadCompanyLogo(
+            logoFile.path,
+            nama_perusahaan || existingCompany.nama_perusahaan,
+            `Logo ${nama_perusahaan || existingCompany.nama_perusahaan}`
+          );
+          logoCloudUrl = cloudinaryResult.url;
+          console.log('✅ Cloudinary logo updated:', logoCloudUrl);
+        }
+      } catch (cloudinaryError) {
+        console.error('❌ Cloudinary upload failed:', cloudinaryError.message);
+      }
+
+      // Upload to Drive
+      try {
+        const driveResult = await uploadLogoToDrive(
+          logoFile, 
+          nama_perusahaan || existingCompany.nama_perusahaan, 
+          folderNumber
+        );
+        logoDriveUrl = driveResult.webViewLink;
+        console.log('✅ Google Drive logo updated:', logoDriveUrl);
+      } catch (driveError) {
+        console.error('❌ Google Drive logo upload failed:', driveError.message);
+      }
+    }
+
+    // 3. Upload New Kop if provided
+    if (kopFile) {
+      console.log('📤 Processing new Kop...');
+      try {
+        const kopResult = await uploadKopToDrive(
+          kopFile,
+          nama_perusahaan || existingCompany.nama_perusahaan,
+          folderNumber
+        );
+        kopDriveUrl = kopResult.webViewLink;
+        console.log('✅ Google Drive kop updated:', kopDriveUrl);
+      } catch (kopError) {
+        console.error('❌ Google Drive kop upload failed:', kopError.message);
+      }
+    }
+
+    // 4. Upload New Company Profile PDF if provided
+    if (companyProfileFile) {
+      console.log('📤 Processing new Company Profile PDF...');
+      try {
+        const profileResult = await uploadCompanyProfileToDrive(
+          companyProfileFile,
+          nama_perusahaan || existingCompany.nama_perusahaan,
+          folderNumber
+        );
+        companyProfileUrl = profileResult.webViewLink;
+        console.log('✅ Google Drive company profile updated:', companyProfileUrl);
+      } catch (profileError) {
+        console.error('❌ Google Drive company profile upload failed:', profileError.message);
+      }
+    }
+
+    // Clean up temporary files
+    const filesToCleanup = [logoFile, kopFile, companyProfileFile].filter(Boolean);
+    for (const file of filesToCleanup) {
+      if (file?.path) {
+        try {
+          const fs = await import('fs/promises');
+          await fs.unlink(file.path);
+        } catch (e) { /* ignore */ }
+      }
+    }
+
+    // 4. Update Data in Sheets
+    const updateData = {
+      nama_perusahaan,
+      no_telp,
+      email,
+      tahun_berdiri,
+      status,
+      alamat: req.body.alamat,
+      // Only include URLs if they changed (though putting them all is safe)
+      logo_cloud: logoCloudUrl,
+      logo_perusahaan: logoDriveUrl,
+      kop_perusahaan: kopDriveUrl,
+      profil_perusahaan_url: companyProfileUrl
+    };
+
+    console.log('💾 Saving updates to database...');
+    console.log('📊 Update data:', JSON.stringify(updateData, null, 2));
+    
+    const result = await googleSheetsService.updateProfilPerusahaan(id, updateData);
+
+    console.log('✅ Google Sheets updated successfully');
+    
     res.json({
       success: true,
       message: 'Company profile updated successfully',
       data: result,
     });
+
   } catch (error) {
     console.error('Error in updateCompany:', error);
     
@@ -578,6 +817,116 @@ export const getCompanyKop = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to get company kop',
+    });
+  }
+};
+
+/**
+ * AI Scan Company Profile PDF to extract contact information
+ * POST /api/companies/:id/scan-profile
+ */
+export const scanCompanyProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🔍 POST /api/companies/${id}/scan-profile - AI Scanning PDF`);
+
+    // Get PDF file (either uploaded or from URL)
+    const pdfFile = req.file;
+    const pdfUrl = req.body.pdfUrl;
+
+    if (!pdfFile && !pdfUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide PDF file or PDF URL',
+      });
+    }
+
+    let pdfBuffer;
+
+    // If PDF file was uploaded
+    if (pdfFile) {
+      const fs = await import('fs/promises');
+      pdfBuffer = await fs.readFile(pdfFile.path);
+      
+      // Clean up temp file
+      try {
+        await fs.unlink(pdfFile.path);
+      } catch (e) { /* ignore */ }
+    } 
+    // If PDF URL provided (existing file in Drive)
+    else if (pdfUrl) {
+      const fileId = oauth2GoogleService.extractFileIdFromUrl(pdfUrl);
+      if (!fileId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid PDF URL format',
+        });
+      }
+      pdfBuffer = await oauth2GoogleService.downloadFile(fileId);
+    }
+
+    // Convert PDF buffer to base64 for Gemini API
+    const base64PDF = pdfBuffer.toString('base64');
+
+    // Call Gemini API to extract contact information
+    const { GoogleGenerativeAI } = await import('@google/generative-ai');
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    const prompt = `
+Analyze this company profile PDF and extract the following information in JSON format:
+{
+  "email": "company email address",
+  "phone": "company phone number",
+  "address": "company full address"
+}
+
+Only return the JSON object, no additional text. If any field is not found, use empty string "".
+`;
+
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          mimeType: 'application/pdf',
+          data: base64PDF,
+        },
+      },
+      prompt,
+    ]);
+
+    const response = await result.response;
+    const text = response.text();
+    
+    console.log('🤖 Gemini Response:', text);
+
+    // Parse JSON response
+    let extractedData;
+    try {
+      // Remove markdown code blocks if present
+      const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      extractedData = JSON.parse(cleanText);
+    } catch (parseError) {
+      console.error('❌ Failed to parse Gemini response:', parseError);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to parse AI response',
+        rawResponse: text,
+      });
+    }
+
+    console.log('✅ Extracted data:', extractedData);
+
+    res.json({
+      success: true,
+      message: 'Company profile scanned successfully',
+      data: extractedData,
+    });
+
+  } catch (error) {
+    console.error('❌ Error in scanCompanyProfile:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to scan company profile',
     });
   }
 };

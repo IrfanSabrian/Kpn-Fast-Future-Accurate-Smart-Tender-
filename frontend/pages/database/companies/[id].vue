@@ -90,8 +90,39 @@
               
               <!-- Company Contacts Card -->
               <div class="relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm group">
+                 <!-- Background Icon -->
                  <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                     <i class="fas fa-building text-9xl"></i>
+                 </div>
+                 
+                 <!-- Action Buttons (Top Right) -->
+                 <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
+                    <!-- Show Edit & Delete if data exists -->
+                    <template v-if="hasContactData(company)">
+                       <button 
+                          @click="openEditContactModal"
+                          class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-all hover:scale-110"
+                          title="Edit Kontak & Kop"
+                       >
+                          <i class="fas fa-edit text-sm"></i>
+                       </button>
+                       <button 
+                          @click="clearContactData"
+                          class="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center transition-all hover:scale-110"
+                          title="Hapus Kontak"
+                       >
+                          <i class="fas fa-trash-alt text-sm"></i>
+                       </button>
+                    </template>
+                    <!-- Show Plus if no data -->
+                    <button 
+                       v-else
+                       @click="openEditContactModal"
+                       class="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 flex items-center justify-center transition-all hover:scale-110"
+                       title="Tambah Kontak & Kop"
+                    >
+                       <i class="fas fa-plus text-sm"></i>
+                    </button>
                  </div>
                  
                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
@@ -176,34 +207,98 @@
            </div>
 
            <!-- Right Column: Profile Document Preview (Adjusted Height) -->
-           <div class="lg:col-span-5 flex flex-col h-full">
-              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[45vh] min-h-[300px] sticky top-24">
-                 <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
-                    <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
-                       <i class="fas fa-file-pdf text-red-500"></i>
-                       Company Profile
-                    </h3>
-                    <div class="flex gap-2">
-                       <a v-if="company.profil_perusahaan_url" :href="company.profil_perusahaan_url" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                          <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                       </a>
-                    </div>
-                 </div>
-                 
-                 <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                    <iframe 
-                       v-if="company.profil_perusahaan_url" 
-                       :src="getPreviewUrl(company.profil_perusahaan_url)" 
-                       class="w-full h-full absolute inset-0 border-none"
-                    ></iframe>
-                    <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                       <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
-                       <p class="text-sm">Document not available</p>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        </div>
+            <div class="lg:col-span-5 flex flex-col h-full">
+               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[45vh] min-h-[300px] sticky top-24">
+                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                     <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
+                        <i class="fas fa-file-pdf text-red-500"></i>
+                        Company Profile
+                     </h3>
+                     <div class="flex gap-2">
+                        <!-- Update Button (when PDF exists and not uploading) -->
+                        <button 
+                           v-if="company.profil_perusahaan_url && !pendingCompanyProfileFile" 
+                           @click="$refs.companyProfileUpdateInput.click()"
+                           class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
+                           title="Perbarui PDF"
+                        >
+                           <i class="fas fa-sync-alt"></i>
+                           <span>Perbarui</span>
+                        </button>
+                        <!-- Hidden file input for update -->
+                        <input 
+                           ref="companyProfileUpdateInput"
+                           type="file"
+                           accept="application/pdf"
+                           @change="handleCompanyProfileSelect"
+                           class="hidden"
+                        />
+                        <a v-if="company.profil_perusahaan_url && !pendingCompanyProfileFile" :href="company.profil_perusahaan_url" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
+                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
+                        </a>
+                     </div>
+                  </div>
+                  
+                  <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
+                     <!-- Existing PDF Preview -->
+                     <iframe 
+                        v-if="company.profil_perusahaan_url && !pendingCompanyProfileFile" 
+                        :src="getPreviewUrl(company.profil_perusahaan_url)" 
+                        class="w-full h-full absolute inset-0 border-none"
+                     ></iframe>
+                     
+                     <!-- New PDF Preview (during upload) -->
+                     <div v-else-if="pendingCompanyProfileFile && pendingCompanyProfilePreview" class="w-full h-full flex flex-col">
+                        <iframe 
+                           :src="pendingCompanyProfilePreview" 
+                           class="flex-1 w-full border-none"
+                        ></iframe>
+                        <!-- Footer with Save/Cancel -->
+                        <div class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                           <div class="flex-1 min-w-0">
+                              <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ pendingCompanyProfileFile.name }}</p>
+                              <p class="text-xs text-slate-500">{{ formatFileSize(pendingCompanyProfileFile.size) }}</p>
+                           </div>
+                           <div class="flex gap-2 ml-4">
+                              <button 
+                                 @click="cancelCompanyProfileUpload"
+                                 :disabled="isUploadingCompanyProfile"
+                                 class="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all"
+                              >
+                                 Batal
+                              </button>
+                              <button 
+                                 @click="saveCompanyProfile"
+                                 :disabled="isUploadingCompanyProfile"
+                                 class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              >
+                                 <i v-if="isUploadingCompanyProfile" class="fas fa-spinner fa-spin"></i>
+                                 <i v-else class="fas fa-save"></i>
+                                 {{ isUploadingCompanyProfile ? 'Menyimpan...' : 'Simpan' }}
+                              </button>
+                           </div>
+                        </div>
+                     </div>
+                     
+                     <!-- Upload State (No PDF) -->
+                     <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" @click="$refs.companyProfileUploadInput.click()">
+                        <input 
+                           ref="companyProfileUploadInput"
+                           type="file"
+                           accept="application/pdf"
+                           @change="handleCompanyProfileSelect"
+                           class="hidden"
+                        />
+                        <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-500 mb-4">
+                           <i class="fas fa-file-pdf text-3xl"></i>
+                        </div>
+                        <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Upload Company Profile</p>
+                        <p class="text-xs text-slate-500">Klik untuk pilih file PDF (Max 50MB)</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
         
         <!-- GENERIC EMPTY STATE (Except Overview) -->
         <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
@@ -1083,6 +1178,136 @@
       </div>
     </BaseModal>
 
+    <!-- Edit Contact & Kop Modal -->
+    <BaseModal :show="showContactModal" @close="closeContactModal" maxWidth="5xl" title="Edit Kontak & Kop">
+      <template #default>
+        <div class="space-y-6">
+          <!-- Two Column Layout -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Left Column: Contact Form -->
+            <div class="space-y-4">
+              <!-- Email -->
+              <div class="group">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  <i class="fas fa-envelope text-slate-400 mr-2"></i>
+                  Email Perusahaan
+                </label>
+                <input 
+                  v-model="contactFormData.email"
+                  type="email"
+                  placeholder="info@company.com"
+                  class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                />
+              </div>
+
+              <!-- No. Telepon -->
+              <div class="group">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  <i class="fas fa-phone text-slate-400 mr-2"></i>
+                  No. Telepon
+                </label>
+                <input 
+                  v-model="contactFormData.no_telp"
+                  type="tel"
+                  placeholder="021-1234567"
+                  class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+                />
+              </div>
+
+              <!-- Alamat -->
+              <div class="group">
+                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  <i class="fas fa-map-marker-alt text-slate-400 mr-2"></i>
+                  Alamat Lengkap
+                </label>
+                <textarea 
+                  v-model="contactFormData.alamat"
+                  rows="6"
+                  placeholder="Alamat lengkap perusahaan..."
+                  class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all resize-none"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Right Column: Kop Upload -->
+            <div>
+              <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                <i class="fas fa-image text-slate-400 mr-2"></i>
+                Kop (Letterhead) <span class="text-red-500">*</span>
+              </label>
+              <div 
+                class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center hover:border-green-500 transition-all cursor-pointer bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center h-[350px]"
+                @click="$refs.kopInputModal.click()"
+              >
+                <input 
+                  ref="kopInputModal"
+                  type="file"
+                  accept="image/*"
+                  @change="handleKopChange"
+                  class="hidden"
+                />
+                
+                <!-- Preview -->
+                <div v-if="kopPreview" class="w-full h-full flex flex-col items-center justify-between">
+                  <div class="flex-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden mb-3">
+                    <img :src="kopPreview" alt="Kop Preview" class="max-w-full max-h-full object-contain" />
+                  </div>
+                  <div class="w-full flex items-center justify-between gap-2">
+                    <div class="flex-1 text-left min-w-0">
+                      <p v-if="kopFile" class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ kopFile.name }}</p>
+                      <p v-else class="text-xs font-bold text-slate-700 dark:text-slate-300">Sudah Diunggah</p>
+                    </div>
+                    <button 
+                      type="button"
+                      @click.stop="clearKop"
+                      class="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors"
+                      title="Hapus Kop"
+                    >
+                      <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Empty State -->
+                <div v-else class="space-y-3">
+                  <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto text-green-500">
+                    <i class="fas fa-image text-2xl"></i>
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Upload Kop</p>
+                    <p class="text-xs text-slate-500 mt-1">Landscape (Max 50MB)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button 
+            @click="closeContactModal"
+            :disabled="isSubmittingContact"
+            class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+          >
+            Batal
+          </button>
+          <button 
+            @click="saveContactData"
+            :disabled="isSubmittingContact || !kopPreview"
+            class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-md hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <i v-if="isSubmittingContact" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ isSubmittingContact ? 'Menyimpan...' : 'Simpan' }}
+          </button>
+        </div>
+      </template>
+    </BaseModal>
+
     <!-- Modals (Simplified for Layout Demo) -->
 
   </div>
@@ -1097,6 +1322,7 @@ definePageMeta({ layout: 'dashboard' })
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 const config = useRuntimeConfig()
 const apiBaseUrl = config.public.apiBaseUrl
 const companyId = route.params.id
@@ -1237,6 +1463,15 @@ const getPreviewUrl = (url) => {
       return url.replace(/\/view.*$/, '/preview')
    }
    return url
+}
+
+// Format file size to human-readable format
+const formatFileSize = (bytes) => {
+   if (!bytes || bytes === 0) return '0 Bytes'
+   const k = 1024
+   const sizes = ['Bytes', 'KB', 'MB', 'GB']
+   const i = Math.floor(Math.log(bytes) / Math.log(k))
+   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 
 const getTabLabel = (id) => tabs.find(t => t.id === id)?.label || 'Data'
@@ -1526,6 +1761,262 @@ const openPkpModal = (item) => {
 const openKswpModal = (item) => {
    selectedKswp.value = item
    showKswpModal.value = true
+}
+
+// === CONTACT DATA MODAL (Email, Telp, Alamat, Kop only) ===
+const showContactModal = ref(false)
+const contactFormData = ref({
+   email: '',
+   no_telp: '',
+   alamat: ''
+})
+const kopFile = ref(null)
+const kopPreview = ref('')
+const isSubmittingContact = ref(false)
+
+// Check if company has contact data
+const hasContactData = (company) => {
+   if (!company) return false
+   return !!(company.email || company.no_telp || company.alamat)
+}
+
+// Open Edit Contact Modal
+const openEditContactModal = () => {
+   if (!company.value) return
+   
+   // Populate form with existing data
+   contactFormData.value = {
+      email: company.value.email || '',
+      no_telp: company.value.no_telp || '',
+      alamat: company.value.alamat || ''
+   }
+   
+   // Set kop preview if exists
+   kopFile.value = null
+   if (company.value.kop_perusahaan && company.value.id_perusahaan) {
+      kopPreview.value = `${apiBaseUrl}/companies/${company.value.id_perusahaan}/kop`
+   } else {
+      kopPreview.value = ''
+   }
+   
+   showContactModal.value = true
+}
+
+// Close Contact Modal
+const closeContactModal = () => {
+   if (!isSubmittingContact.value) {
+      showContactModal.value = false
+      contactFormData.value = {email: '', no_telp: '', alamat: ''}
+      kopFile.value = null
+      kopPreview.value = ''
+   }
+}
+
+// Handle Kop File Change
+const handleKopChange = (event) => {
+   const file = event.target.files[0]
+   if (file) {
+      const maxSize = 50 * 1024 * 1024
+      if (file.size > maxSize) {
+         alert('Ukuran file kop terlalu besar. Maksimal 50MB.')
+         return
+      }
+      
+      kopFile.value = file
+      
+      const reader = new FileReader()
+      reader.onload = (e) => {
+         kopPreview.value = e.target.result
+      }
+      reader.readAsDataURL(file)
+   }
+}
+
+// Clear Kop
+const clearKop = () => {
+   kopFile.value = null
+   kopPreview.value = ''
+}
+
+// === COMPANY PROFILE PDF UPLOAD (Inline) ===
+const pendingCompanyProfileFile = ref(null)
+const pendingCompanyProfilePreview = ref('')
+const isUploadingCompanyProfile = ref(false)
+
+// Handle PDF file selection
+const handleCompanyProfileSelect = (event) => {
+   const file = event.target.files[0]
+   if (file) {
+      // Validate file type
+      if (file.type !== 'application/pdf') {
+         toast.error('File harus berformat PDF')
+         event.target.value = '' // Reset input
+         return
+      }
+      
+      // Validate file size (50MB max)
+      const maxSize = 50 * 1024 * 1024
+      if (file.size > maxSize) {
+         toast.error('Ukuran file terlalu besar. Maksimal 50MB')
+         event.target.value = '' // Reset input
+         return
+      }
+      
+      // Set pending file
+      pendingCompanyProfileFile.value = file
+      
+      // Create preview URL
+      const fileURL = URL.createObjectURL(file)
+      pendingCompanyProfilePreview.value = getPreviewUrl(fileURL)
+      
+      // Reset input so same file can be selected again
+      event.target.value = ''
+   }
+}
+
+// Save Company Profile PDF
+const saveCompanyProfile = async () => {
+   if (!pendingCompanyProfileFile.value) {
+      toast.warning('Tidak ada file untuk disimpan')
+      return
+   }
+   
+   console.log('📤 Starting PDF upload...')
+   isUploadingCompanyProfile.value = true
+   
+   try {
+      const formData = new FormData()
+      formData.append('companyProfile', pendingCompanyProfileFile.value)
+      formData.append('nama_perusahaan', company.value.nama_perusahaan)
+      formData.append('status', company.value.status || 'Pusat')
+      formData.append('tahun_berdiri', company.value.tahun_berdiri || '')
+      formData.append('email', company.value.email || '')
+      formData.append('no_telp', company.value.no_telp || '')
+      formData.append('alamat', company.value.alamat || '')
+      
+      console.log('📋 FormData prepared:', {
+         file: pendingCompanyProfileFile.value.name,
+         size: pendingCompanyProfileFile.value.size,
+         company: company.value.nama_perusahaan
+      })
+      
+      const url = `${apiBaseUrl}/companies/${companyId}`
+      console.log('🌐 Sending to:', url)
+      
+      const response = await fetch(url, {
+         method: 'PUT',
+         body: formData
+      })
+      
+      console.log('📥 Response status:', response.status)
+      
+      if (!response.ok) {
+         const errorText = await response.text()
+         console.error('❌ Response error:', errorText)
+         throw new Error(`Server error: ${response.status} - ${errorText}`)
+      }
+      
+      const result = await response.json()
+      console.log('✅ Response data:', result)
+      
+      toast.success('Company Profile PDF berhasil disimpan!')
+      
+      // Clear pending state
+      pendingCompanyProfileFile.value = null
+      pendingCompanyProfilePreview.value = ''
+      
+      // Refresh company data
+      console.log('🔄 Refreshing company data...')
+      await fetchCompanyDetail()
+      console.log('✅ Upload complete!')
+      
+   } catch (error) {
+      console.error('❌ Error saving PDF:', error)
+      toast.error('Gagal menyimpan PDF: ' + error.message)
+   } finally {
+      isUploadingCompanyProfile.value = false
+   }
+}
+
+// Cancel PDF upload
+const cancelCompanyProfileUpload = () => {
+   if (!isUploadingCompanyProfile.value) {
+      pendingCompanyProfileFile.value = null
+      pendingCompanyProfilePreview.value = ''
+   }
+}
+
+// Save Contact Data
+const saveContactData = async () => {
+   isSubmittingContact.value = true
+   
+   try {
+      const submitData = new FormData()
+      submitData.append('email', contactFormData.value.email || '')
+      submitData.append('no_telp', contactFormData.value.no_telp || '')
+      submitData.append('alamat', contactFormData.value.alamat || '')
+      submitData.append('nama_perusahaan', company.value.nama_perusahaan)
+      submitData.append('status', company.value.status || 'Pusat')
+      submitData.append('tahun_berdiri', company.value.tahun_berdiri || '')
+      
+      // Upload Kop if new
+      if (kopFile.value) {
+         submitData.append('kop', kopFile.value)
+      }
+      
+      const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+         method: 'PUT',
+         body: submitData
+      })
+      
+      const result = await response.json()
+      
+      if (!response.ok) {
+         throw new Error(result.message || 'Gagal menyimpan data')
+      }
+      
+      toast.success('Data kontak berhasil disimpan!')
+      
+      // Refresh company data
+      await fetchCompanyDetail()
+      closeContactModal()
+      
+   } catch (error) {
+      console.error('Error saving contact:', error)
+      toast.error('Gagal menyimpan data: ' + error.message)
+   } finally {
+      isSubmittingContact.value = false
+   }
+}
+
+// Clear Contact Data
+const clearContactData = async () => {
+   if (!confirm('Yakin ingin menghapus semua data kontak (Email, No. Telepon, Alamat) perusahaan ini?')) return
+   
+   try {
+      const submitData = new FormData()
+      submitData.append('email', '')
+      submitData.append('no_telp', '')
+      submitData.append('alamat', '')
+      submitData.append('nama_perusahaan', company.value.nama_perusahaan)
+      submitData.append('status', company.value.status || 'Pusat')
+      submitData.append('tahun_berdiri', company.value.tahun_berdiri || '')
+      
+      const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+         method: 'PUT',
+         body: submitData
+      })
+      
+      if (response.ok) {
+         await fetchCompanyDetail()
+         alert('Data kontak berhasil dihapus')
+      } else {
+         throw new Error('Gagal menghapus data')
+      }
+   } catch (error) {
+      console.error('Error clearing contact:', error)
+      alert('Gagal menghapus data: ' + error.message)
+   }
 }
 
 

@@ -24,12 +24,22 @@ const upload = multer({
     fileSize: parseInt(process.env.MAX_FILE_SIZE) || 52428800 // 50MB default
   },
   fileFilter: (req, file, cb) => {
-    // Accept images only
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed.'));
+    // Allow PDF for companyProfile field
+    if (file.fieldname === 'companyProfile') {
+      if (file.mimetype === 'application/pdf') {
+        cb(null, true);
+      } else {
+        cb(new Error('Company Profile must be a PDF file.'));
+      }
+    } 
+    // Accept images only for logo and kop
+    else {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed for images.'));
+      }
     }
   }
 });
@@ -44,17 +54,27 @@ router.get('/', companyController.getAllCompanies);
 // Get company by ID (overview only)
 router.get('/:id', companyController.getCompanyById);
 
-// Add new company with logo upload
-router.post('/', upload.single('logo'), companyController.addCompany);
+// Add new company with logo and kop upload
+router.post('/', upload.fields([
+  { name: 'logo', maxCount: 1 },
+  { name: 'kop', maxCount: 1 }
+]), companyController.addCompany);
 
 // Update company by ID
-router.put('/:id', companyController.updateCompany);
+router.put('/:id', upload.fields([
+  { name: 'logo', maxCount: 1 },
+  { name: 'kop', maxCount: 1 },
+  { name: 'companyProfile', maxCount: 1 }
+]), companyController.updateCompany);
 
 // Delete company by ID
 router.delete('/:id', companyController.deleteCompany);
 
 // Get company kop image (proxy from Google Drive)
 router.get('/:id/kop', companyController.getCompanyKop);
+
+// AI Scan company profile PDF
+router.post('/:id/scan-profile', upload.single('pdf'), companyController.scanCompanyProfile);
 
 // ========================================
 // SUB-MODULE ROUTES - Lazy Loading

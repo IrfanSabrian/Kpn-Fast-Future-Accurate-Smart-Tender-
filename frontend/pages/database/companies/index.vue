@@ -254,8 +254,9 @@
               </div>
             </div>
 
-            <!-- Right Column: Logo Upload (1/3 width) -->
-            <div class="w-full lg:w-72 flex-shrink-0">
+            <!-- Right Column: Logo & Kop Upload (1/3 width) -->
+            <div class="w-full lg:w-72 flex-shrink-0 space-y-5">
+              <!-- Logo Upload -->
               <div class="group flex flex-col">
                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">
                   Logo Perusahaan
@@ -276,18 +277,18 @@
                     class="hidden"
                   />
                   <div v-if="!logoPreview" class="space-y-3">
-                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto text-blue-500">
-                       <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto text-blue-500">
+                       <i class="fas fa-cloud-upload-alt text-xl"></i>
                     </div>
                     <div class="space-y-1">
                       <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Upload Logo
                       </p>
-                      <p class="text-xs text-slate-500">JPG, PNG, GIF (Max 50MB)</p>
+                      <p class="text-[10px] text-slate-500">Max 50MB</p>
                     </div>
                   </div>
                   <div v-else class="w-full h-full flex flex-col items-center justify-between">
-                    <div class="relative flex-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden mb-3">
+                    <div class="relative flex-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden mb-2">
                        <img :src="logoPreview" alt="Logo Preview" class="max-w-full max-h-full object-contain" />
                     </div>
                     <div class="w-full flex items-center justify-between gap-2 px-1">
@@ -298,10 +299,10 @@
                       <button
                         type="button"
                         @click.stop="clearLogo"
-                        class="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors shadow-sm"
+                        class="w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors shadow-sm"
                         title="Hapus Logo"
                       >
-                        <i class="fas fa-trash-alt text-xs"></i>
+                        <i class="fas fa-trash-alt text-[10px]"></i>
                       </button>
                     </div>
                   </div>
@@ -450,8 +451,9 @@
               </div>
             </div>
 
-            <!-- Right Column: Logo Upload (1/3 width) -->
-            <div class="w-full lg:w-72 flex-shrink-0">
+            <!-- Right Column: Logo & Kop Upload (1/3 width) -->
+            <div class="w-full lg:w-72 flex-shrink-0 space-y-5">
+               <!-- Logo Upload -->
                <div class="group flex flex-col">
                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600">
                   Logo Perusahaan
@@ -472,18 +474,18 @@
                     class="hidden"
                   />
                   <div v-if="!logoPreview" class="space-y-3">
-                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto text-blue-500">
-                       <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto text-blue-500">
+                       <i class="fas fa-cloud-upload-alt text-xl"></i>
                     </div>
                     <div class="space-y-1">
                       <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Upload Logo
                       </p>
-                      <p class="text-xs text-slate-500">JPG, PNG, GIF (Max 50MB)</p>
+                      <p class="text-[10px] text-slate-500">Max 50MB</p>
                     </div>
                   </div>
                   <div v-else class="w-full h-full flex flex-col items-center justify-between">
-                    <div class="relative flex-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden mb-3">
+                    <div class="relative flex-1 w-full rounded-lg border border-slate-200 dark:border-slate-600 p-2 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden mb-2">
                        <img :src="logoPreview" alt="Logo Preview" class="max-w-full max-h-full object-contain" />
                     </div>
                     <div class="w-full flex items-center justify-between gap-2 px-1">
@@ -496,10 +498,10 @@
                       <button
                         type="button"
                         @click.stop="clearLogo"
-                        class="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors shadow-sm"
+                        class="w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-600 flex items-center justify-center transition-colors shadow-sm"
                         :title="logoFile ? 'Hapus Logo' : 'Ganti Logo'"
                       >
-                        <i :class="logoFile ? 'fas fa-trash-alt' : 'fas fa-sync-alt'" class="text-xs"></i>
+                        <i :class="logoFile ? 'fas fa-trash-alt' : 'fas fa-sync-alt'" class="text-[10px]"></i>
                       </button>
                     </div>
                   </div>
@@ -677,6 +679,8 @@ const clearLogo = () => {
   logoFile.value = null
   logoPreview.value = ''
 }
+
+
 
 const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes'
@@ -866,14 +870,14 @@ const openEditModal = (company) => {
     status: company.status || 'Pusat'
   }
   
-  // Set existing logo as preview (prioritize Cloudinary, fallback to Google Drive)
+  // Set existing logo as preview
+  logoFile.value = null // Reset file input
   if (company.logo_cloud) {
     logoPreview.value = company.logo_cloud
   } else if (company.logo_perusahaan) {
     logoPreview.value = company.logo_perusahaan
   } else {
     logoPreview.value = ''
-    logoFile.value = null
   }
   
   isEditModalOpen.value = true
@@ -908,12 +912,26 @@ const handleEdit = async () => {
   try {
     console.log(` Updating company: ${companyToEdit.value.id_perusahaan}`)
 
+    // Prepare FormData for multipart/form-data
+    const submitData = new FormData()
+    submitData.append('nama_perusahaan', editFormData.value.nama_perusahaan)
+    submitData.append('no_telp', editFormData.value.no_telp || '')
+    submitData.append('email', editFormData.value.email || '')
+    submitData.append('tahun_berdiri', editFormData.value.tahun_berdiri || '')
+    submitData.append('status', editFormData.value.status)
+    
+    // Append logo file if changed/new
+    if (logoFile.value) {
+      submitData.append('logo', logoFile.value)
+    }
+
+
+
     const response = await fetch(`${apiBaseUrl}/companies/${companyToEdit.value.id_perusahaan}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(editFormData.value)
+      // Headers NOT needed for FormData - browser sets boundary automatically
+      // headers: { 'Content-Type': 'application/json' }, 
+      body: submitData
     })
 
     const result = await response.json()

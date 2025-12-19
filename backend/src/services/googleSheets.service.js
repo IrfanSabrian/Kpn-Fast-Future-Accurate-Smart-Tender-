@@ -348,24 +348,25 @@ class GoogleSheetsService {
         // 2. Rename Google Drive folder
         try {
           const parentFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
-          
           await oauth2GoogleService.renameFolder(oldFolderName, newFolderName, parentFolderId);
           console.log(`✅ Company folder renamed: "${oldFolderName}" → "${newFolderName}"`);
           result.folderRenamed = true;
           
-          // 3. Rename logo file inside "1.0 Logo & Kop" subfolder
+          // 3. Rename logo file inside "[index].0 Logo & Kop" subfolder
           try {
-            console.log(`📁 Finding "1.0 Logo & Kop" subfolder...`);
+            const companyIndex = parseInt(folderNumber, 10); // "01" -> 1, "02" -> 2
+            console.log(`📁 Finding "${companyIndex}.0 Logo & Kop" subfolder...`);
             
             // Find the renamed company folder
             const companyFolder = await oauth2GoogleService.findFolderByName(newFolderName, parentFolderId);
             
             if (companyFolder) {
-              // Find "1.0 Logo & Kop" subfolder
-              const logoFolder = await oauth2GoogleService.findFolderByName('1.0 Logo & Kop', companyFolder.id);
+              // Find "[index].0 Logo & Kop" subfolder (1.0, 2.0, 3.0...)
+              const logoFolderName = `${companyIndex}.0 Logo & Kop`;
+              const logoFolder = await oauth2GoogleService.findFolderByName(logoFolderName, companyFolder.id);
               
               if (logoFolder) {
-                console.log(`📁 Found "1.0 Logo & Kop" folder (ID: ${logoFolder.id})`);
+                console.log(`📁 Found "${logoFolderName}" folder (ID: ${logoFolder.id})`);
                 
                 // Try to find logo file with common extensions
                 const oldLogoFileName = `Logo ${oldCompanyName}`;
@@ -397,10 +398,66 @@ class GoogleSheetsService {
                   console.log(`✅ Logo file renamed: "${oldLogoFileName}${foundExtension}" → "${newLogoFileName}"`);
                   result.logoFileRenamed = true;
                 } else {
-                  console.log(`ℹ️  Logo file not found in "1.0 Logo & Kop"`);
+                  console.log(`ℹ️  Logo file not found in "${logoFolderName}"`);
+                }
+
+                // 3b. Rename kop file in the same folder
+                console.log(`🔍 Searching for kop file...`);
+                const oldKopFileName = `Kop ${oldCompanyName}`;
+                
+                let kopFile = null;
+                let kopFoundExtension = '';
+                
+                // Try each extension for kop
+                for (const ext of possibleExtensions) {
+                  const fullFileName = `${oldKopFileName}${ext}`;
+                  kopFile = await oauth2GoogleService.findFileByName(fullFileName, logoFolder.id);
+                  
+                  if (kopFile) {
+                    kopFoundExtension = ext;
+                    console.log(`📄 Found kop file: "${fullFileName}" (ID: ${kopFile.id})`);
+                    break;
+                  }
+                }
+                
+                if (kopFile) {
+                  const newKopFileName = `Kop ${newCompanyName}${kopFoundExtension}`;
+                  
+                  console.log(`🔄 Renaming kop to: "${newKopFileName}"`);
+                  
+                  await oauth2GoogleService.renameFileById(kopFile.id, newKopFileName);
+                  console.log(`✅ Kop file renamed: "${oldKopFileName}${kopFoundExtension}" → "${newKopFileName}"`);
+                  result.kopFileRenamed = true;
+                } else {
+                  console.log(`ℹ️  Kop file not found in "${logoFolderName}"`);
+                }
+
+                // 3c. Rename company profile PDF in "[index].1 Profil Perusahaan" folder
+                console.log(`🔍 Searching for company profile PDF...`);
+                const profilFolderName = `${companyIndex}.1 Profil Perusahaan`;
+                const profilFolder = await oauth2GoogleService.findFolderByName(profilFolderName, companyFolder.id);
+                
+                if (profilFolder) {
+                  const oldProfilPDFName = `Profil Perusahaan ${oldCompanyName}.pdf`;
+                  const profilFile = await oauth2GoogleService.findFileByName(oldProfilPDFName, profilFolder.id);
+                  
+                  if (profilFile) {
+                    const newProfilPDFName = `Profil Perusahaan ${newCompanyName}.pdf`;
+                    
+                    console.log(`📄 Found company profile PDF: "${oldProfilPDFName}" (ID: ${profilFile.id})`);
+                    console.log(`🔄 Renaming to: "${newProfilPDFName}"`);
+                    
+                    await oauth2GoogleService.renameFileById(profilFile.id, newProfilPDFName);
+                    console.log(`✅ Company profile PDF renamed: "${oldProfilPDFName}" → "${newProfilPDFName}"`);
+                    result.companyProfileRenamed = true;
+                  } else {
+                    console.log(`ℹ️  Company profile PDF not found in "${profilFolderName}"`);
+                  }
+                } else {
+                  console.log(`ℹ️  "${profilFolderName}" subfolder not found`);
                 }
               } else {
-                console.log(`ℹ️  "1.0 Logo & Kop" subfolder not found`);
+                console.log(`ℹ️  "${logoFolderName}" subfolder not found`);
               }
             }
           } catch (logoFileError) {
