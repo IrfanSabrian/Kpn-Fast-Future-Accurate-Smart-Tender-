@@ -57,7 +57,7 @@
             v-for="tab in tabs"
             :key="tab.id"
             @click="activeTab = tab.id"
-            class="relative px-4 py-3 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border-b-2"
+            class="relative px-3 py-3 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border-b-2"
             :class="activeTab === tab.id 
               ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/10' 
               : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'"
@@ -809,6 +809,94 @@
             </div>
          </div>
 
+         <!-- 4.6 BPJS TAB - Simplified Layout -->
+         <div v-else-if="activeTab === 'bpjs'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left: BPJS List (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+               <div v-if="subModules.bpjs?.length > 0" class="space-y-3">
+                  <div v-for="item in subModules.bpjs" :key="item.id_bpjs" 
+                       @click="selectItem('bpjs', item)"
+                       class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
+                       :class="selectedItems.bpjs?.id_bpjs === item.id_bpjs 
+                          ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20' 
+                          : 'border-slate-200 dark:border-slate-700'">
+                     
+                     <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                         <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 flex items-center justify-center shrink-0">
+                                  <i class="fas fa-hospital"></i>
+                              </div>
+                              <div>
+                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NOMOR SERTIFIKAT</div>
+                                  <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1 font-mono">{{ item.nomor_sertifikat || '-' }}</h4>
+                              </div>
+                         </div>
+                     </div>
+
+                     <div class="space-y-0.5 mt-4">
+                        <div class="grid grid-cols-[140px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO. PENDAFTARAN</div>
+                            <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.nomor_pendaftaran || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[140px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">TANGGAL DITETAPKAN</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_ditetapkan || '-' }}</div>
+                        </div>
+
+                        <div class="grid grid-cols-[140px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">LOKASI DITETAPKAN</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.lokasi_ditetapkan || '-' }}</div>
+                        </div>
+                     </div>
+
+                     <div v-if="selectedItems.bpjs?.id_bpjs === item.id_bpjs" class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold">
+                        <i class="fas fa-check-circle"></i> <span>PREVIEWING DOCUMENT</span>
+                     </div>
+                  </div>
+               </div>
+
+                <!-- Empty State -->
+                <div v-else class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
+                    <i class="fas fa-hospital text-4xl mb-3 opacity-30"></i>
+                    <p class="text-sm font-medium">Belum ada data BPJS.</p>
+                </div>
+            </div>
+
+            <!-- Right: PDF Preview (5 cols) -->
+            <div class="lg:col-span-5 flex flex-col h-full">
+               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                     <div>
+                         <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
+                            <i class="fas fa-file-pdf text-red-500"></i>
+                            Dokumen BPJS
+                         </h3>
+                         <p v-if="selectedItems.bpjs" class="text-xs text-slate-500 mt-1">{{ selectedItems.bpjs.nomor_sertifikat }}</p>
+                     </div>
+                     <div class="flex gap-2" v-if="getSelectedDocUrl('bpjs')">
+                        <a :href="getSelectedDocUrl('bpjs')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
+                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
+                        </a>
+                     </div>
+                  </div>
+                  
+                  <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
+                     <iframe 
+                        v-if="getSelectedDocUrl('bpjs')" 
+                        :key="getSelectedDocUrl('bpjs')"
+                        :src="getPreviewUrl(getSelectedDocUrl('bpjs'))" 
+                        class="w-full h-full absolute inset-0 border-none"
+                     ></iframe>
+                     <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                        <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
+                        <p class="text-sm">{{ selectedItems.bpjs ? 'Dokumen tidak tersedia' : 'Pilih BPJS untuk preview' }}</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
         <!-- 5. NIB, SBU, KTA, SERTIFIKAT TABS - Redesigned with Complete Info -->
         <div v-if="['nib', 'sbu', 'kta', 'sertifikat'].includes(activeTab) && subModules[activeTab]?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
            <!-- Left: Data List (7 cols) -->
@@ -1421,7 +1509,7 @@ const companyId = route.params.id
 const company = ref(null)
 const subModules = ref({
    akta: [], pejabat: [], nib: [], sbu: [], kta: [], sertifikat: [],
-   npwp: [], kswp: [], spt: [], pkp: [], kontrak: [], kbli: [], cek: []
+   npwp: [], kswp: [], spt: [], pkp: [], kontrak: [], kbli: [], cek: [], bpjs: []
 })
 const activeTab = ref('overview')
 const loadingTab = ref(false)
@@ -1454,7 +1542,8 @@ const selectedItems = ref({
    sertifikat: null,
    kontrak: null,
    spt: null,
-   cek: null
+   cek: null,
+   bpjs: null
 })
 
 // Tabs Configuration (Re-ordered & Renamed)
@@ -1469,6 +1558,7 @@ const tabs = [
   { id: 'pajak', label: 'Data Pajak', icon: 'fas fa-wallet', count: 0 }, // Grouped
   { id: 'kontrak', label: 'Pengalaman', icon: 'fas fa-briefcase', count: 0 },
   { id: 'cek', label: 'Cek', icon: 'fas fa-money-check', count: 0 }, // Bank checks
+  { id: 'bpjs', label: 'BPJS', icon: 'fas fa-hospital', count: 0 }, // BPJS
 ]
 
 // Helper Functions
@@ -1581,7 +1671,8 @@ const getSelectedDocUrl = (tabId) => {
       sertifikat: item.sertifikat_standar_url,
       kontrak: item.kontrak_url || item.url_dokumen,
       spt: item.spt_url,
-      cek: item.url_cek
+      cek: item.url_cek,
+      bpjs: item.url_bpjs
    }
    return urlMap[tabId] || item.url_dokumen || item.kontrak_url || ''
 }
@@ -1776,6 +1867,21 @@ const fetchCek = async () => {
    }
 }
 
+// Fetch BPJS data
+const fetchBPJS = async () => {
+   try {
+      const res = await fetch(`${apiBaseUrl}/companies/${companyId}/bpjs`)
+      if(res.ok) {
+         subModules.value.bpjs = await res.json()
+         tabs.find(t => t.id === 'bpjs').count = subModules.value.bpjs.length
+         if (subModules.value.bpjs.length) selectedItems.value.bpjs = subModules.value.bpjs[0]
+         console.log('✅ BPJS Data loaded:', subModules.value.bpjs.length, 'items')
+      }
+   } catch(e) {
+      console.error('Error fetching BPJS:', e)
+   }
+}
+
 // Lazy load data when tab changes
 const loadedTabs = ref(['overview']) // Track which tabs have been loaded
 
@@ -1813,6 +1919,9 @@ watch(activeTab, async (newTab) => {
             break
          case 'cek':
             await fetchCek()
+            break
+         case 'bpjs':
+            await fetchBPJS()
             break
       }
       
@@ -2042,7 +2151,8 @@ const pendingDocuments = ref({
    kta: { file: null, preview: '', uploading: false },
    sertifikat: { file: null, preview: '', uploading: false },
    kontrak: { file: null, preview: '', uploading: false },
-   cek: { file: null, preview: '', uploading: false }
+   cek: { file: null, preview: '', uploading: false },
+   bpjs: { file: null, preview: '', uploading: false }
 })
 
 // Handle document file selection

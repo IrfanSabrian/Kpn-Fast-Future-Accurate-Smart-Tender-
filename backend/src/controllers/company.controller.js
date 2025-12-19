@@ -238,6 +238,19 @@ export const getCompanyCek = async (req, res) => {
   }
 };
 
+// GET /api/companies/:id/bpjs
+export const getCompanyBpjs = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const bpjsData = await googleSheetsService.getSheetData('db_bpjs');
+    const filtered = bpjsData.filter(item => item.id_perusahaan === id);
+    res.json(filtered);
+  } catch (error) {
+    console.error('Error in getCompanyBpjs:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const addCompany = async (req, res) => {
   try {
     console.log('📝 Adding new company...');
@@ -583,7 +596,8 @@ async function uploadDocumentToDrive(file, namaPerusahaan, folderNumber, documen
     kta: { index: '5', name: 'Kartu Tanda Anggota' },
     sertifikat: { index: '6', name: 'Sertifikat Standar' },
     kontrak: { index: '8', name: 'Kontrak Pengalaman' },
-    cek: { index: '9', name: 'Surat Referensi Bank' }
+    cek: { index: '9', name: 'Surat Referensi Bank' },
+    bpjs: { index: '10', name: 'BPJS' }
   };
 
   const config = docConfig[documentType];
@@ -632,6 +646,7 @@ export const updateCompany = async (req, res) => {
     const sertifikatFile = req.files?.sertifikat?.[0];
     const kontrakFile = req.files?.kontrak?.[0];
     const cekFile = req.files?.cek?.[0];
+    const bpjsFile = req.files?.bpjs?.[0];
 
     console.log('📄 Update payload:', { nama_perusahaan, no_telp, email, year: tahun_berdiri, status });
     console.log('📷 New logo:', logoFile ? 'Yes' : 'No');
@@ -644,7 +659,8 @@ export const updateCompany = async (req, res) => {
       kta: ktaFile ? 'Yes' : 'No',
       sertifikat: sertifikatFile ? 'Yes' : 'No',
       kontrak: kontrakFile ? 'Yes' : 'No',
-      cek: cekFile ? 'Yes' : 'No'
+      cek: cekFile ? 'Yes' : 'No',
+      bpjs: bpjsFile ? 'Yes' : 'No'
     });
 
     // 1. Get all companies to find folder number (needed for Drive upload)
@@ -677,6 +693,7 @@ export const updateCompany = async (req, res) => {
     let sertifikatUrl = existingCompany.sertifikat_standar_url;
     let kontrakUrl = existingCompany.kontrak_url;
     let cekUrl = existingCompany.cek_url;
+    let bpjsUrl = existingCompany.url_bpjs;
 
     // 2. Upload New Logo if provided
     if (logoFile) {
@@ -751,7 +768,8 @@ export const updateCompany = async (req, res) => {
       { file: ktaFile, type: 'kta', urlVar: 'ktaUrl', label: 'KTA' },
       { file: sertifikatFile, type: 'sertifikat', urlVar: 'sertifikatUrl', label: 'Sertifikat' },
       { file: kontrakFile, type: 'kontrak', urlVar: 'kontrakUrl', label: 'Kontrak' },
-      { file: cekFile, type: 'cek', urlVar: 'cekUrl', label: 'Cek' }
+      { file: cekFile, type: 'cek', urlVar: 'cekUrl', label: 'Cek' },
+      { file: bpjsFile, type: 'bpjs', urlVar: 'bpjsUrl', label: 'BPJS' }
     ];
 
     for (const doc of documentTypes) {
@@ -772,6 +790,7 @@ export const updateCompany = async (req, res) => {
           else if (doc.urlVar === 'sertifikatUrl') sertifikatUrl = result.webViewLink;
           else if (doc.urlVar === 'kontrakUrl') kontrakUrl = result.webViewLink;
           else if (doc.urlVar === 'cekUrl') cekUrl = result.webViewLink;
+          else if (doc.urlVar === 'bpjsUrl') bpjsUrl = result.webViewLink;
           
           console.log(`✅ Google Drive ${doc.label} updated:`, result.webViewLink);
         } catch (docError) {
@@ -781,7 +800,7 @@ export const updateCompany = async (req, res) => {
     }
 
     // Clean up temporary files
-    const filesToCleanup = [logoFile, kopFile, companyProfileFile, aktaFile, nibFile, sbuFile, ktaFile, sertifikatFile, kontrakFile, cekFile].filter(Boolean);
+    const filesToCleanup = [logoFile, kopFile, companyProfileFile, aktaFile, nibFile, sbuFile, ktaFile, sertifikatFile, kontrakFile, cekFile, bpjsFile].filter(Boolean);
     for (const file of filesToCleanup) {
       if (file?.path) {
         try {
@@ -810,7 +829,8 @@ export const updateCompany = async (req, res) => {
       kta_url: ktaUrl,
       sertifikat_standar_url: sertifikatUrl,
       kontrak_url: kontrakUrl,
-      cek_url: cekUrl
+      cek_url: cekUrl,
+      url_bpjs: bpjsUrl
     };
 
     console.log('💾 Saving updates to database...');

@@ -179,6 +179,11 @@ const dataPerusahaan = {
   db_cek: [
     ['id_cek', 'id_perusahaan','no_rekening','nama_bank','url_cek', 'tanggal_input'],
     ['CEK001', 'COMP001','1504002132','Bank Kalbar','https://drive.google.com/file/d/1yA_HyCM_YNnO0fUWhAAiIBvqxKcNHwlH/view?usp=drive_link', '2025-12-10 18:42:00']
+  ],
+  
+  db_bpjs: [
+    ['id_bpjs', 'id_perusahaan', 'nomor_sertifikat', 'nomor_pendaftaran', 'tanggal_ditetapkan', 'lokasi_ditetapkan', 'url_bpjs', 'tanggal_input', 'author'],
+    ['BPJS001', 'COMP001', '210000001113797', '21062812', '2021-04-07', 'JAKARTA', 'https://drive.google.com/file/d/1SkqH3P-_i1KkIqsxZbnLA515ssU6MDz4/view?usp=drive_link', '2025-12-10 18:42:00', 'system']
   ]
 };
 
@@ -302,10 +307,11 @@ async function setupSpreadsheets() {
   console.log('✅ SETUP COMPLETED SUCCESSFULLY!');
   console.log('✅ ========================================\n');
   console.log('📋 Summary:');
-  console.log(`   - PERUSAHAAN: 12 sheets`);
+  console.log(`   - PERUSAHAAN: 13 sheets`);
   console.log(`     • db_profil_perusahaan, db_perusahaan_kbli, db_akta, db_pejabat`);
   console.log(`     • db_sbu, db_nib, db_kta, db_sertifikat_standar`);
-  console.log(`     • db_npwp_perusahaan, db_kswp, db_spt, db_pengalaman`);
+  console.log(`     • db_npwp_perusahaan, db_kswp, db_spt, db_kontrak_pengalaman`);
+  console.log(`     • db_pkp, db_cek, db_bpjs`);
   console.log(`   - COMP001: CV. VERUS CONSULTANT ENGINEERING`);
   console.log(`   - NIB: 1216000321981 (PMDN, Usaha Mikro)`);
   console.log(`   - SBU: 121600032198100040001 (Kecil, PERKONINDO)`);

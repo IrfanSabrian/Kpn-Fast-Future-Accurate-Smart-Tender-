@@ -71,7 +71,8 @@ router.put('/:id', upload.fields([
   { name: 'kta', maxCount: 1 },
   { name: 'sertifikat', maxCount: 1 },
   { name: 'kontrak', maxCount: 1 },
-  { name: 'cek', maxCount: 1 }
+  { name: 'cek', maxCount: 1 },
+  { name: 'bpjs', maxCount: 1 }
 ]), companyController.updateCompany);
 
 // Delete company by ID
@@ -116,6 +117,9 @@ router.get('/:id/kbli', companyController.getCompanyKbli);
 
 // Get company's Cek (bank checks) data
 router.get('/:id/cek', companyController.getCompanyCek);
+
+// Get company's BPJS data
+router.get('/:id/bpjs', companyController.getCompanyBpjs);
 
 // ========================================
 // CRUD FOR SUB-MODULES
