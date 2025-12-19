@@ -300,18 +300,44 @@
             </div>
          </div>
         
-        <!-- GENERIC EMPTY STATE (Except Overview) -->
-        <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
-            <i :class="getTabIcon(activeTab)" class="text-4xl mb-3 opacity-30"></i>
-            <p class="text-sm font-medium">Belum ada data {{ getTabLabel(activeTab) }}.</p>
+        <!-- GENERIC EMPTY STATE (Except Overview & Pajak) - 2 Column Layout -->
+        <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+           <!-- Left: Empty State Message (7 cols) -->
+           <div class="lg:col-span-7">
+              <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
+                 <i :class="getTabIcon(activeTab)" class="text-4xl mb-3 opacity-30"></i>
+                 <p class="text-sm font-medium">Belum ada data {{ getTabLabel(activeTab) }}.</p>
+              </div>
+           </div>
+
+           <!-- Right: PDF Preview (5 cols) -->
+           <div class="lg:col-span-5 flex flex-col h-full">
+              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+                 <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                    <div>
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
+                           <i class="fas fa-file-pdf text-red-500"></i>
+                           Dokumen {{ getTabLabel(activeTab) }}
+                        </h3>
+                    </div>
+                 </div>
+                 
+                 <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
+                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                       <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
+                       <p class="text-sm">Pilih item untuk preview</p>
+                    </div>
+                 </div>
+              </div>
+           </div>
         </div>
 
         <!-- 1. AKTA TAB (Redesigned with Complete Info) -->
-        <div v-else-if="activeTab === 'akta'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div v-if="activeTab === 'akta' && subModules.akta?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
            <!-- Left: Data List (7 cols) -->
            <div class="lg:col-span-7 space-y-4">
               <!-- Data Cards -->
-              <div v-if="subModules.akta?.length > 0" class="space-y-3">
+              <div class="space-y-3">
                  <div v-for="item in subModules.akta" :key="item.id_akta" 
                       @click="selectItem('akta', item)"
                       class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
@@ -353,12 +379,6 @@
                     </div>
                  </div>
               </div>
-
-               <!-- Empty State -->
-               <div v-else class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
-                   <i class="fas fa-file-contract text-4xl mb-3 opacity-30"></i>
-                   <p class="text-sm font-medium">Belum ada data Akta.</p>
-               </div>
            </div>
 
            <!-- Right: PDF Preview (5 cols) -->
@@ -372,23 +392,60 @@
                         </h3>
                         <p v-if="selectedItems.akta" class="text-xs text-slate-500 mt-1">{{ selectedItems.akta.jenis_akta }} - {{ selectedItems.akta.nomor_akta }}</p>
                     </div>
-                    <div class="flex gap-2" v-if="getSelectedDocUrl('akta')">
-                       <a :href="getSelectedDocUrl('akta')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
+                    <div class="flex gap-2">
+                       <button 
+                          v-if="getDocumentUrl('akta') && !pendingDocuments.akta.file" 
+                          @click="$refs.aktaUpdateInput.click()"
+                          class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
+                       >
+                          <i class="fas fa-sync-alt"></i>
+                          <span>Perbarui</span>
+                       </button>
+                       <input ref="aktaUpdateInput" type="file" accept="application/pdf" @change="handleDocumentSelect('akta', $event)" class="hidden" />
+                       <a v-if="getDocumentUrl('akta') && !pendingDocuments.akta.file" :href="getDocumentUrl('akta')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
                        </a>
                     </div>
                  </div>
                  
                  <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
+                    <!-- Existing PDF -->
                     <iframe 
-                       v-if="getSelectedDocUrl('akta')" 
-                       :key="getSelectedDocUrl('akta')"
-                       :src="getPreviewUrl(getSelectedDocUrl('akta'))" 
+                       v-if="getDocumentUrl('akta') && !pendingDocuments.akta.file" 
+                       :src="getPreviewUrl(getDocumentUrl('akta'))" 
                        class="w-full h-full absolute inset-0 border-none"
                     ></iframe>
-                    <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                       <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
-                       <p class="text-sm">{{ selectedItems.akta ? 'Dokumen tidak tersedia' : 'Pilih item untuk preview' }}</p>
+                    
+                    <!-- Pending Upload Preview -->
+                    <div v-else-if="pendingDocuments.akta.file && pendingDocuments.akta.preview" 
+                         class="w-full h-full flex flex-col">
+                       <iframe :src="pendingDocuments.akta.preview" class="flex-1 w-full border-none"></iframe>
+                       <div class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                          <div class="flex-1 min-w-0">
+                             <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ pendingDocuments.akta.file.name }}</p>
+                             <p class="text-xs text-slate-500">{{ formatFileSize(pendingDocuments.akta.file.size) }}</p>
+                          </div>
+                          <div class="flex gap-2 ml-4">
+                             <button @click="cancelDocumentUpload('akta')" :disabled="pendingDocuments.akta.uploading" class="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">Batal</button>
+                             <button @click="saveDocument('akta')" :disabled="pendingDocuments.akta.uploading" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                <i v-if="pendingDocuments.akta.uploading" class="fas fa-spinner fa-spin"></i>
+                                <i v-else class="fas fa-save"></i>
+                                {{ pendingDocuments.akta.uploading ? 'Menyimpan...' : 'Simpan' }}
+                             </button>
+                          </div>
+                       </div>
+                    </div>
+                    
+                    <!-- Upload State (No PDF) -->
+                    <div v-else 
+                         class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" 
+                         @click="$refs.aktaUploadInput.click()">
+                       <input ref="aktaUploadInput" type="file" accept="application/pdf" @change="handleDocumentSelect('akta', $event)" class="hidden" />
+                       <div class="w-20 h-20 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center text-orange-500 mb-4">
+                          <i class="fas fa-file-contract text-3xl"></i>
+                       </div>
+                       <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Upload Dokumen Akta</p>
+                       <p class="text-xs text-slate-500">Klik untuk pilih file PDF (Max 50MB)</p>
                     </div>
                  </div>
               </div>
@@ -753,11 +810,11 @@
          </div>
 
         <!-- 5. NIB, SBU, KTA, SERTIFIKAT TABS - Redesigned with Complete Info -->
-        <div v-if="['nib', 'sbu', 'kta', 'sertifikat'].includes(activeTab)" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div v-if="['nib', 'sbu', 'kta', 'sertifikat'].includes(activeTab) && subModules[activeTab]?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
            <!-- Left: Data List (7 cols) -->
            <div class="lg:col-span-7 space-y-4">
               <!-- Data Cards -->
-              <div v-if="subModules[activeTab]?.length > 0" class="space-y-3">
+              <div class="space-y-3">
                  <div v-for="(item, idx) in subModules[activeTab]" :key="idx" 
                       @click="selectItem(activeTab, item)"
                       class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
@@ -914,11 +971,6 @@
                  </div>
               </div>
               
-              <!-- Empty State -->
-              <div v-else class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
-                  <i :class="getTabIcon(activeTab)" class="text-4xl mb-3 opacity-30"></i>
-                  <p class="text-sm font-medium">Belum ada data {{ getTabLabel(activeTab) }}.</p>
-              </div>
            </div>
 
            <!-- Right: PDF Preview (5 cols) -->
@@ -934,23 +986,61 @@
                            {{ selectedItems[activeTab].nomor_nib || selectedItems[activeTab].nomor_registrasi_lpjk || selectedItems[activeTab].nomor_anggota || selectedItems[activeTab].nomor_sertifikat }}
                         </p>
                     </div>
-                    <div class="flex gap-2" v-if="getSelectedDocUrl(activeTab)">
-                       <a :href="getSelectedDocUrl(activeTab)" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
+                    <div class="flex gap-2">
+                       <button 
+                          v-if="getDocumentUrl(activeTab) && !pendingDocuments[activeTab]?.file" 
+                          @click="$refs[`${activeTab}UpdateInput`] && $refs[`${activeTab}UpdateInput`].click()"
+                          class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
+                       >
+                          <i class="fas fa-sync-alt"></i>
+                          <span>Perbarui</span>
+                       </button>
+                       <input :ref="`${activeTab}UpdateInput`" type="file" accept="application/pdf" @change="handleDocumentSelect(activeTab, $event)" class="hidden" />
+                       <a v-if="getDocumentUrl(activeTab) && !pendingDocuments[activeTab]?.file" :href="getDocumentUrl(activeTab)" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
                        </a>
                     </div>
                  </div>
                  
                  <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
+                    <!-- Existing PDF -->
                     <iframe 
-                       v-if="getSelectedDocUrl(activeTab)" 
-                       :key="`${activeTab}-${selectedItems[activeTab]?.id_sertifikat_standar || selectedItems[activeTab]?.id_nib || selectedItems[activeTab]?.id_sbu || selectedItems[activeTab]?.id_kta || selectedItems[activeTab]?.id_akta || Date.now()}`"
-                       :src="getPreviewUrl(getSelectedDocUrl(activeTab))" 
+                       v-if="getDocumentUrl(activeTab) && !pendingDocuments[activeTab]?.file" 
+                       :key="`${activeTab}-doc`"
+                       :src="getPreviewUrl(getDocumentUrl(activeTab))" 
                        class="w-full h-full absolute inset-0 border-none"
                     ></iframe>
-                    <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                       <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
-                       <p class="text-sm">{{ selectedItems[activeTab] ? 'Dokumen tidak tersedia' : 'Pilih item untuk preview' }}</p>
+                    
+                    <!-- Pending Upload Preview -->
+                    <div v-else-if="pendingDocuments[activeTab]?.file && pendingDocuments[activeTab]?.preview" 
+                         class="w-full h-full flex flex-col">
+                       <iframe :src="pendingDocuments[activeTab].preview" class="flex-1 w-full border-none"></iframe>
+                       <div class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                          <div class="flex-1 min-w-0">
+                             <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ pendingDocuments[activeTab].file.name }}</p>
+                             <p class="text-xs text-slate-500">{{ formatFileSize(pendingDocuments[activeTab].file.size) }}</p>
+                          </div>
+                          <div class="flex gap-2 ml-4">
+                             <button @click="cancelDocumentUpload(activeTab)" :disabled="pendingDocuments[activeTab].uploading" class="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">Batal</button>
+                             <button @click="saveDocument(activeTab)" :disabled="pendingDocuments[activeTab].uploading" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                <i v-if="pendingDocuments[activeTab].uploading" class="fas fa-spinner fa-spin"></i>
+                                <i v-else class="fas fa-save"></i>
+                                {{ pendingDocuments[activeTab].uploading ? 'Menyimpan...' : 'Simpan' }}
+                             </button>
+                          </div>
+                       </div>
+                    </div>
+                    
+                    <!-- Upload State (No PDF) -->
+                    <div v-else 
+                         class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" 
+                         @click="$refs[`${activeTab}UploadInput`] && $refs[`${activeTab}UploadInput`].click()">
+                       <input :ref="`${activeTab}UploadInput`" type="file" accept="application/pdf" @change="handleDocumentSelect(activeTab, $event)" class="hidden" />
+                       <div class="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-500 mb-4">
+                          <i :class="getTabIcon(activeTab)" class="text-3xl"></i>
+                       </div>
+                       <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Upload Dokumen {{ getTabLabel(activeTab) }}</p>
+                       <p class="text-xs text-slate-500">Klik untuk pilih file PDF (Max 50MB)</p>
                     </div>
                  </div>
               </div>
@@ -1479,7 +1569,10 @@ const getTabIcon = (id) => tabs.find(t => t.id === id)?.icon || 'fas fa-folder'
 const getTabData = (tabId) => subModules.value[tabId] || []
 
 // Get document URL from item (handles different field names per module)
-const getDocumentUrl = (item, tabId) => {
+const getSelectedDocUrl = (tabId) => {
+   const item = selectedItems.value[tabId]
+   if (!item) return ''
+   
    const urlMap = {
       akta: item.akta_perusahaan_url,
       nib: item.nib_url,
@@ -1496,12 +1589,6 @@ const getDocumentUrl = (item, tabId) => {
 // Select item for PDF preview
 const selectItem = (tabId, item) => {
    selectedItems.value[tabId] = item
-}
-
-// Get selected item's document URL
-const getSelectedDocUrl = (tabId) => {
-   const item = selectedItems.value[tabId]
-   return item ? getDocumentUrl(item, tabId) : ''
 }
 
 // Fetch Logic
@@ -1943,6 +2030,135 @@ const cancelCompanyProfileUpload = () => {
    if (!isUploadingCompanyProfile.value) {
       pendingCompanyProfileFile.value = null
       pendingCompanyProfilePreview.value = ''
+   }
+}
+
+// === GENERIC DOCUMENT UPLOAD SYSTEM ===
+// State for all document uploads (Akta, NIB, SBU, KTA, Sertifikat, Kontrak, Cek)
+const pendingDocuments = ref({
+   akta: { file: null, preview: '', uploading: false },
+   nib: { file: null, preview: '', uploading: false },
+   sbu: { file: null, preview: '', uploading: false },
+   kta: { file: null, preview: '', uploading: false },
+   sertifikat: { file: null, preview: '', uploading: false },
+   kontrak: { file: null, preview: '', uploading: false },
+   cek: { file: null, preview: '', uploading: false }
+})
+
+// Handle document file selection
+const handleDocumentSelect = (documentType, event) => {
+   const file = event.target.files[0]
+   if (file) {
+      // Validate file type
+      if (file.type !== 'application/pdf') {
+         toast.error('File harus berformat PDF')
+         event.target.value = ''
+         return
+      }
+      
+      // Validate file size (50MB max)
+      const maxSize = 50 * 1024 * 1024
+      if (file.size > maxSize) {
+         toast.error('Ukuran file terlalu besar. Maksimal 50MB')
+         event.target.value = ''
+         return
+      }
+      
+      // Set pending file
+      pendingDocuments.value[documentType].file = file
+      
+      // Create preview URL
+      const fileURL = URL.createObjectURL(file)
+      pendingDocuments.value[documentType].preview = getPreviewUrl(fileURL)
+      
+      // Reset input
+      event.target.value = ''
+   }
+}
+
+// Save document
+const saveDocument = async (documentType) => {
+   const doc = pendingDocuments.value[documentType]
+   
+   if (!doc.file) {
+      toast.warning('Tidak ada file untuk disimpan')
+      return
+   }
+   
+   console.log(`📤 Starting ${documentType} upload...`)
+   doc.uploading = true
+   
+   try {
+      const formData = new FormData()
+      formData.append(documentType, doc.file)
+      formData.append('nama_perusahaan', company.value.nama_perusahaan)
+      formData.append('status', company.value.status || 'Pusat')
+      formData.append('tahun_berdiri', company.value.tahun_berdiri || '')
+      formData.append('email', company.value.email || '')
+      formData.append('no_telp', company.value.no_telp || '')
+      formData.append('alamat', company.value.alamat || '')
+      
+      console.log(`📋 Uploading ${documentType}:`, doc.file.name)
+      
+      const url = `${apiBaseUrl}/companies/${companyId}`
+      const response = await fetch(url, {
+         method: 'PUT',
+         body: formData
+      })
+      
+      console.log(`📥 Response status:`, response.status)
+      
+      if (!response.ok) {
+         const errorText = await response.text()
+         console.error('❌ Response error:', errorText)
+         throw new Error(`Server error: ${response.status}`)
+      }
+      
+      const result = await response.json()
+      console.log('✅ Response data:', result)
+      
+      toast.success(`Dokumen ${documentType.toUpperCase()} berhasil disimpan!`)
+      
+      // Clear pending state
+      doc.file = null
+      doc.preview = ''
+      
+      // Refresh company data
+      console.log('🔄 Refreshing company data...')
+      await fetchCompanyDetail()
+      console.log('✅ Upload complete!')
+      
+   } catch (error) {
+      console.error(`❌ Error saving ${documentType}:`, error)
+      toast.error(`Gagal menyimpan ${documentType}: ` + error.message)
+   } finally {
+      doc.uploading = false
+   }
+}
+
+// Get document URL from company data
+const getDocumentUrl = (documentType) => {
+   if (!company.value) return ''
+   
+   const urlMap = {
+      akta: company.value.akta_perusahaan_url,
+      nib: company.value.nib_url,
+      sbu: company.value.sbu_url,
+      kta: company.value.kta_url,
+      sertifikat: company.value.sertifikat_standar_url,
+      kontrak: company.value.kontrak_url,
+      cek: company.value.cek_url
+   }
+   
+   return urlMap[documentType] || ''
+}
+
+// Cancel document upload
+const cancelDocumentUpload = (documentType) => {
+   const doc = pendingDocuments.value[documentType]
+   if (!doc.uploading) {
+      doc.file = null
+      doc.preview = ''
    }
 }
 

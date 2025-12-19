@@ -562,6 +562,57 @@ async function uploadCompanyProfileToDrive(file, namaPerusahaan, folderNumber) {
   return result;
 }
 
+/**
+ * Generic helper function to upload company document to Google Drive
+ * Handles: Akta, NIB, SBU, KTA, Sertifikat, Kontrak (Pengalaman), Cek
+ */
+async function uploadDocumentToDrive(file, namaPerusahaan, folderNumber, documentType) {
+  const basePerusahaanFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+  
+  if (!basePerusahaanFolderId) {
+    throw new Error('GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env');
+  }
+
+  const companyIndex = parseInt(folderNumber, 10); // "01" -> 1, "02" -> 2
+  
+  // Document configuration map
+  const docConfig = {
+    akta: { index: '2', name: 'Akta Perusahaan' },
+    nib: { index: '3', name: 'Nomor Induk Berusaha' },
+    sbu: { index: '4', name: 'Sertifikat Badan Usaha' },
+    kta: { index: '5', name: 'Kartu Tanda Anggota' },
+    sertifikat: { index: '6', name: 'Sertifikat Standar' },
+    kontrak: { index: '8', name: 'Kontrak Pengalaman' },
+    cek: { index: '9', name: 'Surat Referensi Bank' }
+  };
+
+  const config = docConfig[documentType];
+  if (!config) {
+    throw new Error(`Unknown document type: ${documentType}`);
+  }
+
+  // Folder structure: [folderNumber. namaPerusahaan]/[companyIndex].[index] [name]/[fileName]
+  const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
+  const subfolderName = `${companyIndex}.${config.index} ${config.name}`;
+  const fileName = `${config.name} ${namaPerusahaan}.pdf`;
+  const folderPath = [companyFolderName, subfolderName];
+
+  // Read file as buffer
+  const fs = await import('fs/promises');
+  const fileBuffer = await fs.readFile(file.path);
+
+  // Upload using oauth2GoogleService
+  const result = await oauth2GoogleService.uploadPdfFile(
+    fileBuffer,
+    fileName,
+    'application/pdf',
+    folderPath,
+    basePerusahaanFolderId
+  );
+
+  return result;
+}
+
 export const updateCompany = async (req, res) => {
   try {
     const { id } = req.params;
@@ -574,11 +625,27 @@ export const updateCompany = async (req, res) => {
     const logoFile = req.files?.logo?.[0];
     const kopFile = req.files?.kop?.[0];
     const companyProfileFile = req.files?.companyProfile?.[0];
+    const aktaFile = req.files?.akta?.[0];
+    const nibFile = req.files?.nib?.[0];
+    const sbuFile = req.files?.sbu?.[0];
+    const ktaFile = req.files?.kta?.[0];
+    const sertifikatFile = req.files?.sertifikat?.[0];
+    const kontrakFile = req.files?.kontrak?.[0];
+    const cekFile = req.files?.cek?.[0];
 
     console.log('📄 Update payload:', { nama_perusahaan, no_telp, email, year: tahun_berdiri, status });
     console.log('📷 New logo:', logoFile ? 'Yes' : 'No');
     console.log('🖼️  New kop:', kopFile ? 'Yes' : 'No');
     console.log('📋 New company profile PDF:', companyProfileFile ? 'Yes' : 'No');
+    console.log('📜 New documents:', {
+      akta: aktaFile ? 'Yes' : 'No',
+      nib: nibFile ? 'Yes' : 'No',
+      sbu: sbuFile ? 'Yes' : 'No',
+      kta: ktaFile ? 'Yes' : 'No',
+      sertifikat: sertifikatFile ? 'Yes' : 'No',
+      kontrak: kontrakFile ? 'Yes' : 'No',
+      cek: cekFile ? 'Yes' : 'No'
+    });
 
     // 1. Get all companies to find folder number (needed for Drive upload)
     // We need folder number to upload to correct Drive folder: "[No]. [Nama Perusahaan]"
@@ -603,6 +670,13 @@ export const updateCompany = async (req, res) => {
     let logoDriveUrl = existingCompany.logo_perusahaan;
     let kopDriveUrl = existingCompany.kop_perusahaan;
     let companyProfileUrl = existingCompany.profil_perusahaan_url;
+    let aktaUrl = existingCompany.akta_perusahaan_url;
+    let nibUrl = existingCompany.nib_url;
+    let sbuUrl = existingCompany.sbu_url;
+    let ktaUrl = existingCompany.kta_url;
+    let sertifikatUrl = existingCompany.sertifikat_standar_url;
+    let kontrakUrl = existingCompany.kontrak_url;
+    let cekUrl = existingCompany.cek_url;
 
     // 2. Upload New Logo if provided
     if (logoFile) {
@@ -669,8 +743,45 @@ export const updateCompany = async (req, res) => {
       }
     }
 
+    // 5. Upload All Other Documents if provided
+    const documentTypes = [
+      { file: aktaFile, type: 'akta', urlVar: 'aktaUrl', label: 'Akta' },
+      { file: nibFile, type: 'nib', urlVar: 'nibUrl', label: 'NIB' },
+      { file: sbuFile, type: 'sbu', urlVar: 'sbuUrl', label: 'SBU' },
+      { file: ktaFile, type: 'kta', urlVar: 'ktaUrl', label: 'KTA' },
+      { file: sertifikatFile, type: 'sertifikat', urlVar: 'sertifikatUrl', label: 'Sertifikat' },
+      { file: kontrakFile, type: 'kontrak', urlVar: 'kontrakUrl', label: 'Kontrak' },
+      { file: cekFile, type: 'cek', urlVar: 'cekUrl', label: 'Cek' }
+    ];
+
+    for (const doc of documentTypes) {
+      if (doc.file) {
+        console.log(`📤 Processing new ${doc.label} document...`);
+        try {
+          const result = await uploadDocumentToDrive(
+            doc.file,
+            nama_perusahaan || existingCompany.nama_perusahaan,
+            folderNumber,
+            doc.type
+          );
+          // Dynamically set the URL variable
+          if (doc.urlVar === 'aktaUrl') aktaUrl = result.webViewLink;
+          else if (doc.urlVar === 'nibUrl') nibUrl = result.webViewLink;
+          else if (doc.urlVar === 'sbuUrl') sbuUrl = result.webViewLink;
+          else if (doc.urlVar === 'ktaUrl') ktaUrl = result.webViewLink;
+          else if (doc.urlVar === 'sertifikatUrl') sertifikatUrl = result.webViewLink;
+          else if (doc.urlVar === 'kontrakUrl') kontrakUrl = result.webViewLink;
+          else if (doc.urlVar === 'cekUrl') cekUrl = result.webViewLink;
+          
+          console.log(`✅ Google Drive ${doc.label} updated:`, result.webViewLink);
+        } catch (docError) {
+          console.error(`❌ Google Drive ${doc.label} upload failed:`, docError.message);
+        }
+      }
+    }
+
     // Clean up temporary files
-    const filesToCleanup = [logoFile, kopFile, companyProfileFile].filter(Boolean);
+    const filesToCleanup = [logoFile, kopFile, companyProfileFile, aktaFile, nibFile, sbuFile, ktaFile, sertifikatFile, kontrakFile, cekFile].filter(Boolean);
     for (const file of filesToCleanup) {
       if (file?.path) {
         try {
@@ -692,7 +803,14 @@ export const updateCompany = async (req, res) => {
       logo_cloud: logoCloudUrl,
       logo_perusahaan: logoDriveUrl,
       kop_perusahaan: kopDriveUrl,
-      profil_perusahaan_url: companyProfileUrl
+      profil_perusahaan_url: companyProfileUrl,
+      akta_perusahaan_url: aktaUrl,
+      nib_url: nibUrl,
+      sbu_url: sbuUrl,
+      kta_url: ktaUrl,
+      sertifikat_standar_url: sertifikatUrl,
+      kontrak_url: kontrakUrl,
+      cek_url: cekUrl
     };
 
     console.log('💾 Saving updates to database...');

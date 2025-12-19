@@ -64,7 +64,14 @@ router.post('/', upload.fields([
 router.put('/:id', upload.fields([
   { name: 'logo', maxCount: 1 },
   { name: 'kop', maxCount: 1 },
-  { name: 'companyProfile', maxCount: 1 }
+  { name: 'companyProfile', maxCount: 1 },
+  { name: 'akta', maxCount: 1 },
+  { name: 'nib', maxCount: 1 },
+  { name: 'sbu', maxCount: 1 },
+  { name: 'kta', maxCount: 1 },
+  { name: 'sertifikat', maxCount: 1 },
+  { name: 'kontrak', maxCount: 1 },
+  { name: 'cek', maxCount: 1 }
 ]), companyController.updateCompany);
 
 // Delete company by ID
