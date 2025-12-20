@@ -14,7 +14,7 @@
             <span class="text-xs font-bold text-blue-700 dark:text-blue-300 tracking-wider">SYSTEM ONLINE</span>
           </div>
           <h1 class="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
-            KPN <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">FAST</span>
+            KPN <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">FAST</span> PMBOK
           </h1>
           <p class="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl">
             Future Accurate Smart Tender — Integrated Engineering & Automation System.

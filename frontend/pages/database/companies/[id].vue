@@ -159,52 +159,7 @@
                        </div>
                     </div>
                  </div>
-              </div>
-
-              <!-- Kualifikasi KBLI Section (Scrollable with Sticky Header) -->
-              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden flex flex-col h-[45vh] min-h-[250px]">
-                 <!-- Sticky Header -->
-                 <div class="sticky top-0 z-20 bg-white dark:bg-slate-800 px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between shadow-sm">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">KUALIFIKASI KBLI</h3>
-                    <span v-if="subModules.kbli?.length" class="text-[10px] font-bold px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-full">
-                       {{ subModules.kbli.length }} ITEMS
-                    </span>
-                 </div>
-                 
-                 <!-- Scrollable Content -->
-                 <div class="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/30 dark:bg-slate-900/10">
-                    <div v-if="subModules.kbli?.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-2">
-                        <div v-for="kbli in subModules.kbli" :key="kbli.id_perusahaan_kbli" 
-                             class="group relative p-4 rounded-xl border border-slate-100 dark:border-slate-700/50 bg-white dark:bg-slate-800 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-300">
-                             
-                             <!-- Active/Primary Indicator -->
-                             <div v-if="kbli.is_primary === 'true'" class="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" title="KBLI Utama"></div>
-
-                             <div class="flex items-start gap-3">
-                                <div class="px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded text-[10px] font-mono font-bold shrink-0 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors">
-                                   {{ kbli.kode_kbli }}
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                   <h4 class="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight mb-1 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors line-clamp-2" :title="kbli.nama_klasifikasi">
-                                      {{ kbli.nama_klasifikasi || 'Klasifikasi KBLI' }}
-                                   </h4>
-                                   <div v-if="kbli.is_primary === 'true'" class="inline-flex items-center gap-1 mt-1">
-                                      <i class="fas fa-star text-[8px] text-amber-400"></i>
-                                      <span class="text-[9px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Primary</span>
-                                   </div>
-                                </div>
-                             </div>
-                        </div>
-                    </div>
-                    <div v-else class="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed border-slate-100 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-800/50">
-                        <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3">
-                            <i class="fas fa-tags text-slate-300 dark:text-slate-500 text-xl"></i>
-                        </div>
-                        <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Belum ada data KBLI terdaftar.</p>
-                    </div>
-                 </div>
-              </div>
-           </div>
+              </div></div>
 
            <!-- Right Column: Profile Document Preview (Adjusted Height) -->
             <div class="lg:col-span-5 flex flex-col h-full">
@@ -300,8 +255,8 @@
             </div>
          </div>
         
-        <!-- GENERIC EMPTY STATE (Except Overview & Pajak) - 2 Column Layout -->
-        <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- GENERIC EMPTY STATE (Except Overview, Pajak, Pejabat, Kontrak, Cek, BPJS) - 2 Column Layout -->
+        <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && activeTab !== 'pejabat' && activeTab !== 'kontrak' && activeTab !== 'cek' && activeTab !== 'bpjs' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
            <!-- Left: Empty State Message (7 cols) -->
            <div class="lg:col-span-7">
               <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
@@ -339,11 +294,7 @@
               <!-- Data Cards -->
               <div class="space-y-3">
                  <div v-for="item in subModules.akta" :key="item.id_akta" 
-                      @click="selectItem('akta', item)"
-                      class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-                      :class="selectedItems.akta?.id_akta === item.id_akta 
-                         ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20' 
-                         : 'border-slate-200 dark:border-slate-700'">
+                      class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md">
                     
                     <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
                         <div class="flex items-center gap-3">
@@ -374,9 +325,7 @@
                        </div>
                     </div>
 
-                    <div v-if="selectedItems.akta?.id_akta === item.id_akta" class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold">
-                       <i class="fas fa-check-circle"></i> <span>PREVIEWING DOCUMENT</span>
-                    </div>
+
                  </div>
               </div>
            </div>
@@ -452,9 +401,10 @@
            </div>
         </div>
 
-        <!-- 2. PEJABAT TAB (Renamed from Pengurus) -->
-        <div v-if="activeTab === 'pejabat' && subModules.pejabat?.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-           <div v-for="item in subModules.pejabat" :key="item.id_pejabat" class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-cyan-400 transition-all group relative overflow-hidden">
+        <!-- 2. PEJABAT TAB (Always show grid with Add Official card) -->
+        <div v-if="activeTab === 'pejabat'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+           <!-- Existing Pejabat Cards -->
+           <div v-for="item in subModules.pejabat || []" :key="item.id_pejabat" class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-cyan-400 transition-all group relative overflow-hidden">
               <div class="absolute top-0 right-0 p-4 opacity-5"><i class="fas fa-user-tie text-6xl"></i></div>
               <div class="flex items-center gap-4 mb-4 relative z-10">
                  <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-400 ring-2 ring-white dark:ring-slate-800 shadow-sm">
@@ -465,7 +415,21 @@
                     <h4 class="font-bold text-slate-800 dark:text-white truncate" :title="item.nama_lengkap">{{ item.nama_lengkap || 'NAMA PERSONEL' }}</h4>
                  </div>
               </div>
+           </div>
 
+           <!-- Add Pejabat Card (Always Shown) -->
+           <div 
+              @click="openAddPejabatModal" 
+              class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-dashed border-green-300 dark:border-green-700 p-5 hover:border-green-500 dark:hover:border-green-500 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden"
+           >
+              <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fas fa-user-plus text-6xl text-green-600"></i></div>
+              <div class="flex flex-col items-center justify-center h-full min-h-[100px] relative z-10 text-center">
+                 <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 mb-3 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-plus text-xl"></i>
+                 </div>
+                 <h4 class="font-bold text-green-700 dark:text-green-400 text-sm">Tambah Pejabat</h4>
+                 <p class="text-xs text-green-600 dark:text-green-500 mt-1">Klik untuk menambahkan</p>
+              </div>
            </div>
         </div>
 
@@ -727,7 +691,7 @@
          </div>
 
          <!-- 4.5 CEK (BANK CHECKS) TAB - Simplified Layout -->
-         <div v-else-if="activeTab === 'cek'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+         <div v-if="activeTab === 'cek'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <!-- Left: Cek List (7 cols) -->
             <div class="lg:col-span-7 space-y-4">
                <div v-if="subModules.cek?.length > 0" class="space-y-3">
@@ -810,7 +774,7 @@
          </div>
 
          <!-- 4.6 BPJS TAB - Simplified Layout -->
-         <div v-else-if="activeTab === 'bpjs'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+         <div v-if="activeTab === 'bpjs'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <!-- Left: BPJS List (7 cols) -->
             <div class="lg:col-span-7 space-y-4">
                <div v-if="subModules.bpjs?.length > 0" class="space-y-3">
@@ -904,12 +868,17 @@
               <!-- Data Cards -->
               <div class="space-y-3">
                  <div v-for="(item, idx) in subModules[activeTab]" :key="idx" 
-                      @click="selectItem(activeTab, item)"
-                      class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-                      :class="selectedItems[activeTab] === item 
-                         ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20' 
-                         : 'border-slate-200 dark:border-slate-700'">
+                       @click="activeTab === 'sertifikat' ? selectItem(activeTab, item) : null"
+                       class="bg-white dark:bg-slate-800 rounded-xl border-2 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
+                       :class="[
+                          activeTab === 'sertifikat' && selectedItems[activeTab] === item 
+                             ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20 cursor-pointer' 
+                             : 'border-slate-200 dark:border-slate-700',
+                          activeTab === 'sertifikat' ? 'cursor-pointer p-6' : '',
+                          activeTab === 'nib' ? 'h-[calc(100vh-150px)] sticky top-24 flex flex-col p-0 overflow-hidden' : 'p-6'
+                       ]">
                     
+                    <div :class="activeTab === 'nib' ? 'p-6 pb-0 shrink-0 bg-white dark:bg-slate-800 z-10' : ''">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0">
                            <i :class="getTabIcon(activeTab)"></i>
@@ -936,6 +905,51 @@
                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Skala Usaha</div>
                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.skala_usaha || '-' }}</div>
                        </div>
+                    </div>
+                     
+                     </div>
+
+                     <!-- KBLI Qualifications Section (Now in NIB Tab) -->
+                     <div v-if="activeTab === 'nib'" class="flex-1 overflow-y-auto custom-scrollbar px-6 pb-6 bg-slate-50/30 dark:bg-slate-900/10 inner-shadow"><div class="mt-4">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
+                           <span>Kualifikasi KBLI</span>
+                           <span v-if="subModules.kbli?.length" class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-full">
+                              {{ subModules.kbli.length }} ITEMS
+                           </span>
+                        </h4>
+                        <!-- Changed to Grid Layout (2 Columns) -->
+                        <div v-if="subModules.kbli?.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                           <div v-for="kbli in subModules.kbli" :key="kbli.id_perusahaan_kbli" 
+                                class="group relative p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-300">
+                                
+                                <!-- Active/Primary Indicator -->
+                                <div v-if="kbli.is_primary === 'true'" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" title="KBLI Utama"></div>
+
+                                <div class="flex items-start gap-2">
+                                   <!-- Code Badge: Text becomes blue on card hover -->
+                                   <div class="px-2 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded text-[10px] font-mono font-bold shrink-0 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors">
+                                      {{ kbli.kode_kbli }}
+                                   </div>
+                                   <div class="flex-1 min-w-0">
+                                      <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight transition-colors" :title="kbli.nama_klasifikasi">
+                                         {{ kbli.nama_klasifikasi || 'Klasifikasi KBLI' }}
+                                      </h5>
+                                      <div v-if="kbli.is_primary === 'true'" class="inline-flex items-center gap-1 mt-0.5">
+                                         <i class="fas fa-star text-[8px] text-amber-400"></i>
+                                         <span class="text-[9px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Primary</span>
+                                      </div>
+                                   </div>
+                                </div>
+                           </div>
+                        </div>
+                        <div v-else class="flex flex-col items-center justify-center py-6 text-center border border-dashed border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:border-slate-800/30">
+                           <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-2">
+                              <i class="fas fa-tags text-slate-300 dark:text-slate-500 text-lg"></i>
+                           </div>
+                           <p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Belum ada data KBLI terdaftar.</p>
+                        </div>
+                     </div>
+
                     </div>
 
                     <!-- SBU Specific Fields -->
@@ -1052,8 +1066,8 @@
                        </div>
                     </div>
 
-                    <!-- Selection Indicator -->
-                    <div v-if="selectedItems[activeTab] === item" class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold">
+                     <!-- Selection Indicator (Only for Sertifikat) -->
+                     <div v-if="activeTab === 'sertifikat' && selectedItems[activeTab] === item" class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold">
                        <i class="fas fa-check-circle"></i> <span>PREVIEWING DOCUMENT</span>
                     </div>
                  </div>
@@ -1486,6 +1500,102 @@
       </template>
     </BaseModal>
 
+    <!-- Add Pejabat Modal -->
+    <BaseModal :show="showAddPejabatModal" @close="closeAddPejabatModal" maxWidth="2xl" title="Tambah Pejabat">
+      <template #default>
+        <div class="space-y-6">
+          <!-- Select Personil -->
+          <div class="group">
+            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+              <i class="fas fa-user text-slate-400 mr-2"></i>
+              Pilih Personil <span class="text-red-500">*</span>
+            </label>
+            <select 
+              v-model="pejabatFormData.id_personel"
+              class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
+              :class="pejabatFormData.id_personel ? 'text-slate-900 dark:text-white' : 'text-slate-400'"
+            >
+              <option value="" disabled>-- Pilih Personil --</option>
+              <option v-for="person in personilList" :key="person.id_personel" :value="person.id_personel">
+                {{ person.nama_lengkap }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Jenis Jabatan (Radio Button) -->
+          <div class="group">
+            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">
+              <i class="fas fa-briefcase text-slate-400 mr-2"></i>
+              Jenis Jabatan <span class="text-red-500">*</span>
+            </label>
+            
+            <div class="space-y-3">
+              <!-- Radio: Direktur -->
+              <label class="flex items-start gap-3 p-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-cyan-400 dark:hover:border-cyan-500 transition-all"
+                     :class="jabatanType === 'direktur' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' : 'bg-white dark:bg-slate-800'">
+                <input 
+                  type="radio" 
+                  v-model="jabatanType" 
+                  value="direktur"
+                  class="mt-1 w-4 h-4 text-cyan-600 focus:ring-cyan-500"
+                />
+                <div class="flex-1">
+                  <div class="font-bold text-slate-800 dark:text-white text-sm">Direktur</div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Jabatan standar: Direktur</div>
+                </div>
+              </label>
+
+              <!-- Radio: Custom -->
+              <label class="flex items-start gap-3 p-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-cyan-400 dark:hover:border-cyan-500 transition-all"
+                     :class="jabatanType === 'custom' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' : 'bg-white dark:bg-slate-800'">
+                <input 
+                  type="radio" 
+                  v-model="jabatanType" 
+                  value="custom"
+                  class="mt-1 w-4 h-4 text-cyan-600 focus:ring-cyan-500"
+                />
+                <div class="flex-1">
+                  <div class="font-bold text-slate-800 dark:text-white text-sm">Jabatan Lainnya</div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Tentukan jabatan sendiri</div>
+                </div>
+              </label>
+
+              <!-- Custom Jabatan Input (shown when custom is selected) -->
+              <div v-if="jabatanType === 'custom'" class="ml-7 mt-2">
+                <input 
+                  v-model="pejabatFormData.jabatan_custom"
+                  type="text"
+                  placeholder="Contoh: Komisaris, Wakil Direktur, dll."
+                  class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex items-center justify-end gap-3">
+          <button 
+            @click="closeAddPejabatModal"
+            :disabled="isSubmittingPejabat"
+            class="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+          >
+            Batal
+          </button>
+          <button 
+            @click="savePejabat"
+            :disabled="isSubmittingPejabat || !canSavePejabat"
+            class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-xl shadow-md hover:shadow-lg hover:shadow-cyan-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <i v-if="isSubmittingPejabat" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ isSubmittingPejabat ? 'Menyimpan...' : 'Simpan' }}
+          </button>
+        </div>
+      </template>
+    </BaseModal>
+
     <!-- Modals (Simplified for Layout Demo) -->
 
   </div>
@@ -1531,6 +1641,16 @@ const selectedPkp = ref(null)
 // KSWP Modal state
 const showKswpModal = ref(false)
 const selectedKswp = ref(null)
+
+// Add Pejabat Modal state
+const showAddPejabatModal = ref(false)
+const personilList = ref([])
+const jabatanType = ref('direktur') // 'direktur' or 'custom'
+const pejabatFormData = ref({
+   id_personel: '',
+   jabatan_custom: ''
+})
+const isSubmittingPejabat = ref(false)
 
 
 // Selected items for PDF preview (per tab)
@@ -1676,6 +1796,7 @@ const getSelectedDocUrl = (tabId) => {
    }
    return urlMap[tabId] || item.url_dokumen || item.kontrak_url || ''
 }
+
 
 // Select item for PDF preview
 const selectItem = (tabId, item) => {
@@ -2142,6 +2263,114 @@ const cancelCompanyProfileUpload = () => {
    }
 }
 
+// === ADD PEJABAT MODAL ===
+// Fetch personil list for selection
+const fetchPersonilList = async () => {
+   try {
+      const res = await fetch(`${apiBaseUrl}/personnel`)
+      if (res.ok) {
+         personilList.value = await res.json()
+         console.log('✅ Personil list loaded:', personilList.value.length, 'items')
+      } else {
+         console.error('Failed to fetch personnel:', res.status, res.statusText)
+         toast.error('Gagal memuat daftar personil')
+      }
+   } catch (e) {
+      console.error('Error fetching personil list:', e)
+      toast.error('Gagal memuat daftar personil')
+   }
+}
+
+// Open Add Pejabat Modal
+const openAddPejabatModal = async () => {
+   // Fetch personil list if not loaded
+   if (personilList.value.length === 0) {
+      await fetchPersonilList()
+   }
+   
+   // Reset form
+   jabatanType.value = 'direktur'
+   pejabatFormData.value = {
+      id_personel: '',
+      jabatan_custom: ''
+   }
+   
+   showAddPejabatModal.value = true
+}
+
+// Close Add Pejabat Modal
+const closeAddPejabatModal = () => {
+   if (!isSubmittingPejabat.value) {
+      showAddPejabatModal.value = false
+      jabatanType.value = 'direktur'
+      pejabatFormData.value = {
+         id_personel: '',
+         jabatan_custom: ''
+      }
+   }
+}
+
+// Validation computed property
+const canSavePejabat = computed(() => {
+   if (!pejabatFormData.value.id_personel) return false
+   if (jabatanType.value === 'custom' && !pejabatFormData.value.jabatan_custom.trim()) return false
+   return true
+})
+
+// Save Pejabat
+const savePejabat = async () => {
+   if (!canSavePejabat.value) {
+      toast.warning('Mohon lengkapi semua field yang diperlukan')
+      return
+   }
+   
+   isSubmittingPejabat.value = true
+   
+   try {
+      // Prepare data
+      const data = {
+         id_perusahaan: companyId,
+         id_personel: pejabatFormData.value.id_personel
+      }
+      
+      // Add jabatan based on type
+      if (jabatanType.value === 'direktur') {
+         data.jenis_jabatan = 'Direktur'
+         data.jabatan_custom = ''
+      } else {
+         data.jenis_jabatan = ''
+         data.jabatan_custom = pejabatFormData.value.jabatan_custom.trim()
+      }
+      
+      console.log('📤 Saving pejabat:', data)
+      
+      const res = await fetch(`${apiBaseUrl}/companies/${companyId}/pejabat`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify(data)
+      })
+      
+      if (!res.ok) {
+         const errData = await res.json()
+         throw new Error(errData.message || 'Gagal menyimpan pejabat')
+      }
+      
+      toast.success('Pejabat berhasil ditambahkan!')
+      
+      // Close modal
+      closeAddPejabatModal()
+      
+      // Refresh pejabat data
+      await fetchPejabat()
+      
+   } catch (error) {
+      console.error('❌ Error saving pejabat:', error)
+      toast.error('Gagal menambahkan pejabat: ' + error.message)
+   } finally {
+      isSubmittingPejabat.value = false
+   }
+}
+
 // === GENERIC DOCUMENT UPLOAD SYSTEM ===
 // State for all document uploads (Akta, NIB, SBU, KTA, Sertifikat, Kontrak, Cek)
 const pendingDocuments = ref({
@@ -2246,18 +2475,34 @@ const saveDocument = async (documentType) => {
    }
 }
 
-// Get document URL from company data
+
+// Get document URL from company data or selected item
 const getDocumentUrl = (documentType) => {
+   // For tabs with multiple items, get URL from selected item
+   const multiItemTabs = ['akta', 'nib', 'sbu', 'kta', 'sertifikat']
+   
+   if (multiItemTabs.includes(documentType)) {
+      const item = selectedItems.value[documentType]
+      if (item) {
+         const itemUrlMap = {
+            akta: item.akta_perusahaan_url,
+            nib: item.nib_url,
+            sbu: item.sbu_url,
+            kta: item.kta_url,
+            sertifikat: item.sertifikat_standar_url
+         }
+         return itemUrlMap[documentType] || ''
+      }
+      return ''
+   }
+   
+   // For single-item tabs, get from company data
    if (!company.value) return ''
    
    const urlMap = {
-      akta: company.value.akta_perusahaan_url,
-      nib: company.value.nib_url,
-      sbu: company.value.sbu_url,
-      kta: company.value.kta_url,
-      sertifikat: company.value.sertifikat_standar_url,
       kontrak: company.value.kontrak_url,
-      cek: company.value.cek_url
+      cek: company.value.cek_url,
+      bpjs: company.value.bpjs_url
    }
    
    return urlMap[documentType] || ''
