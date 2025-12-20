@@ -112,13 +112,37 @@ export const getCompanyPejabat = async (req, res) => {
   }
 };
 
-// GET /api/companies/:id/nib
+// GET /api/companies/:id/nib (includes KBLI data)
 export const getCompanyNib = async (req, res) => {
   try {
     const { id } = req.params;
-    const nibData = await googleSheetsService.getSheetData('db_nib');
-    const filtered = nibData.filter(item => item.id_perusahaan === id);
-    res.json(filtered);
+    
+    // Fetch NIB and KBLI data in parallel
+    const [nibData, kbliRelData, masterKbliData] = await Promise.all([
+      googleSheetsService.getSheetData('db_nib'),
+      googleSheetsService.getSheetData('db_perusahaan_kbli'),
+      googleSheetsService.getKbliMasterData()
+    ]);
+    
+    // Filter NIB for this company
+    const filteredNib = nibData.filter(item => item.id_perusahaan === id);
+    
+    // Filter and enrich KBLI data
+    const companyKbli = kbliRelData.filter(item => item.id_perusahaan === id);
+    const enrichedKbli = companyKbli.map(item => {
+      const master = masterKbliData.find(m => m.kode_kbli === item.kode_kbli);
+      return {
+        ...item,
+        judul_kbli: master ? master.nama_klasifikasi : 'Unknown KBLI',
+        id_kbli: item.id || item.kode_kbli // Ensure unique ID
+      };
+    });
+    
+    // Return combined response
+    res.json({
+      nib: filteredNib,
+      kbli: enrichedKbli
+    });
   } catch (error) {
     console.error('Error in getCompanyNib:', error);
     res.status(500).json({ success: false, message: error.message });
