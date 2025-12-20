@@ -83,7 +83,7 @@
       <div v-else class="animate-fade-in-up">
 
         <!-- OVERVIEW TAB (Redesigned) -->
-        <div v-if="activeTab === 'overview' && company" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div v-if="activeTab === 'overview' && company" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            
            <!-- Left Column: Company Info & KBLI (Wider: 7 cols) -->
            <div class="lg:col-span-7 space-y-6">
@@ -159,11 +159,60 @@
                        </div>
                     </div>
                  </div>
-              </div></div>
+              </div>
+
+              <!-- Pejabat Section (Moved from tab) -->
+              <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+                 <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-bold text-slate-700 dark:text-slate-200 text-lg flex items-center gap-2">
+                       <i class="fas fa-user-tie text-cyan-500"></i>
+                       Pejabat Perusahaan
+                    </h3>
+                    <span class="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full">{{ subModules.pejabat?.length || 0 }} Pejabat</span>
+                 </div>
+
+                 <!-- Scrollable Container -->
+                 <div class="max-h-[400px] overflow-y-auto pr-2 -mr-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                       <!-- Existing Pejabat Cards -->
+                       <div v-for="item in subModules.pejabat || []" :key="item.id_pejabat" class="bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600 p-4 hover:border-cyan-400 transition-all group relative overflow-hidden">
+                          <div class="absolute top-0 right-0 p-3 opacity-5"><i class="fas fa-user-tie text-5xl"></i></div>
+                          <div class="flex items-center gap-3 mb-3 relative z-10">
+                             <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-500 dark:text-slate-300 ring-2 ring-white dark:ring-slate-700 shadow-sm text-sm">
+                                {{ getInitials(item.nama_lengkap || 'Personel') }}
+                             </div>
+                             <div class="flex-1 min-w-0">
+                                <div class="text-[10px] font-bold text-cyan-600 uppercase bg-cyan-50 dark:bg-cyan-900/20 px-2 py-0.5 rounded inline-block mb-1">{{ item.jenis_jabatan || item.jabatan_custom || 'JABATAN' }}</div>
+                                <h4 class="font-bold text-slate-800 dark:text-white truncate text-sm" :title="item.nama_lengkap">{{ item.nama_lengkap || 'NAMA PERSONEL' }}</h4>
+                             </div>
+                          </div>
+                       </div>
+
+                       <!-- Add Pejabat Card -->
+                       <div 
+                          @click="openAddPejabatModal" 
+                          class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-dashed border-green-300 dark:border-green-700 p-4 hover:border-green-500 dark:hover:border-green-500 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden min-h-[80px] flex items-center justify-center"
+                       >
+                          <div class="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fas fa-user-plus text-5xl text-green-600"></i></div>
+                          <div class="flex items-center gap-3 relative z-10">
+                             <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
+                                <i class="fas fa-plus text-lg"></i>
+                             </div>
+                             <div>
+                                <h4 class="font-bold text-green-700 dark:text-green-400 text-sm">Tambah Pejabat</h4>
+                                <p class="text-xs text-green-600 dark:text-green-500">Klik untuk menambahkan</p>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+           </div>
 
            <!-- Right Column: Profile Document Preview (Adjusted Height) -->
             <div class="lg:col-span-5 flex flex-col h-full">
-               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[45vh] min-h-[300px] sticky top-24">
+               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
                   <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
                      <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
                         <i class="fas fa-file-pdf text-red-500"></i>
@@ -255,8 +304,8 @@
             </div>
          </div>
         
-        <!-- GENERIC EMPTY STATE (Except Overview, Pajak, Pejabat, Kontrak, Cek, BPJS) - 2 Column Layout -->
-        <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && activeTab !== 'pejabat' && activeTab !== 'kontrak' && activeTab !== 'cek' && activeTab !== 'bpjs' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- GENERIC EMPTY STATE (Except Overview, Pajak, Kontrak, Cek, BPJS) - 2 Column Layout -->
+        <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && activeTab !== 'kontrak' && activeTab !== 'cek' && activeTab !== 'bpjs' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            <!-- Left: Empty State Message (7 cols) -->
            <div class="lg:col-span-7">
               <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
@@ -267,7 +316,7 @@
 
            <!-- Right: PDF Preview (5 cols) -->
            <div class="lg:col-span-5 flex flex-col h-full">
-              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
                     <div>
                         <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
@@ -288,7 +337,7 @@
         </div>
 
         <!-- 1. AKTA TAB (Redesigned with Complete Info) -->
-        <div v-if="activeTab === 'akta' && subModules.akta?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div v-if="activeTab === 'akta' && subModules.akta?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            <!-- Left: Data List (7 cols) -->
            <div class="lg:col-span-7 space-y-4">
               <!-- Data Cards -->
@@ -332,7 +381,7 @@
 
            <!-- Right: PDF Preview (5 cols) -->
            <div class="lg:col-span-5 flex flex-col h-full">
-              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
                     <div>
                         <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
@@ -401,37 +450,7 @@
            </div>
         </div>
 
-        <!-- 2. PEJABAT TAB (Always show grid with Add Official card) -->
-        <div v-if="activeTab === 'pejabat'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-           <!-- Existing Pejabat Cards -->
-           <div v-for="item in subModules.pejabat || []" :key="item.id_pejabat" class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:border-cyan-400 transition-all group relative overflow-hidden">
-              <div class="absolute top-0 right-0 p-4 opacity-5"><i class="fas fa-user-tie text-6xl"></i></div>
-              <div class="flex items-center gap-4 mb-4 relative z-10">
-                 <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-400 ring-2 ring-white dark:ring-slate-800 shadow-sm">
-                    {{ getInitials(item.nama_lengkap || 'Personel') }}
-                 </div>
-                 <div class="flex-1 min-w-0">
-                    <div class="text-[10px] font-bold text-cyan-600 uppercase bg-cyan-50 dark:bg-cyan-900/20 px-2 py-0.5 rounded inline-block mb-1">{{ item.jenis_jabatan || item.jabatan_custom || 'JABATAN' }}</div>
-                    <h4 class="font-bold text-slate-800 dark:text-white truncate" :title="item.nama_lengkap">{{ item.nama_lengkap || 'NAMA PERSONEL' }}</h4>
-                 </div>
-              </div>
-           </div>
 
-           <!-- Add Pejabat Card (Always Shown) -->
-           <div 
-              @click="openAddPejabatModal" 
-              class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-dashed border-green-300 dark:border-green-700 p-5 hover:border-green-500 dark:hover:border-green-500 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden"
-           >
-              <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><i class="fas fa-user-plus text-6xl text-green-600"></i></div>
-              <div class="flex flex-col items-center justify-center h-full min-h-[100px] relative z-10 text-center">
-                 <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 mb-3 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-plus text-xl"></i>
-                 </div>
-                 <h4 class="font-bold text-green-700 dark:text-green-400 text-sm">Tambah Pejabat</h4>
-                 <p class="text-xs text-green-600 dark:text-green-500 mt-1">Klik untuk menambahkan</p>
-              </div>
-           </div>
-        </div>
 
         <!-- 3. PAJAK TAB (Style Dashboard) -->
         <!-- 3. PAJAK TAB (Compact Style) -->
@@ -571,7 +590,7 @@
         </div>
 
          <!-- 4. KONTRAK TAB (Redesigned with Split View) -->
-         <div v-if="activeTab === 'kontrak'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+         <div v-if="activeTab === 'kontrak'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- Left: Contract List (7 cols) -->
             <div class="lg:col-span-7 space-y-4">
                <div v-if="subModules.kontrak && subModules.kontrak.length > 0" class="space-y-3">
@@ -658,7 +677,7 @@
 
             <!-- Right: PDF Preview (5 cols) -->
             <div class="lg:col-span-5 flex flex-col h-full">
-               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
                   <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
                      <div>
                          <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
@@ -691,7 +710,7 @@
          </div>
 
          <!-- 4.5 CEK (BANK CHECKS) TAB - Simplified Layout -->
-         <div v-if="activeTab === 'cek'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+         <div v-if="activeTab === 'cek'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- Left: Cek List (7 cols) -->
             <div class="lg:col-span-7 space-y-4">
                <div v-if="subModules.cek?.length > 0" class="space-y-3">
@@ -741,7 +760,7 @@
 
             <!-- Right: PDF Preview (5 cols) -->
             <div class="lg:col-span-5 flex flex-col h-full">
-               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
                   <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
                      <div>
                          <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
@@ -774,7 +793,7 @@
          </div>
 
          <!-- 4.6 BPJS TAB - Simplified Layout -->
-         <div v-if="activeTab === 'bpjs'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+         <div v-if="activeTab === 'bpjs'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- Left: BPJS List (7 cols) -->
             <div class="lg:col-span-7 space-y-4">
                <div v-if="subModules.bpjs?.length > 0" class="space-y-3">
@@ -829,7 +848,7 @@
 
             <!-- Right: PDF Preview (5 cols) -->
             <div class="lg:col-span-5 flex flex-col h-full">
-               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
                   <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
                      <div>
                          <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
@@ -861,38 +880,29 @@
             </div>
          </div>
 
-        <!-- 5. NIB, SBU, KTA, SERTIFIKAT TABS - Redesigned with Complete Info -->
-        <div v-if="['nib', 'sbu', 'kta', 'sertifikat'].includes(activeTab) && subModules[activeTab]?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-           <!-- Left: Data List (7 cols) -->
+        <!-- 5. NIB TAB - Separate Layout with KBLI Section -->
+        <div v-if="activeTab === 'nib' && subModules.nib?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+           <!-- Left: NIB Data + KBLI (7 cols) -->
            <div class="lg:col-span-7 space-y-4">
-              <!-- Data Cards -->
+              <!-- NIB Cards -->
               <div class="space-y-3">
-                 <div v-for="(item, idx) in subModules[activeTab]" :key="idx" 
-                       @click="activeTab === 'sertifikat' ? selectItem(activeTab, item) : null"
-                       class="bg-white dark:bg-slate-800 rounded-xl border-2 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-                       :class="[
-                          activeTab === 'sertifikat' && selectedItems[activeTab] === item 
-                             ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20 cursor-pointer' 
-                             : 'border-slate-200 dark:border-slate-700',
-                          activeTab === 'sertifikat' ? 'cursor-pointer p-6' : '',
-                          activeTab === 'nib' ? 'h-[calc(100vh-150px)] sticky top-24 flex flex-col p-0 overflow-hidden' : 'p-6'
-                       ]">
+                 <div v-for="(item, idx) in subModules.nib" :key="idx" 
+                      class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md">
                     
-                    <div :class="activeTab === 'nib' ? 'p-6 pb-0 shrink-0 bg-white dark:bg-slate-800 z-10' : ''">
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
                         <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0">
-                           <i :class="getTabIcon(activeTab)"></i>
+                           <i class="fas fa-id-badge"></i>
                         </div>
                         <div>
-                             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ getTabLabel(activeTab) }}</div>
+                             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NIB</div>
                              <h4 class="font-bold text-slate-800 dark:text-white text-lg font-mono leading-none mt-1">
-                                {{ item.nomor_nib || item.nomor_registrasi_lpjk || item.nomor_anggota || item.nomor_sertifikat || '#'+(idx+1) }}
+                                {{ item.nomor_nib || '#'+(idx+1) }}
                              </h4>
                         </div>
                     </div>
 
                     <!-- NIB Specific Fields -->
-                    <div v-if="activeTab === 'nib'" class="space-y-0.5 mt-2">
+                    <div class="space-y-0.5 mt-2">
                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl Terbit</div>
                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_terbit || '-' }}</div>
@@ -906,54 +916,162 @@
                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.skala_usaha || '-' }}</div>
                        </div>
                     </div>
-                     
-                     </div>
+                 </div>
+              </div>
+              
+              <!-- KBLI Qualifications Section (Separate Card Below NIB) - Compact with Scroll -->
+              <div class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden max-h-[300px]">
+                 <!-- Header (Fixed) -->
+                 <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
+                       <span>Kualifikasi KBLI</span>
+                       <span v-if="subModules.kbli?.length" class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-full">
+                          {{ subModules.kbli.length }} ITEMS
+                       </span>
+                    </h4>
+                 </div>
+                 
+                 <!-- Content (Scrollable) -->
+                 <div class="flex-1 overflow-y-auto p-4">
+                    <!-- Grid Layout (2 Columns) with Consistent Item Heights -->
+                    <div v-if="subModules.kbli?.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr">
+                       <div v-for="kbli in subModules.kbli" :key="kbli.id_perusahaan_kbli" 
+                            class="group relative p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-300 min-h-[60px] flex items-center">
+                            
+                            <!-- Active/Primary Indicator -->
+                            <div v-if="kbli.is_primary === 'true'" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" title="KBLI Utama"></div>
 
-                     <!-- KBLI Qualifications Section (Now in NIB Tab) -->
-                     <div v-if="activeTab === 'nib'" class="flex-1 overflow-y-auto custom-scrollbar px-6 pb-6 bg-slate-50/30 dark:bg-slate-900/10 inner-shadow"><div class="mt-4">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
-                           <span>Kualifikasi KBLI</span>
-                           <span v-if="subModules.kbli?.length" class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-full">
-                              {{ subModules.kbli.length }} ITEMS
-                           </span>
-                        </h4>
-                        <!-- Changed to Grid Layout (2 Columns) -->
-                        <div v-if="subModules.kbli?.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                           <div v-for="kbli in subModules.kbli" :key="kbli.id_perusahaan_kbli" 
-                                class="group relative p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-300">
-                                
-                                <!-- Active/Primary Indicator -->
-                                <div v-if="kbli.is_primary === 'true'" class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm" title="KBLI Utama"></div>
-
-                                <div class="flex items-start gap-2">
-                                   <!-- Code Badge: Text becomes blue on card hover -->
-                                   <div class="px-2 py-0.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded text-[10px] font-mono font-bold shrink-0 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors">
-                                      {{ kbli.kode_kbli }}
-                                   </div>
-                                   <div class="flex-1 min-w-0">
-                                      <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight transition-colors" :title="kbli.nama_klasifikasi">
-                                         {{ kbli.nama_klasifikasi || 'Klasifikasi KBLI' }}
-                                      </h5>
-                                      <div v-if="kbli.is_primary === 'true'" class="inline-flex items-center gap-1 mt-0.5">
-                                         <i class="fas fa-star text-[8px] text-amber-400"></i>
-                                         <span class="text-[9px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Primary</span>
-                                      </div>
-                                   </div>
-                                </div>
-                           </div>
-                        </div>
-                        <div v-else class="flex flex-col items-center justify-center py-6 text-center border border-dashed border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:border-slate-800/30">
-                           <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-2">
-                              <i class="fas fa-tags text-slate-300 dark:text-slate-500 text-lg"></i>
-                           </div>
-                           <p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Belum ada data KBLI terdaftar.</p>
-                        </div>
-                     </div>
-
+                            <div class="flex items-center gap-2 w-full">
+                               <!-- Code Badge: Text becomes blue on card hover -->
+                               <div class="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded text-[10px] font-mono font-bold shrink-0 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors">
+                                  {{ kbli.kode_kbli }}
+                               </div>
+                               <div class="flex-1 min-w-0">
+                                  <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight transition-colors line-clamp-2" :title="kbli.nama_klasifikasi">
+                                     {{ kbli.nama_klasifikasi || 'Klasifikasi KBLI' }}
+                                  </h5>
+                                  <div v-if="kbli.is_primary === 'true'" class="inline-flex items-center gap-1 mt-1">
+                                     <i class="fas fa-star text-[8px] text-amber-400"></i>
+                                     <span class="text-[9px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Primary</span>
+                                  </div>
+                               </div>
+                            </div>
+                       </div>
                     </div>
+                    
+                    <!-- Empty State -->
+                    <div v-else class="flex flex-col items-center justify-center h-full min-h-[200px] text-center">
+                       <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3">
+                          <i class="fas fa-tags text-slate-300 dark:text-slate-500 text-2xl"></i>
+                       </div>
+                       <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Belum ada data KBLI terdaftar.</p>
+                    </div>
+                 </div>
+              </div>
+           </div>
 
-                    <!-- SBU Specific Fields -->
-                    <div v-else-if="activeTab === 'sbu'" class="flex flex-col gap-0.5 mt-2">
+           <!-- Right: PDF Preview (5 cols) -->
+           <div class="lg:col-span-5 flex flex-col h-full">
+              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
+                 <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                    <div>
+                        <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
+                           <i class="fas fa-file-pdf text-red-500"></i>
+                           Dokumen NIB
+                        </h3>
+                        <p v-if="selectedItems.nib" class="text-xs text-slate-500 mt-1">{{ selectedItems.nib.nomor_nib }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                       <button 
+                          v-if="getDocumentUrl('nib') && !pendingDocuments.nib?.file" 
+                          @click="$refs.nibUpdateInput && $refs.nibUpdateInput.click()"
+                          class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1">
+                          <i class="fas fa-sync-alt"></i>
+                          <span>Perbarui</span>
+                       </button>
+                       <input ref="nibUpdateInput" type="file" accept="application/pdf" @change="handleDocumentSelect('nib', $event)" class="hidden" />
+                       <a v-if="getDocumentUrl('nib') && !pendingDocuments.nib?.file" :href="getDocumentUrl('nib')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
+                          <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
+                       </a>
+                    </div>
+                 </div>
+                 
+                 <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
+                    <!-- Existing PDF -->
+                    <iframe 
+                       v-if="getDocumentUrl('nib') && !pendingDocuments.nib?.file" 
+                       :key="'nib-doc'"
+                       :src="getPreviewUrl(getDocumentUrl('nib'))" 
+                       class="w-full h-full absolute inset-0 border-none">
+                    </iframe>
+                    
+                    <!-- Pending Upload Preview -->
+                    <div v-else-if="pendingDocuments.nib?.file && pendingDocuments.nib?.preview" 
+                         class="w-full h-full flex flex-col">
+                       <iframe :src="pendingDocuments.nib.preview" class="flex-1 w-full border-none"></iframe>
+                       <div class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                          <div class="flex-1 min-w-0">
+                             <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ pendingDocuments.nib.file.name }}</p>
+                             <p class="text-xs text-slate-500">{{ formatFileSize(pendingDocuments.nib.file.size) }}</p>
+                          </div>
+                          <div class="flex gap-2 ml-4">
+                             <button @click="cancelDocumentUpload('nib')" :disabled="pendingDocuments.nib.uploading" class="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">Batal</button>
+                             <button @click="saveDocument('nib')" :disabled="pendingDocuments.nib.uploading" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                                <i v-if="pendingDocuments.nib.uploading" class="fas fa-spinner fa-spin"></i>
+                                <i v-else class="fas fa-save"></i>
+                                {{ pendingDocuments.nib.uploading ? 'Menyimpan...' : 'Simpan' }}
+                             </button>
+                          </div>
+                       </div>
+                    </div>
+                    
+                    <!-- Upload State (No PDF) -->
+                    <div v-else 
+                         class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" 
+                         @click="$refs.nibUploadInput && $refs.nibUploadInput.click()">
+                       <input ref="nibUploadInput" type="file" accept="application/pdf" @change="handleDocumentSelect('nib', $event)" class="hidden" />
+                       <div class="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-500 mb-4">
+                          <i class="fas fa-id-badge text-3xl"></i>
+                       </div>
+                       <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Upload Dokumen NIB</p>
+                       <p class="text-xs text-slate-500">Klik untuk pilih file PDF (Max 50MB)</p>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- 6. SBU, KTA, SERTIFIKAT TABS - Redesigned with Complete Info -->
+        <div v-if="['sbu', 'kta', 'sertifikat'].includes(activeTab) && subModules[activeTab]?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+           <!-- Left: Data List (7 cols) -->
+           <div class="lg:col-span-7 space-y-4">
+              <!-- Data Cards -->
+              <div class="space-y-3">
+                 <div v-for="(item, idx) in subModules[activeTab]" :key="idx" 
+                       @click="activeTab === 'sertifikat' ? selectItem(activeTab, item) : null"
+                       class="bg-white dark:bg-slate-800 rounded-xl border-2 group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md p-6"
+                       :class="[
+                          activeTab === 'sertifikat' && selectedItems[activeTab] === item 
+                             ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20 cursor-pointer' 
+                             : 'border-slate-200 dark:border-slate-700',
+                          activeTab === 'sertifikat' ? 'cursor-pointer' : ''
+                       ]">
+                    
+                     
+                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                         <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0">
+                            <i :class="getTabIcon(activeTab)"></i>
+                         </div>
+                         <div>
+                              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ getTabLabel(activeTab) }}</div>
+                              <h4 class="font-bold text-slate-800 dark:text-white text-lg font-mono leading-none mt-1">
+                                 {{ item.nomor_registrasi_lpjk || item.nomor_anggota || item.nomor_sertifikat || '#'+(idx+1) }}
+                              </h4>
+                         </div>
+                     </div>
+
+                     <!-- SBU Specific Fields -->
+                    <div v-if="activeTab === 'sbu'" class="flex flex-col gap-0.5 mt-2">
                            <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700">
                                <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">No. PB UMKU</div>
                                <div class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate" :title="item.nomor_pb_umku">{{ item.nomor_pb_umku || '-' }}</div>
@@ -1077,7 +1195,7 @@
 
            <!-- Right: PDF Preview (5 cols) -->
            <div class="lg:col-span-5 flex flex-col h-full">
-              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-1 flex flex-col overflow-hidden h-[calc(100vh-150px)] min-h-[500px] sticky top-24">
+              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
                     <div>
                         <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
@@ -1666,10 +1784,9 @@ const selectedItems = ref({
    bpjs: null
 })
 
-// Tabs Configuration (Re-ordered & Renamed)
+// Tabs Configuration (Re-ordered & Renamed) - Pejabat removed, moved to Overview
 const tabs = [
   { id: 'overview', label: 'Overview', icon: 'fas fa-th-large', count: null },
-  { id: 'pejabat', label: 'Pejabat', icon: 'fas fa-user-tie', count: 0 }, // Renamed from Pengurus
   { id: 'akta', label: 'Akta', icon: 'fas fa-file-contract', count: 0 },
   { id: 'nib', label: 'NIB', icon: 'fas fa-id-badge', count: 0 },
   { id: 'sbu', label: 'SBU', icon: 'fas fa-certificate', count: 0 },
@@ -1823,6 +1940,9 @@ const fetchCompanyDetail = async () => {
       // Fetch KBLI for overview tab
       await fetchKBLI()
       
+      // Fetch Pejabat for overview tab (moved from separate tab)
+      await fetchPejabat()
+      
    } catch(e) {
       console.error('Error fetching company:', e)
    } finally {
@@ -1858,13 +1978,12 @@ const fetchAkta = async () => {
    }
 }
 
-// Fetch Pejabat data
+// Fetch Pejabat data (now loaded with overview)
 const fetchPejabat = async () => {
    try {
       const res = await fetch(`${apiBaseUrl}/companies/${companyId}/pejabat`)
       if(res.ok) {
          subModules.value.pejabat = await res.json()
-         tabs.find(t => t.id === 'pejabat').count = subModules.value.pejabat.length
          console.log('✅ Pejabat Data loaded:', subModules.value.pejabat.length, 'items')
       }
    } catch(e) {
@@ -1872,15 +1991,19 @@ const fetchPejabat = async () => {
    }
 }
 
-// Fetch NIB data
+// Fetch NIB data (now includes KBLI data)
 const fetchNIB = async () => {
    try {
       const res = await fetch(`${apiBaseUrl}/companies/${companyId}/nib`)
       if(res.ok) {
-         subModules.value.nib = await res.json()
+         const data = await res.json()
+         // The response now includes both nib and kbli data
+         subModules.value.nib = data.nib || []
+         subModules.value.kbli = data.kbli || []
          tabs.find(t => t.id === 'nib').count = subModules.value.nib.length
          if (subModules.value.nib.length) selectedItems.value.nib = subModules.value.nib[0]
          console.log('✅ NIB Data loaded:', subModules.value.nib.length, 'items')
+         console.log('✅ KBLI Data loaded from NIB:', subModules.value.kbli.length, 'items')
       }
    } catch(e) {
       console.error('Error fetching NIB:', e)
@@ -2016,9 +2139,6 @@ watch(activeTab, async (newTab) => {
       switch(newTab) {
          case 'akta':
             await fetchAkta()
-            break
-         case 'pejabat':
-            await fetchPejabat()
             break
          case 'nib':
             await fetchNIB()
