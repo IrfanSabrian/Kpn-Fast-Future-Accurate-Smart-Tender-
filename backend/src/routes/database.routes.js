@@ -24,12 +24,15 @@ const upload = multer({
     fileSize: parseInt(process.env.MAX_FILE_SIZE) || 52428800 // 50MB default
   },
   fileFilter: (req, file, cb) => {
-    // Allow PDF for companyProfile field
-    if (file.fieldname === 'companyProfile') {
+    // List of document fields that accept PDF
+    const pdfFields = ['companyProfile', 'akta', 'nib', 'sbu', 'kta', 'sertifikat', 'kontrak', 'cek', 'bpjs'];
+    
+    // Allow PDF for document fields
+    if (pdfFields.includes(file.fieldname)) {
       if (file.mimetype === 'application/pdf') {
         cb(null, true);
       } else {
-        cb(new Error('Company Profile must be a PDF file.'));
+        cb(new Error(`${file.fieldname} must be a PDF file.`));
       }
     } 
     // Accept images only for logo and kop
@@ -43,6 +46,7 @@ const upload = multer({
     }
   }
 });
+
 
 // ========================================
 // MAIN COMPANY ROUTES

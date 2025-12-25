@@ -304,8 +304,8 @@
             </div>
          </div>
         
-        <!-- GENERIC EMPTY STATE (Except Overview, Pajak, Kontrak, Cek, BPJS) - 2 Column Layout -->
-        <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && activeTab !== 'kontrak' && activeTab !== 'cek' && activeTab !== 'bpjs' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- GENERIC EMPTY STATE (Except Overview, Pajak, Kontrak, Cek, BPJS, Akta, NIB, SBU, KTA, Sertifikat) - 2 Column Layout -->
+        <div v-else-if="activeTab !== 'overview' && activeTab !== 'pajak' && activeTab !== 'kontrak' && activeTab !== 'cek' && activeTab !== 'bpjs' && activeTab !== 'akta' && activeTab !== 'nib' && activeTab !== 'sbu' && activeTab !== 'kta' && activeTab !== 'sertifikat' && (!getTabData(activeTab) || getTabData(activeTab).length === 0)" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            <!-- Left: Empty State Message (7 cols) -->
            <div class="lg:col-span-7">
               <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
@@ -337,11 +337,11 @@
         </div>
 
         <!-- 1. AKTA TAB (Redesigned with Complete Info) -->
-        <div v-if="activeTab === 'akta' && subModules.akta?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div v-if="activeTab === 'akta'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            <!-- Left: Data List (7 cols) -->
            <div class="lg:col-span-7 space-y-4">
-              <!-- Data Cards -->
-              <div class="space-y-3">
+              <!-- Data Cards (when data exists) -->
+              <div v-if="subModules.akta?.length > 0" class="space-y-3">
                  <div v-for="item in subModules.akta" :key="item.id_akta" 
                       class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md">
                     
@@ -374,82 +374,564 @@
                        </div>
                     </div>
 
+                 </div>
+              </div>
+              
+              <!-- Empty State (when no data) - Show structure with "-" values -->
+              <div v-else class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6">
+                 <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <div class="flex items-center gap-3">
+                       <div class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 flex items-center justify-center shrink-0 opacity-50">
+                          <i class="fas fa-file-contract"></i>
+                       </div>
+                       <div>
+                          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">JENIS AKTA</div>
+                          <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1">-</h4>
+                       </div>
+                    </div>
+                 </div>
 
+                 <div class="space-y-0.5 mt-4">
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NOMOR AKTA</div>
+                       <div class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">TANGGAL</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NOTARIS</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500 truncate">-</div>
+                    </div>
                  </div>
               </div>
            </div>
 
            <!-- Right: PDF Preview (5 cols) -->
            <div class="lg:col-span-5 flex flex-col h-full">
-              <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
-                 <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
-                    <div>
-                        <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
-                           <i class="fas fa-file-pdf text-red-500"></i>
-                           Dokumen Akta
-                        </h3>
-                        <p v-if="selectedItems.akta" class="text-xs text-slate-500 mt-1">{{ selectedItems.akta.jenis_akta }} - {{ selectedItems.akta.nomor_akta }}</p>
+              <DocumentPdfPreview
+                documentType="akta"
+                label="Akta"
+                :subtitle="selectedItems.akta ? `${selectedItems.akta.jenis_akta} - ${selectedItems.akta.nomor_akta}` : ''"
+                icon="fas fa-file-contract"
+                iconColor="orange"
+                :existingPdfUrl="getDocumentUrl('akta')"
+                :pendingFile="pendingDocuments.akta.file"
+                :pendingPreview="pendingDocuments.akta.preview"
+                :isUploading="pendingDocuments.akta.uploading"
+                @file-selected="(event) => handleDocumentSelect('akta', event)"
+                @save="saveDocument('akta')"
+                @cancel="cancelDocumentUpload('akta')"
+              />
+           </div>
+         </div>
+
+         <!-- KONTRAK/PENGALAMAN TAB -->
+         <div v-if="activeTab === 'kontrak'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left: Data List (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+               <!-- Data Cards (when data exists) -->
+               <div v-if="subModules.kontrak?.length > 0" class="space-y-3">
+                  <div v-for="item in subModules.kontrak" :key="item.id_kontrak" 
+                       class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md">
+                     
+                     <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                         <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0">
+                                  <i class="fas fa-briefcase"></i>
+                              </div>
+                              <div>
+                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PENGALAMAN KERJA</div>
+                                  <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1">{{ item.nama_paket || '-' }}</h4>
+                              </div>
+                         </div>
+                     </div>
+
+                     <div class="space-y-0.5 mt-4">
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO KONTRAK</div>
+                            <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.nomor_kontrak || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">PEMBERI KERJA</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.pemberi_kerja || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NILAI</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.nilai_kontrak || '-' }}</div>
+                        </div>
+                     </div>
+
+                  </div>
+               </div>
+               
+               <!-- Empty State (when no data) -->
+               <div v-else class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6">
+                  <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                     <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0 opacity-50">
+                           <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div>
+                           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PENGALAMAN KERJA</div>
+                           <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1">-</h4>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="space-y-0.5 mt-4">
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO KONTRAK</div>
+                        <div class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">PEMBERI KERJA</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NILAI</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Right: PDF Preview (5 cols) -->
+            <div class="lg:col-span-5 flex flex-col h-full">
+               <DocumentPdfPreview
+                 documentType="kontrak"
+                 label="Kontrak"
+                 :subtitle="selectedItems.kontrak ? `${selectedItems.kontrak.nama_paket || '-'}` : ''"
+                 icon="fas fa-briefcase"
+                 iconColor="purple"
+                 :existingPdfUrl="getDocumentUrl('kontrak')"
+                 :pendingFile="pendingDocuments.kontrak.file"
+                 :pendingPreview="pendingDocuments.kontrak.preview"
+                 :isUploading="pendingDocuments.kontrak.uploading"
+                 @file-selected="(event) => handleDocumentSelect('kontrak', event)"
+                 @save="saveDocument('kontrak')"
+                 @cancel="cancelDocumentUpload('kontrak')"
+               />
+            </div>
+         </div>
+
+         <!-- CEK TAB -->
+         <div v-if="activeTab === 'cek'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left: Data List (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+               <!-- Data Cards (when data exists) -->
+               <div v-if="subModules.cek?.length > 0" class="space-y-3">
+                  <div v-for="item in subModules.cek" :key="item.id_cek" 
+                       class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md">
+                     
+                     <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                         <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0">
+                                  <i class="fas fa-money-check"></i>
+                              </div>
+                              <div>
+                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CEK REFERENSI BANK</div>
+                                  <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1">{{ item.nama_bank || '-' }}</h4>
+                              </div>
+                         </div>
+                     </div>
+
+                     <div class="space-y-0.5 mt-4">
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO REKENING</div>
+                            <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.no_rekening || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NAMA BANK</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.nama_bank || '-' }}</div>
+                        </div>
+                     </div>
+
+                  </div>
+               </div>
+               
+               <!-- Empty State (when no data) -->
+               <div v-else class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6">
+                  <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                     <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0 opacity-50">
+                           <i class="fas fa-money-check"></i>
+                        </div>
+                        <div>
+                           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">CEK REFERENSI BANK</div>
+                           <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1">-</h4>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="space-y-0.5 mt-4">
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO REKENING</div>
+                        <div class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NAMA BANK</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Right: PDF Preview (5 cols) -->
+            <div class="lg:col-span-5 flex flex-col h-full">
+               <DocumentPdfPreview
+                 documentType="cek"
+                 label="Cek"
+                 :subtitle="selectedItems.cek ? `${selectedItems.cek.nama_bank} - ${selectedItems.cek.no_rekening}` : ''"
+                 icon="fas fa-money-check"
+                 iconColor="green"
+                 :existingPdfUrl="getDocumentUrl('cek')"
+                 :pendingFile="pendingDocuments.cek.file"
+                 :pendingPreview="pendingDocuments.cek.preview"
+                 :isUploading="pendingDocuments.cek.uploading"
+                 @file-selected="(event) => handleDocumentSelect('cek', event)"
+                 @save="saveDocument('cek')"
+                 @cancel="cancelDocumentUpload('cek')"
+               />
+            </div>
+         </div>
+
+         <!-- BPJS TAB -->
+         <div v-if="activeTab === 'bpjs'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left: Data List (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+               <!-- Data Cards (when data exists) -->
+               <div v-if="subModules.bpjs?.length > 0" class="space-y-3">
+                  <div v-for="item in subModules.bpjs" :key="item.id_bpjs" 
+                       class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md">
+                     
+                     <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                         <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 rounded-lg bg-pink-50 dark:bg-pink-900/20 text-pink-600 flex items-center justify-center shrink-0">
+                                  <i class="fas fa-heartbeat"></i>
+                              </div>
+                              <div>
+                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">BPJS KETENAGAKERJAAN</div>
+                                  <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1">{{ item.nomor_bpjs || 'BPJS' }}</h4>
+                              </div>
+                         </div>
+                     </div>
+
+                     <div class="space-y-0.5 mt-4">
+                        
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO. SERTIFIKAT</div>
+                            <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.nomor_sertifikat || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO. PENDAFTARAN</div>
+                            <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.nomor_pendaftaran || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">TGL DITETAPKAN</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_ditetapkan || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">LOKASI DITETAPKAN</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.lokasi_ditetapkan || '-' }}</div>
+                        </div>
+                     </div>
+
+                  </div>
+               </div>
+               
+               <!-- Empty State (when no data) -->
+               <div v-else class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6">
+                  <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                     <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-pink-50 dark:bg-pink-900/20 text-pink-600 flex items-center justify-center shrink-0 opacity-50">
+                           <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <div>
+                           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">BPJS KETENAGAKERJAAN</div>
+                           <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1">-</h4>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="space-y-0.5 mt-4">
+                     
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO. SERTIFIKAT</div>
+                        <div class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO. PENDAFTARAN</div>
+                        <div class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">TGL DITETAPKAN</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">LOKASI DITETAPKAN</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <!-- Right: PDF Preview (5 cols) -->
+            <div class="lg:col-span-5 flex flex-col h-full">
+               <DocumentPdfPreview
+                 documentType="bpjs"
+                 label="BPJS"
+                 :subtitle="selectedItems.bpjs ? `BPJS: ${selectedItems.bpjs.nomor_bpjs || '-'}` : ''"
+                 icon="fas fa-heartbeat"
+                 iconColor="pink"
+                 :existingPdfUrl="getDocumentUrl('bpjs')"
+                 :pendingFile="pendingDocuments.bpjs.file"
+                 :pendingPreview="pendingDocuments.bpjs.preview"
+                 :isUploading="pendingDocuments.bpjs.uploading"
+                 @file-selected="(event) => handleDocumentSelect('bpjs', event)"
+                 @save="saveDocument('bpjs')"
+                 @cancel="cancelDocumentUpload('bpjs')"
+               />
+            </div>
+         </div>
+
+         <!-- 2. NIB TAB (DISABLED - using original NIB tab at line 987 instead) -->
+        <div v-if="false" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+           <!-- Left: NIB Details + KBLI (7 cols) -->
+           <div class="lg:col-span-7 space-y-6">
+              
+              <div v-if="subModules.nib?.length > 0">
+                 <div v-for="(item, index) in subModules.nib" :key="item.id_nib"
+                      class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 mb-4 last:mb-0">
+                    
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                       <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0">
+                          <i class="fas fa-id-badge"></i>
+                       </div>
+                       <div class="flex-1">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NIB</div>
+                          <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1">#{{ index + 1 }}</h4>
+                       </div>
                     </div>
-                    <div class="flex gap-2">
-                       <button 
-                          v-if="getDocumentUrl('akta') && !pendingDocuments.akta.file" 
-                          @click="$refs.aktaUpdateInput.click()"
-                          class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
-                       >
-                          <i class="fas fa-sync-alt"></i>
-                          <span>Perbarui</span>
-                       </button>
-                       <input ref="aktaUpdateInput" type="file" accept="application/pdf" @change="handleDocumentSelect('akta', $event)" class="hidden" />
-                       <a v-if="getDocumentUrl('akta') && !pendingDocuments.akta.file" :href="getDocumentUrl('akta')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                          <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                       </a>
+
+                    <!-- NIB Details Grid -->
+                    <div class="space-y-0.5">
+                       <div class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nomor NIB</div>
+                          <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.nomor_nib || '-' }}</div>
+                       </div>
+
+                       <div class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl Terbit</div>
+                          <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_terbit || '-' }}</div>
+                       </div>
+
+                       <div class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Status Modal</div>
+                          <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.status || '-' }}</div>
+                       </div>
+
+                       <div class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Skala Usaha</div>
+                          <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.skala_usaha || '-' }}</div>
+                       </div>
                     </div>
                  </div>
-                 
-                 <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                    <!-- Existing PDF -->
-                    <iframe 
-                       v-if="getDocumentUrl('akta') && !pendingDocuments.akta.file" 
-                       :src="getPreviewUrl(getDocumentUrl('akta'))" 
-                       class="w-full h-full absolute inset-0 border-none"
-                    ></iframe>
+              </div>
+
+              <!-- Empty State (if no NIB data) -->
+              <div v-else class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6">
+                 <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0 opacity-50">
+                       <i class="fas fa-id-badge"></i>
+                    </div>
+                    <div>
+                       <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NIB</div>
+                       <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1">#1</h4>
+                    </div>
+                 </div>
+
+                 <div class="space-y-0.5">
+                    <div class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nomor NIB</div>
+                       <div class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    <div class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl Terbit</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    <div class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Status Modal</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    <div class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Skala Usaha</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                 </div>
+              </div>
+
+              <!-- KBLI Section -->
+              <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                 <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <i class="fas fa-sitemap text-xs"></i>
+                    Kualifikasi KBLI
+                    <span v-if="subModules.kbli?.length" class="ml-auto text-blue-600 dark:text-blue-400">({{ subModules.kbli.length }})</span>
+                 </h4>
+
+                 <!-- KBLI Grid (if data exists) -->
+                 <div v-if="subModules.kbli?.length > 0" class="grid grid-cols-2 gap-2">
+                    <div v-for="kbli in subModules.kbli" :key="kbli.id_kbli" 
+                         class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-600 transition-all group">
+                       <div class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 mb-1">{{ kbli.kode_kbli }}</div>
+                       <div class="text-xs text-slate-700 dark:text-slate-300 leading-tight line-clamp-2">{{ kbli.judul_kbli || kbli.nama_klasifikasi }}</div>
+                    </div>
+                 </div>
+
+                 <!-- KBLI Empty State -->
+                 <div v-else class="text-center py-6 text-slate-400">
+                    <i class="fas fa-sitemap text-2xl mb-2 opacity-30"></i>
+                    <p class="text-xs">Belum ada data KBLI terdaftar.</p>
+                 </div>
+              </div>
+
+           </div>
+
+           <!-- Right: PDF Preview (5 cols) -->
+           <div class="lg:col-span-5 flex flex-col h-full">
+              <DocumentPdfPreview
+                documentType="nib"
+                label="NIB"
+                :subtitle="selectedItems.nib ? `NIB: ${selectedItems.nib.nomor_nib || '-'}` : ''"
+                icon="fas fa-id-badge"
+                iconColor="blue"
+                :existingPdfUrl="getDocumentUrl('nib')"
+                :pendingFile="pendingDocuments.nib.file"
+                :pendingPreview="pendingDocuments.nib.preview"
+                :isUploading="pendingDocuments.nib.uploading"
+                @file-selected="(event) => handleDocumentSelect('nib', event)"
+                @save="saveDocument('nib')"
+                @cancel="cancelDocumentUpload('nib')"
+              />
+           </div>
+        </div>
+
+
+        <!-- 2.5 SBU TAB (DISABLED - using original SBU tab at line 1249 instead) -->
+        <div v-if="false" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+           <!-- Left: Data List (7 cols) -->
+           <div class="lg:col-span-7 space-y-4">
+              <!-- Data Cards (when data exists) -->
+              <div v-if="subModules.sbu?.length > 0" class="space-y-3">
+                 <div v-for="item in subModules.sbu" :key="item.id_sbu" 
+                      class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md">
                     
-                    <!-- Pending Upload Preview -->
-                    <div v-else-if="pendingDocuments.akta.file && pendingDocuments.akta.preview" 
-                         class="w-full h-full flex flex-col">
-                       <iframe :src="pendingDocuments.akta.preview" class="flex-1 w-full border-none"></iframe>
-                       <div class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                          <div class="flex-1 min-w-0">
-                             <p class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{{ pendingDocuments.akta.file.name }}</p>
-                             <p class="text-xs text-slate-500">{{ formatFileSize(pendingDocuments.akta.file.size) }}</p>
-                          </div>
-                          <div class="flex gap-2 ml-4">
-                             <button @click="cancelDocumentUpload('akta')" :disabled="pendingDocuments.akta.uploading" class="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">Batal</button>
-                             <button @click="saveDocument('akta')" :disabled="pendingDocuments.akta.uploading" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-                                <i v-if="pendingDocuments.akta.uploading" class="fas fa-spinner fa-spin"></i>
-                                <i v-else class="fas fa-save"></i>
-                                {{ pendingDocuments.akta.uploading ? 'Menyimpan...' : 'Simpan' }}
-                             </button>
-                          </div>
+                    <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                        <div class="flex items-center gap-3">
+                             <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0">
+                                 <i class="fas fa-certificate"></i>
+                             </div>
+                             <div>
+                                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NOMOR SBU</div>
+                                 <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1">{{ item.nomor_sbu || '-' }}</h4>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-0.5 mt-4">
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                           <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">SUB BIDANG</div>
+                           <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.sub_bidang || '-' }}</div>
+                       </div>
+                       
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                           <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">GRADE</div>
+                           <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.grade || '-' }}</div>
+                       </div>
+                       
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                           <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">TGL TERBIT</div>
+                           <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_terbit || '-' }}</div>
+                       </div>
+                       
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                           <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">MASA BERLAKU</div>
+                           <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.masa_berlaku || '-' }}</div>
                        </div>
                     </div>
-                    
-                    <!-- Upload State (No PDF) -->
-                    <div v-else 
-                         class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" 
-                         @click="$refs.aktaUploadInput.click()">
-                       <input ref="aktaUploadInput" type="file" accept="application/pdf" @change="handleDocumentSelect('akta', $event)" class="hidden" />
-                       <div class="w-20 h-20 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center text-orange-500 mb-4">
-                          <i class="fas fa-file-contract text-3xl"></i>
+
+                 </div>
+              </div>
+              
+              <!-- Empty State (when no data) -->
+              <div v-else class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6">
+                 <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
+                    <div class="flex items-center gap-3">
+                       <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0 opacity-50">
+                          <i class="fas fa-certificate"></i>
                        </div>
-                       <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Upload Dokumen Akta</p>
-                       <p class="text-xs text-slate-500">Klik untuk pilih file PDF (Max 50MB)</p>
+                       <div>
+                          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NOMOR SBU</div>
+                          <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1">-</h4>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div class="space-y-0.5 mt-4">
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">SUB BIDANG</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">GRADE</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">TGL TERBIT</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">MASA BERLAKU</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
                     </div>
                  </div>
               </div>
            </div>
-        </div>
 
+           <!-- Right: PDF Preview (5 cols) -->
+           <div class="lg:col-span-5 flex flex-col h-full">
+              <DocumentPdfPreview
+                documentType="sbu"
+                label="SBU"
+                :subtitle="selectedItems.sbu ? `SBU: ${selectedItems.sbu.nomor_sbu || '-'}` : ''"
+                icon="fas fa-certificate"
+                iconColor="green"
+                :existingPdfUrl="getDocumentUrl('sbu')"
+                :pendingFile="pendingDocuments.sbu.file"
+                :pendingPreview="pendingDocuments.sbu.preview"
+                :isUploading="pendingDocuments.sbu.uploading"
+                @file-selected="(event) => handleDocumentSelect('sbu', event)"
+                @save="saveDocument('sbu')"
+                @cancel="cancelDocumentUpload('sbu')"
+              />
+           </div>
+        </div>
 
 
         <!-- 3. PAJAK TAB (Style Dashboard) -->
@@ -487,8 +969,29 @@
                                </div>
                            </div>
                       </div>
-                      <div v-else class="text-slate-400 text-xs italic text-center py-4">Data NPWP belum tersedia.</div>
-                 </div>
+                      <div v-else class="space-y-2">
+                         <div class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NOMOR NPWP</div>
+                            <div class="text-sm font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
+                         </div>
+                         <div class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NAMA WAJIB PAJAK</div>
+                            <div class="text-xs font-bold text-slate-400 dark:text-slate-500">-</div>
+                         </div>
+                         <div class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">ALAMAT</div>
+                            <div class="text-xs text-slate-400 dark:text-slate-500">-</div>
+                         </div>
+                         <div class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">KPP</div>
+                            <div class="text-xs text-slate-400 dark:text-slate-500">-</div>
+                         </div>
+                         <div class="grid grid-cols-[140px_1fr] gap-2 py-1">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">TGL TERDAFTAR</div>
+                            <div class="text-xs text-slate-400 dark:text-slate-500">-</div>
+                         </div>
+                      </div>
+                  </div>
 
                  <!-- PKP -->
                  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
@@ -517,8 +1020,28 @@
                                </div>
                            </div>
                       </div>
-                      <div v-else class="text-slate-400 text-xs italic text-center py-4">Belum dikukuhkan PKP.</div>
-                 </div>
+                      <div v-else>
+                         <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 text-orange-400 flex items-center justify-center opacity-50">
+                               <i class="fas fa-check"></i>
+                            </div>
+                            <div>
+                               <div class="text-[10px] font-bold text-slate-400 uppercase">STATUS</div>
+                               <div class="text-sm font-bold text-slate-400 dark:text-slate-500">-</div>
+                            </div>
+                         </div>
+                         <div class="space-y-2 mt-2 bg-slate-50 dark:bg-slate-700/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <div class="flex justify-between">
+                               <span class="text-[10px] font-bold text-slate-400 uppercase">Nomor PKP</span>
+                               <span class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                               <span class="text-[10px] font-bold text-slate-400 uppercase">Tgl Pengukuhan</span>
+                               <span class="text-xs font-medium text-slate-400 dark:text-slate-500">-</span>
+                            </div>
+                         </div>
+                      </div>
+                  </div>
             </div>
 
             <!-- Right: SPT & KSWP -->
@@ -548,8 +1071,27 @@
                               </tbody>
                           </table>
                       </div>
-                      <div v-else class="p-6 text-center text-slate-400 text-xs italic">Belum ada riwayat SPT.</div>
-                 </div>
+                      <div v-else>
+                         <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase font-bold dark:text-slate-400">
+                               <tr>
+                                  <th class="px-4 py-2 bg-slate-50 dark:bg-slate-800">Tahun</th>
+                                  <th class="px-4 py-2 bg-slate-50 dark:border-slate-800">Jenis</th>
+                                  <th class="px-4 py-2 bg-slate-50 dark:bg-slate-800">Status</th>
+                                  <th class="px-4 py-2 bg-slate-50 dark:bg-slate-800 text-right">#</th>
+                               </tr>
+                            </thead>
+                            <tbody>
+                               <tr class="border-b border-slate-100 dark:border-slate-700">
+                                  <td class="px-4 py-3 font-bold text-slate-400">-</td>
+                                  <td class="px-4 py-3 text-slate-400">-</td>
+                                  <td class="px-4 py-3 text-slate-400">-</td>
+                                  <td class="px-4 py-3 text-right text-slate-400">-</td>
+                               </tr>
+                            </tbody>
+                         </table>
+                      </div>
+                  </div>
 
                  <!-- KSWP -->
                  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
@@ -584,309 +1126,42 @@
                                </div>
                            </div>
                       </div>
-                      <div v-else class="text-slate-400 text-xs italic text-center py-4">Data KSWP belum tersedia.</div>
-                 </div>
+                      <div v-else>
+                         <div class="text-center mb-3">
+                            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 font-bold border border-slate-200 dark:border-slate-600 text-xs opacity-50">
+                               <i class="fas fa-check-circle"></i> -
+                            </div>
+                         </div>
+                         <div class="space-y-2 bg-slate-50 dark:bg-slate-700/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <div class="flex justify-between text-[10px]">
+                               <span class="font-bold text-slate-400 uppercase">NIK/NPWP (15)</span>
+                               <span class="font-mono font-bold text-slate-400 dark:text-slate-500">-</span>
+                            </div>
+                            <div class="flex justify-between text-[10px]">
+                               <span class="font-bold text-slate-400 uppercase">NPWP (16)</span>
+                               <span class="font-mono font-bold text-slate-400 dark:text-slate-500">-</span>
+                            </div>
+                            <div class="flex justify-between text-[10px]">
+                               <span class="font-bold text-slate-400 uppercase">Nama WP</span>
+                               <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">-</span>
+                            </div>
+                            <div class="text-[10px] pt-2 border-t border-slate-200 dark:border-slate-600">
+                               <span class="font-bold text-slate-400 uppercase block mb-1">Alamat</span>
+                               <span class="text-xs text-slate-400 dark:text-slate-500">-</span>
+                            </div>
+                         </div>
+                      </div>
+                  </div>
             </div>
         </div>
 
-         <!-- 4. KONTRAK TAB (Redesigned with Split View) -->
-         <div v-if="activeTab === 'kontrak'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <!-- Left: Contract List (7 cols) -->
-            <div class="lg:col-span-7 space-y-4">
-               <div v-if="subModules.kontrak && subModules.kontrak.length > 0" class="space-y-3">
-                  <div v-for="item in subModules.kontrak" :key="item.id_kontrak" 
-                       @click="selectItem('kontrak', item)"
-                       class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-                       :class="selectedItems.kontrak?.id_kontrak === item.id_kontrak 
-                          ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20' 
-                          : 'border-slate-200 dark:border-slate-700'">
-                     
-                     <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
-                        <div class="flex-1">
-                           <div class="flex items-center gap-2 mb-2">
-                              <span class="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-[10px] font-bold uppercase rounded border border-blue-100 dark:border-blue-800">{{ item.bidang_pekerjaan }}</span>
-                              <span class="text-xs text-slate-400 font-bold">• {{ item.lokasi }}</span>
-                           </div>
-                           <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-1 leading-tight">{{ item.nama_pekerjaan }}</h3>
-                           <div class="flex items-center gap-2 text-xs text-slate-500">
-                               <i class="fas fa-building"></i> {{ item.nama_pemberi_tugas }}
-                           </div>
-                        </div>
-                     </div>
-                     
-                     <div class="space-y-0.5 mt-2">
-                         <div class="grid grid-cols-[110px_1fr] gap-2 py-1 items-center bg-slate-50 dark:bg-slate-700/30 px-2 -mx-2 rounded mb-1">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase">NILAI KONTRAK</div>
-                              <div class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                                 Rp {{ Number(item.nilai_kontrak).toLocaleString('id-ID') }}
-                              </div>
-                         </div>
-
-                         <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">No. Kontrak</div> 
-                              <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200 truncate">{{ item.nomor_kontrak }}</div>
-                         </div>
-                         <div v-if="item.sub_bidang_pekerjaan" class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Sub Bidang</div> 
-                              <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.sub_bidang_pekerjaan }}</div>
-                         </div>
-                         <div v-if="item.alamat_pemberi_tugas" class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat</div> 
-                              <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.alamat_pemberi_tugas }}</div>
-                         </div>
-                         <div v-if="item.kode_pos_pemberi_tugas" class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kode Pos</div> 
-                              <div class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ item.kode_pos_pemberi_tugas }}</div>
-                         </div>
-                         <div v-if="item.telepon_pemberi_tugas" class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Telepon</div> 
-                              <div class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ item.telepon_pemberi_tugas }}</div>
-                         </div>
-                         <div v-if="item.fax_pemberi_tugas" class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Fax</div> 
-                              <div class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ item.fax_pemberi_tugas }}</div>
-                         </div>
-                         <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl Kontrak</div> 
-                              <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_kontrak }}</div>
-                         </div>
-                         <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl Selesai</div> 
-                              <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_selesai_kontrak }}</div>
-                         </div>
-                         <div v-if="item.waktu_pelaksanaan" class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Waktu Pelaksanaan</div> 
-                              <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.waktu_pelaksanaan }}</div>
-                         </div>
-                         <div v-if="item.tanggal_ba_serah_terima" class="grid grid-cols-[110px_1fr] gap-2 py-0.5">
-                              <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">BA Serah Terima</div> 
-                              <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_ba_serah_terima }}</div>
-                         </div>
-                     </div>
-                     
-                     <div v-if="selectedItems.kontrak?.id_kontrak === item.id_kontrak" class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold">
-                        <i class="fas fa-check-circle"></i> <span>PREVIEWING DOCUMENT</span>
-                     </div>
-                  </div>
-               </div>
-               <div v-else class="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-                  <i class="fas fa-briefcase text-4xl text-slate-300 mb-3 opacity-30"></i>
-                  <p class="text-slate-500 font-medium text-sm">Belum ada data kontrak.</p>
-               </div>
-            </div>
-
-            <!-- Right: PDF Preview (5 cols) -->
-            <div class="lg:col-span-5 flex flex-col h-full">
-               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
-                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
-                     <div>
-                         <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
-                            <i class="fas fa-file-pdf text-red-500"></i>
-                            Dokumen Kontrak
-                         </h3>
-                         <p v-if="selectedItems.kontrak" class="text-xs text-slate-500 mt-1 truncate max-w-[200px]">{{ selectedItems.kontrak.nama_pekerjaan }}</p>
-                     </div>
-                     <div class="flex gap-2" v-if="getSelectedDocUrl('kontrak')">
-                        <a :href="getSelectedDocUrl('kontrak')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                        </a>
-                     </div>
-                  </div>
-                  
-                  <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                     <iframe 
-                        v-if="getSelectedDocUrl('kontrak')" 
-                        :key="getSelectedDocUrl('kontrak')"
-                        :src="getPreviewUrl(getSelectedDocUrl('kontrak'))" 
-                        class="w-full h-full absolute inset-0 border-none"
-                     ></iframe>
-                     <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                        <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
-                        <p class="text-sm">{{ selectedItems.kontrak ? 'Dokumen tidak tersedia' : 'Pilih kontrak untuk preview' }}</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-
-         <!-- 4.5 CEK (BANK CHECKS) TAB - Simplified Layout -->
-         <div v-if="activeTab === 'cek'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <!-- Left: Cek List (7 cols) -->
-            <div class="lg:col-span-7 space-y-4">
-               <div v-if="subModules.cek?.length > 0" class="space-y-3">
-                  <div v-for="item in subModules.cek" :key="item.id_cek" 
-                       @click="selectItem('cek', item)"
-                       class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-                       :class="selectedItems.cek?.id_cek === item.id_cek 
-                          ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20' 
-                          : 'border-slate-200 dark:border-slate-700'">
-                     
-                     <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
-                         <div class="flex items-center gap-3">
-                              <div class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0">
-                                  <i class="fas fa-money-check"></i>
-                              </div>
-                              <div>
-                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NO. REKENING</div>
-                                  <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1 font-mono">{{ item.no_rekening || '-' }}</h4>
-                              </div>
-                         </div>
-                     </div>
-
-                     <div class="space-y-0.5 mt-4">
-                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NAMA BANK</div>
-                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.nama_bank || '-' }}</div>
-                        </div>
-                        
-                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO. REKENING</div>
-                            <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.no_rekening || '-' }}</div>
-                        </div>
-                     </div>
-
-                     <div v-if="selectedItems.cek?.id_cek === item.id_cek" class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold">
-                        <i class="fas fa-check-circle"></i> <span>PREVIEWING DOCUMENT</span>
-                     </div>
-                  </div>
-               </div>
-
-                <!-- Empty State -->
-                <div v-else class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
-                    <i class="fas fa-money-check text-4xl mb-3 opacity-30"></i>
-                    <p class="text-sm font-medium">Belum ada data Cek.</p>
-                </div>
-            </div>
-
-            <!-- Right: PDF Preview (5 cols) -->
-            <div class="lg:col-span-5 flex flex-col h-full">
-               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
-                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
-                     <div>
-                         <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
-                            <i class="fas fa-file-pdf text-red-500"></i>
-                            Dokumen Cek
-                         </h3>
-                         <p v-if="selectedItems.cek" class="text-xs text-slate-500 mt-1">{{ selectedItems.cek.nama_bank }} - {{ selectedItems.cek.no_rekening }}</p>
-                     </div>
-                     <div class="flex gap-2" v-if="getSelectedDocUrl('cek')">
-                        <a :href="getSelectedDocUrl('cek')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                        </a>
-                     </div>
-                  </div>
-                  
-                  <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                     <iframe 
-                        v-if="getSelectedDocUrl('cek')" 
-                        :key="getSelectedDocUrl('cek')"
-                        :src="getPreviewUrl(getSelectedDocUrl('cek'))" 
-                        class="w-full h-full absolute inset-0 border-none"
-                     ></iframe>
-                     <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                        <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
-                        <p class="text-sm">{{ selectedItems.cek ? 'Dokumen tidak tersedia' : 'Pilih cek untuk preview' }}</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-
-         <!-- 4.6 BPJS TAB - Simplified Layout -->
-         <div v-if="activeTab === 'bpjs'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <!-- Left: BPJS List (7 cols) -->
-            <div class="lg:col-span-7 space-y-4">
-               <div v-if="subModules.bpjs?.length > 0" class="space-y-3">
-                  <div v-for="item in subModules.bpjs" :key="item.id_bpjs" 
-                       @click="selectItem('bpjs', item)"
-                       class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 cursor-pointer transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-                       :class="selectedItems.bpjs?.id_bpjs === item.id_bpjs 
-                          ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20' 
-                          : 'border-slate-200 dark:border-slate-700'">
-                     
-                     <div class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
-                         <div class="flex items-center gap-3">
-                              <div class="w-10 h-10 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 flex items-center justify-center shrink-0">
-                                  <i class="fas fa-hospital"></i>
-                              </div>
-                              <div>
-                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NOMOR SERTIFIKAT</div>
-                                  <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1 font-mono">{{ item.nomor_sertifikat || '-' }}</h4>
-                              </div>
-                         </div>
-                     </div>
-
-                     <div class="space-y-0.5 mt-4">
-                        <div class="grid grid-cols-[140px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO. PENDAFTARAN</div>
-                            <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.nomor_pendaftaran || '-' }}</div>
-                        </div>
-                        
-                        <div class="grid grid-cols-[140px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">TANGGAL DITETAPKAN</div>
-                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_ditetapkan || '-' }}</div>
-                        </div>
-
-                        <div class="grid grid-cols-[140px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">LOKASI DITETAPKAN</div>
-                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.lokasi_ditetapkan || '-' }}</div>
-                        </div>
-                     </div>
-
-                     <div v-if="selectedItems.bpjs?.id_bpjs === item.id_bpjs" class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold">
-                        <i class="fas fa-check-circle"></i> <span>PREVIEWING DOCUMENT</span>
-                     </div>
-                  </div>
-               </div>
-
-                <!-- Empty State -->
-                <div v-else class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20">
-                    <i class="fas fa-hospital text-4xl mb-3 opacity-30"></i>
-                    <p class="text-sm font-medium">Belum ada data BPJS.</p>
-                </div>
-            </div>
-
-            <!-- Right: PDF Preview (5 cols) -->
-            <div class="lg:col-span-5 flex flex-col h-full">
-               <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24">
-                  <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
-                     <div>
-                         <h3 class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
-                            <i class="fas fa-file-pdf text-red-500"></i>
-                            Dokumen BPJS
-                         </h3>
-                         <p v-if="selectedItems.bpjs" class="text-xs text-slate-500 mt-1">{{ selectedItems.bpjs.nomor_sertifikat }}</p>
-                     </div>
-                     <div class="flex gap-2" v-if="getSelectedDocUrl('bpjs')">
-                        <a :href="getSelectedDocUrl('bpjs')" target="_blank" class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors">
-                           <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                        </a>
-                     </div>
-                  </div>
-                  
-                  <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                     <iframe 
-                        v-if="getSelectedDocUrl('bpjs')" 
-                        :key="getSelectedDocUrl('bpjs')"
-                        :src="getPreviewUrl(getSelectedDocUrl('bpjs'))" 
-                        class="w-full h-full absolute inset-0 border-none"
-                     ></iframe>
-                     <div v-else class="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                        <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
-                        <p class="text-sm">{{ selectedItems.bpjs ? 'Dokumen tidak tersedia' : 'Pilih BPJS untuk preview' }}</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-
-        <!-- 5. NIB TAB - Separate Layout with KBLI Section -->
-        <div v-if="activeTab === 'nib' && subModules.nib?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+         <!-- 5. NIB TAB - Separate Layout with KBLI Section -->
+        <div v-if="activeTab === 'nib'" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            <!-- Left: NIB Data + KBLI (7 cols) -->
            <div class="lg:col-span-7 space-y-4">
               <!-- NIB Cards -->
-              <div class="space-y-3">
-                 <div v-for="(item, idx) in subModules.nib" :key="idx" 
+               <div v-if="subModules.nib?.length > 0" class="space-y-3">
+                  <div v-for="(item, idx) in subModules.nib" :key="idx"
                       class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md">
                     
                     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
@@ -919,6 +1194,34 @@
                  </div>
               </div>
               
+              <!-- Empty NIB Card -->
+              <div v-else class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6">
+                 <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0 opacity-50">
+                       <i class="fas fa-id-badge"></i>
+                    </div>
+                    <div>
+                       <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NIB</div>
+                       <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg font-mono leading-none mt-1">-</h4>
+                    </div>
+                 </div>
+                 
+                 <div class="space-y-0.5 mt-2">
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl Terbit</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Status Modal</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                    <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                       <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Skala Usaha</div>
+                       <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                    </div>
+                 </div>
+              </div>
+              
               <!-- KBLI Qualifications Section (Separate Card Below NIB) - Compact with Scroll -->
               <div class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden max-h-[300px]">
                  <!-- Header (Fixed) -->
@@ -947,8 +1250,8 @@
                                   {{ kbli.kode_kbli }}
                                </div>
                                <div class="flex-1 min-w-0">
-                                  <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight transition-colors line-clamp-2" :title="kbli.nama_klasifikasi">
-                                     {{ kbli.nama_klasifikasi || 'Klasifikasi KBLI' }}
+                                  <h5 class="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight transition-colors line-clamp-2" :title="kbli.judul_kbli || kbli.nama_klasifikasi">
+                                     {{ kbli.judul_kbli || kbli.nama_klasifikasi || 'Klasifikasi KBLI' }}
                                   </h5>
                                   <div v-if="kbli.is_primary === 'true'" class="inline-flex items-center gap-1 mt-1">
                                      <i class="fas fa-star text-[8px] text-amber-400"></i>
@@ -1040,13 +1343,13 @@
               </div>
            </div>
         </div>
-
-        <!-- 6. SBU, KTA, SERTIFIKAT TABS - Redesigned with Complete Info -->
-        <div v-if="['sbu', 'kta', 'sertifikat'].includes(activeTab) && subModules[activeTab]?.length > 0" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+         <!-- 6. SBU, KTA, SERTIFIKAT TABS - Redesigned with Complete Info -->
+         <!-- Note: Kontrak, Cek, and BPJS now have their own dedicated sections above -->
+         <div v-if="['sbu', 'kta', 'sertifikat'].includes(activeTab)" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            <!-- Left: Data List (7 cols) -->
            <div class="lg:col-span-7 space-y-4">
               <!-- Data Cards -->
-              <div class="space-y-3">
+              <div v-if="subModules[activeTab]?.length > 0" class="space-y-3">
                  <div v-for="(item, idx) in subModules[activeTab]" :key="idx" 
                        @click="activeTab === 'sertifikat' ? selectItem(activeTab, item) : null"
                        class="bg-white dark:bg-slate-800 rounded-xl border-2 group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md p-6"
@@ -1065,7 +1368,7 @@
                          <div>
                               <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ getTabLabel(activeTab) }}</div>
                               <h4 class="font-bold text-slate-800 dark:text-white text-lg font-mono leading-none mt-1">
-                                 {{ item.nomor_registrasi_lpjk || item.nomor_anggota || item.nomor_sertifikat || '#'+(idx+1) }}
+                                 {{ item.nomor_registrasi_lpjk || item.nomor_anggota || item.nomor_sertifikat || '-' }}
                               </h4>
                          </div>
                      </div>
@@ -1191,7 +1494,131 @@
                  </div>
               </div>
               
-           </div>
+              <!-- Empty State Card -->
+              <div v-else class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6">
+                 <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0 opacity-50">
+                       <i :class="getTabIcon(activeTab)"></i>
+                    </div>
+                    <div>
+                       <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ getTabLabel(activeTab) }}</div>
+                       <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg font-mono leading-none mt-1">-</h4>
+                    </div>
+                 </div>
+                 
+                 <div class="space-y-0.5 mt-2">
+                    <template v-if="activeTab === 'sbu'">
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">No. PB UMKU</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Jenis Usaha</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Asosiasi</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">PJBU</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">PJTBU</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Reg. LPJK</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Pelaksana</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl Terbit</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Berlaku</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kualifikasi</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Subklas</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Sifat</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">KBLI</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">PJSKBU</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                    </template>
+                    
+                    <template v-else-if="activeTab === 'kta'">
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">No Anggota</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama Asosiasi</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Penanggung Jawab</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Jenis Usaha</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Status</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl Terbit</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                    </template>
+                    
+                    <template v-else-if="activeTab === 'sertifikat'">
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">No Sertifikat</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kode KBLI</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Lembaga</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Klasifikasi Risiko</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                       <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                          <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Status</div>
+                          <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                       </div>
+                    </template>
+                 </div>
+              </div>
+
+            </div>
 
            <!-- Right: PDF Preview (5 cols) -->
            <div class="lg:col-span-5 flex flex-col h-full">
@@ -1723,6 +2150,7 @@
 import BaseModal from '~/components/BaseModal.vue'
 import BaseToast from '~/components/BaseToast.vue'
 import FormInput from '~/components/FormInput.vue'
+import DocumentPdfPreview from '~/components/DocumentPdfPreview.vue'
 
 definePageMeta({ layout: 'dashboard' })
 
@@ -2582,9 +3010,20 @@ const saveDocument = async (documentType) => {
       doc.file = null
       doc.preview = ''
       
-      // Refresh company data
-      console.log('🔄 Refreshing company data...')
+      // Refresh data for specific tab
+      console.log(`🔄 Refreshing ${documentType} data...`)
+      
+      // Call specific fetch function based on document type
+      if (documentType === 'akta') await fetchAkta()
+      else if (documentType === 'nib') await fetchNIB()
+      else if (documentType === 'sbu') await fetchSBU()
+      else if (documentType === 'kta') await fetchKTA()
+      else if (documentType === 'cek') await fetchCek()
+      else if (documentType === 'bpjs') await fetchBPJS()
+      
+      // Also refresh company profile (untuk update URL di db_profil_perusahaan)
       await fetchCompanyDetail()
+      
       console.log('✅ Upload complete!')
       
    } catch (error) {
@@ -2599,7 +3038,7 @@ const saveDocument = async (documentType) => {
 // Get document URL from company data or selected item
 const getDocumentUrl = (documentType) => {
    // For tabs with multiple items, get URL from selected item
-   const multiItemTabs = ['akta', 'nib', 'sbu', 'kta', 'sertifikat']
+   const multiItemTabs = ['akta', 'nib', 'sbu', 'kta', 'sertifikat', 'kontrak', 'cek', 'bpjs']
    
    if (multiItemTabs.includes(documentType)) {
       const item = selectedItems.value[documentType]
@@ -2609,23 +3048,20 @@ const getDocumentUrl = (documentType) => {
             nib: item.nib_url,
             sbu: item.sbu_url,
             kta: item.kta_url,
-            sertifikat: item.sertifikat_standar_url
+            sertifikat: item.sertifikat_standar_url,
+            kontrak: item.kontrak_url,
+            cek: item.url_cek,
+            bpjs: item.url_bpjs
          }
          return itemUrlMap[documentType] || ''
       }
       return ''
    }
    
-   // For single-item tabs, get from company data
+   // For other single-item tabs (if any), get from company data
    if (!company.value) return ''
    
-   const urlMap = {
-      kontrak: company.value.kontrak_url,
-      cek: company.value.cek_url,
-      bpjs: company.value.bpjs_url
-   }
-   
-   return urlMap[documentType] || ''
+   return ''
 }
 
 // Cancel document upload
@@ -2709,7 +3145,6 @@ const clearContactData = async () => {
       alert('Gagal menghapus data: ' + error.message)
    }
 }
-
 
 onMounted(() => {
    fetchCompanyDetail()

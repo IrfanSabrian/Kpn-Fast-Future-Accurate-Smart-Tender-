@@ -4,6 +4,7 @@
  * Handles HTTP requests untuk company profile management (multiple companies support)
  */
 
+import { google } from 'googleapis';
 import googleSheetsService from '../services/googleSheets.service.js';
 import cloudinaryService from '../services/cloudinary.service.js';
 import oauth2GoogleService from '../services/oauth2Google.service.js';
@@ -806,17 +807,604 @@ export const updateCompany = async (req, res) => {
             folderNumber,
             doc.type
           );
-          // Dynamically set the URL variable
-          if (doc.urlVar === 'aktaUrl') aktaUrl = result.webViewLink;
-          else if (doc.urlVar === 'nibUrl') nibUrl = result.webViewLink;
-          else if (doc.urlVar === 'sbuUrl') sbuUrl = result.webViewLink;
-          else if (doc.urlVar === 'ktaUrl') ktaUrl = result.webViewLink;
-          else if (doc.urlVar === 'sertifikatUrl') sertifikatUrl = result.webViewLink;
-          else if (doc.urlVar === 'kontrakUrl') kontrakUrl = result.webViewLink;
-          else if (doc.urlVar === 'cekUrl') cekUrl = result.webViewLink;
-          else if (doc.urlVar === 'bpjsUrl') bpjsUrl = result.webViewLink;
+          const pdfUrl = result.webViewLink;
           
-          console.log(`✅ Google Drive ${doc.label} updated:`, result.webViewLink);
+          // Dynamically set the URL variable
+          if (doc.urlVar === 'aktaUrl') aktaUrl = pdfUrl;
+          else if (doc.urlVar === 'nibUrl') nibUrl = pdfUrl;
+          else if (doc.urlVar === 'sbuUrl') sbuUrl = pdfUrl;
+          else if (doc.urlVar === 'ktaUrl') ktaUrl = pdfUrl;
+          else if (doc.urlVar === 'sertifikatUrl') sertifikatUrl = pdfUrl;
+          else if (doc.urlVar === 'kontrakUrl') kontrakUrl = pdfUrl;
+          else if (doc.urlVar === 'cekUrl') cekUrl = pdfUrl;
+          else if (doc.urlVar === 'bpjsUrl') bpjsUrl = pdfUrl;
+          
+          console.log(`✅ Google Drive ${doc.label} updated:`, pdfUrl);
+          
+          // 📊 NOW UPDATE/CREATE RECORD IN SPREADSHEET
+          try {
+            // Get current timestamp and author
+            const now = new Date();
+            const tanggalInput = now.toISOString().slice(0, 19).replace('T', ' ');
+            let author = 'system';
+            try {
+              const userInfo = await oauth2GoogleService.getUserInfo();
+              author = userInfo.name || userInfo.email || 'system';
+            } catch (e) {
+              console.warn('Could not get user info:', e.message);
+            }
+            
+            // Handle each document type differently
+            if (doc.type === 'akta') {
+              // Check if company has any akta records
+              const aktaData = await googleSheetsService.getSheetData('db_akta');
+              const existingAkta = aktaData.filter(item => item.id_perusahaan === id);
+              
+              // Define headers for db_akta - MUST match exact column order in spreadsheet!
+              // Based on PDF_UPLOAD_STRUCTURE.md:
+              // Kolom 1: id_akta, Kolom 2: id_perusahaan, Kolom 3-6: metadata, Kolom 7: URL, Kolom 8-9: timestamp & author
+              const aktaHeaders = [
+                'id_akta',              // Column 1 (auto-generated, leave empty)
+                'id_perusahaan',        // Column 2
+                'jenis_akta',           // Column 3 (leave empty for now)
+                'nomor_akta',           // Column 4 (leave empty for now)
+                'tanggal_akta',         // Column 5 (leave empty for now)
+                'notaris',              // Column 6 (leave empty for now)
+                'akta_perusahaan_url',  // Column 7 (PDF URL)
+                'tanggal_input',        // Column 8 (timestamp)
+                'author'                // Column 9 (user who uploaded)
+              ];
+              
+              if (existingAkta.length === 0) {
+                // Generate new ID for akta
+                const totalAktaCount = aktaData.length;
+                const newAktaId = `AKTA${String(totalAktaCount + 1).padStart(3, '0')}`;
+                
+                // Create new akta record
+                console.log('📝 Creating new Akta record in spreadsheet...');
+                console.log('   Generated ID:', newAktaId);
+                
+                await googleSheetsService.addSheetData('db_akta', aktaHeaders, {
+                  id_akta: newAktaId,    // Generated ID
+                  id_perusahaan: id,
+                  jenis_akta: '',        // Empty - user will fill later
+                  nomor_akta: '',        // Empty - user will fill later
+                  tanggal_akta: '',      // Empty - user will fill later
+                  notaris: '',           // Empty - user will fill later
+                  akta_perusahaan_url: pdfUrl,
+                  tanggal_input: tanggalInput,
+                  author: author
+                });
+                console.log('✅ Akta record created in spreadsheet with ID:', newAktaId);
+              } else {
+                // Update first akta record's URL
+                console.log('📝 Updating existing Akta record...');
+                const firstAkta = existingAkta[0];
+                await googleSheetsService.updateSheetData('db_akta', aktaHeaders, 'id_akta', firstAkta.id_akta, {
+                  akta_perusahaan_url: pdfUrl,
+                  tanggal_input: tanggalInput,
+                  author: author
+                });
+                console.log('✅ Akta record updated in spreadsheet');
+              }
+            }
+            // NIB - Same pattern as Akta
+            else if (doc.type === 'nib') {
+              try {
+                console.log('🔵 Processing NIB document upload...');
+                const nibData = await googleSheetsService.getSheetData('db_nib');
+                console.log('   Current NIB records:', nibData.length);
+                
+                const existingNib = nibData.filter(item => item.id_perusahaan === id);
+                console.log('   Existing NIB for this company:', existingNib.length);
+                
+                // TEMPORARY: Use simplified headers - we'll adjust based on actual spreadsheet
+                // Common NIB columns (adjust order based on your spreadsheet!)
+                const nibHeaders = [
+                  'id_nib',
+                  'id_perusahaan', 
+                  'nomor_nib',
+                  'tanggal_terbit',
+                  'status',
+                  'skala_usaha',
+                  'nib_url',
+                  'tanggal_input',
+                  'author'
+                ];
+                
+                if (existingNib.length === 0) {
+                  // Generate new ID
+                  const totalNibCount = nibData.length;
+                  const newNibId = `NIB${String(totalNibCount + 1).padStart(3, '0')}`;
+                  
+                  console.log('📝 Creating new NIB record...');
+                  console.log('   New ID:', newNibId);
+                  console.log('   PDF URL:', pdfUrl);
+                  
+                  const nibRecord = {
+                    id_nib: newNibId,
+                    id_perusahaan: id,
+                    nomor_nib: '',
+                    tanggal_terbit: '',
+                    status: '',
+                    skala_usaha: '',
+                    nib_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  };
+                  
+                  console.log('   Record to insert:', nibRecord);
+                  
+                  await googleSheetsService.addSheetData('db_nib', nibHeaders, nibRecord);
+                  console.log('✅ NIB record created successfully!');
+                } else {
+                  console.log('📝 Updating existing NIB record...');
+                  const firstNib = existingNib[0];
+                  console.log('   Updating ID:', firstNib.id_nib);
+                  
+                  await googleSheetsService.updateSheetData('db_nib', nibHeaders, 'id_nib', firstNib.id_nib, {
+                    nib_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ NIB record updated successfully!');
+                }
+              } catch (nibError) {
+                console.error('❌ ERROR in NIB spreadsheet operation:');
+                console.error('   Message:', nibError.message);
+                console.error('   Stack:', nibError.stack);
+                // Don't throw - at least file is in Drive
+              }
+            }
+            // SBU - Same pattern as Akta and NIB
+            else if (doc.type === 'sbu') {
+              try {
+                console.log('🟢 Processing SBU document upload...');
+                const sbuData = await googleSheetsService.getSheetData('db_sbu');
+                console.log('   Current SBU records:', sbuData.length);
+                
+                const existingSbu = sbuData.filter(item => item.id_perusahaan === id);
+                console.log('   Existing SBU for this company:', existingSbu.length);
+                
+                // Define headers for db_sbu - Match with actual spreadsheet columns
+                const sbuHeaders = [
+                  'id_sbu',
+                  'id_perusahaan',
+                  'id_nib',
+                  'nomor_pb_umku',
+                  'jenis_usaha',
+                  'asosiasi',
+                  'pjbu',
+                  'pjtbu',
+                  'nomor_registrasi_lpjk',
+                  'tanggal_terbit',
+                  'masa_berlaku',
+                  'kualifikasi',
+                  'kode_subklasifikasi',
+                  'sifat',
+                  'kode_kbli',
+                  'nama_pjskbu',
+                  'pelaksana_sertifikasi',
+                  'sbu_url',
+                  'tanggal_input',
+                  'author'
+                ];
+                
+                if (existingSbu.length === 0) {
+                  // Generate new ID
+                  const totalSbuCount = sbuData.length;
+                  const newSbuId = `SBU${String(totalSbuCount + 1).padStart(3, '0')}`;
+                  
+                  console.log('📝 Creating new SBU record...');
+                  console.log('   New ID:', newSbuId);
+                  console.log('   PDF URL:', pdfUrl);
+                  
+                  await googleSheetsService.addSheetData('db_sbu', sbuHeaders, {
+                    id_sbu: newSbuId,
+                    id_perusahaan: id,
+                    id_nib: '',
+                    nomor_pb_umku: '',
+                    jenis_usaha: '',
+                    asosiasi: '',
+                    pjbu: '',
+                    pjtbu: '',
+                    nomor_registrasi_lpjk: '',
+                    tanggal_terbit: '',
+                    masa_berlaku: '',
+                    kualifikasi: '',
+                    kode_subklasifikasi: '',
+                    sifat: '',
+                    kode_kbli: '',
+                    nama_pjskbu: '',
+                    pelaksana_sertifikasi: '',
+                    sbu_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ SBU record created in spreadsheet with ID:', newSbuId);
+                } else {
+                  console.log('📝 Updating existing SBU record...');
+                  const firstSbu = existingSbu[0];
+                  console.log('   Updating ID:', firstSbu.id_sbu);
+                  
+                  await googleSheetsService.updateSheetData('db_sbu', sbuHeaders, 'id_sbu', firstSbu.id_sbu, {
+                    sbu_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ SBU record updated successfully!');
+                }
+              } catch (sbuError) {
+                console.error('❌ ERROR in SBU spreadsheet operation:');
+                console.error('   Message:', sbuError.message);
+                console.error('   Stack:', sbuError.stack);
+                // Don't throw - at least file is in Drive
+              }
+            }
+            
+            // KTA Document Upload
+            else if (doc.type === 'kta') {
+              try {
+                console.log('🔵 Processing KTA document upload...');
+                const ktaData = await googleSheetsService.getSheetData('db_kta');
+                console.log('   Current KTA records:', ktaData.length);
+                
+                const existingKta = ktaData.filter(item => item.id_perusahaan === id);
+                console.log('   Existing KTA for this company:', existingKta.length);
+                
+                // Define headers for db_kta - Match with actual spreadsheet columns
+                const ktaHeaders = [
+                  'id_kta',
+                  'id_perusahaan',
+                  'nomor_anggota',
+                  'nama_asosiasi',
+                  'penanggung_jawab',
+                  'jenis_usaha',
+                  'status_keanggotaan',
+                  'tanggal_terbit',
+                  'kta_url',
+                  'status',
+                  'tanggal_input',
+                  'author'
+                ];
+                
+                if (existingKta.length === 0) {
+                  // Generate new ID
+                  const totalKtaCount = ktaData.length;
+                  const newKtaId = `KTA${String(totalKtaCount + 1).padStart(3, '0')}`;
+                  
+                  console.log('📝 Creating new KTA record...');
+                  console.log('   New ID:', newKtaId);
+                  console.log('   PDF URL:', pdfUrl);
+                  
+                  await googleSheetsService.addSheetData('db_kta', ktaHeaders, {
+                    id_kta: newKtaId,
+                    id_perusahaan: id,
+                    nomor_anggota: '',
+                    nama_asosiasi: '',
+                    penanggung_jawab: '',
+                    jenis_usaha: '',
+                    status_keanggotaan: '',
+                    tanggal_terbit: '',
+                    kta_url: pdfUrl,
+                    status: '',
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ KTA record created successfully!');
+                } else {
+                  console.log('📝 Updating existing KTA record...');
+                  const firstKta = existingKta[0];
+                  console.log('   Updating ID:', firstKta.id_kta);
+                  
+                  await googleSheetsService.updateSheetData('db_kta', ktaHeaders, 'id_kta', firstKta.id_kta, {
+                    kta_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ KTA record updated successfully!');
+                }
+              } catch (ktaError) {
+                console.error('❌ ERROR in KTA spreadsheet operation:');
+                console.error('   Message:', ktaError.message);
+                console.error('   Stack:', ktaError.stack);
+              }
+            }
+            
+            // Sertifikat Document Upload
+            else if (doc.type === 'sertifikat') {
+              try {
+                console.log('🔵 Processing Sertifikat document upload...');
+                const sertifikatData = await googleSheetsService.getSheetData('db_sertifikat_standar');
+                console.log('   Current Sertifikat records:', sertifikatData.length);
+                
+                const existingSertifikat = sertifikatData.filter(item => item.id_perusahaan === id);
+                console.log('   Existing Sertifikat for this company:', existingSertifikat.length);
+                
+                // Define headers for db_sertifikat_standar - Match with actual spreadsheet columns
+                const sertifikatHeaders = [
+                  'id_sertifikat_standar',
+                  'id_perusahaan',
+                  'id_nib',
+                  'nomor_sertifikat',
+                  'kode_kbli',
+                  'klasifikasi_risiko',
+                  'status_pemenuhan',
+                  'lembaga_verifikasi',
+                  'tanggal_terbit',
+                  'sertifikat_standar_url',
+                  'tanggal_input',
+                  'author'
+                ];
+                
+                if (existingSertifikat.length === 0) {
+                  // Generate new ID
+                  const totalSertifikatCount = sertifikatData.length;
+                  const newSertifikatId = `SRT${String(totalSertifikatCount + 1).padStart(3, '0')}`;
+                  
+                  console.log('📝 Creating new Sertifikat record...');
+                  console.log('   New ID:', newSertifikatId);
+                  console.log('   PDF URL:', pdfUrl);
+                  
+                  await googleSheetsService.addSheetData('db_sertifikat_standar', sertifikatHeaders, {
+                    id_sertifikat_standar: newSertifikatId,
+                    id_perusahaan: id,
+                    id_nib: '',
+                    nomor_sertifikat: '',
+                    kode_kbli: '',
+                    klasifikasi_risiko: '',
+                    status_pemenuhan: '',
+                    lembaga_verifikasi: '',
+                    tanggal_terbit: '',
+                    sertifikat_standar_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ Sertifikat record created successfully!');
+                } else {
+                  console.log('📝 Updating existing Sertifikat record...');
+                  const firstSertifikat = existingSertifikat[0];
+                  console.log('   Updating ID:', firstSertifikat.id_sertifikat_standar);
+                  
+                  await googleSheetsService.updateSheetData('db_sertifikat_standar', sertifikatHeaders, 'id_sertifikat_standar', firstSertifikat.id_sertifikat_standar, {
+                    sertifikat_standar_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ Sertifikat record updated successfully!');
+                }
+              } catch (sertifikatError) {
+                console.error('❌ ERROR in Sertifikat spreadsheet operation:');
+                console.error('   Message:', sertifikatError.message);
+                console.error('   Stack:', sertifikatError.stack);
+              }
+            }
+            
+            // Kontrak Document Upload
+            else if (doc.type === 'kontrak') {
+              try {
+                console.log('🔵 Processing Kontrak document upload...');
+                const kontrakData = await googleSheetsService.getSheetData('db_kontrak_pengalaman');
+                console.log('   Current Kontrak records:', kontrakData.length);
+                
+                const existingKontrak = kontrakData.filter(item => item.id_perusahaan === id);
+                console.log('   Existing Kontrak for this company:', existingKontrak.length);
+                
+                // Define headers for db_kontrak_pengalaman - Match with actual spreadsheet columns
+                const kontrakHeaders = [
+                  'id_kontrak',
+                  'id_perusahaan',
+                  'nama_pekerjaan',
+                  'bidang_pekerjaan',
+                  'sub_bidang_pekerjaan',
+                  'lokasi',
+                  'nama_pemberi_tugas',
+                  'alamat_pemberi_tugas',
+                  'telepon_pemberi_tugas',
+                  'fax_pemberi_tugas',
+                  'kode_pos_pemberi_tugas',
+                  'nomor_kontrak',
+                  'tanggal_kontrak',
+                  'nilai_kontrak',
+                  'waktu_pelaksanaan',
+                  'tanggal_selesai_kontrak',
+                  'tanggal_ba_serah_terima',
+                  'kontrak_url',
+                  'tanggal_input',
+                  'author'
+                ];
+                
+                if (existingKontrak.length === 0) {
+                  // Generate new ID
+                  const totalKontrakCount = kontrakData.length;
+                  const newKontrakId = `KONTR${String(totalKontrakCount + 1).padStart(3, '0')}`;
+                  
+                  console.log('📝 Creating new Kontrak record...');
+                  console.log('   New ID:', newKontrakId);
+                  console.log('   PDF URL:', pdfUrl);
+                  
+                  await googleSheetsService.addSheetData('db_kontrak_pengalaman', kontrakHeaders, {
+                    id_kontrak: newKontrakId,
+                    id_perusahaan: id,
+                    nama_pekerjaan: '',
+                    bidang_pekerjaan: '',
+                    sub_bidang_pekerjaan: '',
+                    lokasi: '',
+                    nama_pemberi_tugas: '',
+                    alamat_pemberi_tugas: '',
+                    telepon_pemberi_tugas: '',
+                    fax_pemberi_tugas: '',
+                    kode_pos_pemberi_tugas: '',
+                    nomor_kontrak: '',
+                    tanggal_kontrak: '',
+                    nilai_kontrak: '',
+                    waktu_pelaksanaan: '',
+                    tanggal_selesai_kontrak: '',
+                    tanggal_ba_serah_terima: '',
+                    kontrak_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ Kontrak record created successfully!');
+                } else {
+                  console.log('📝 Updating existing Kontrak record...');
+                  const firstKontrak = existingKontrak[0];
+                  console.log('   Updating ID:', firstKontrak.id_kontrak);
+                  
+                  await googleSheetsService.updateSheetData('db_kontrak_pengalaman', kontrakHeaders, 'id_kontrak', firstKontrak.id_kontrak, {
+                    kontrak_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ Kontrak record updated successfully!');
+                }
+                
+                // Update kontrakUrl untuk disimpan ke db_profil_perusahaan
+                kontrakUrl = pdfUrl;
+                console.log('📌 Kontrak URL will be saved to company profile:', kontrakUrl);
+              } catch (kontrakError) {
+                console.error('❌ ERROR in Kontrak spreadsheet operation:');
+                console.error('   Message:', kontrakError.message);
+                console.error('   Stack:', kontrakError.stack);
+              }
+            }
+            
+            // Cek Document Upload
+            else if (doc.type === 'cek') {
+              try {
+                console.log('🔵 Processing Cek document upload...');
+                const cekData = await googleSheetsService.getSheetData('db_cek');
+                console.log('   Current Cek records:', cekData.length);
+                
+                const existingCek = cekData.filter(item => item.id_perusahaan === id);
+                console.log('   Existing Cek for this company:', existingCek.length);
+                
+                // Define headers for db_cek - Match with actual spreadsheet columns
+                const cekHeaders = [
+                  'id_cek',
+                  'id_perusahaan',
+                  'no_rekening',
+                  'nama_bank',
+                  'url_cek',
+                  'tanggal_input',
+                  'author'
+                ];
+                
+                if (existingCek.length === 0) {
+                  // Generate new ID
+                  const totalCekCount = cekData.length;
+                  const newCekId = `CEK${String(totalCekCount + 1).padStart(3, '0')}`;
+                  
+                  console.log('📝 Creating new Cek record...');
+                  console.log('   New ID:', newCekId);
+                  console.log('   PDF URL:', pdfUrl);
+                  
+                  await googleSheetsService.addSheetData('db_cek', cekHeaders, {
+                    id_cek: newCekId,
+                    id_perusahaan: id,
+                    no_rekening: '',
+                    nama_bank: '',
+                    url_cek: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ Cek record created successfully!');
+                } else {
+                  console.log('📝 Updating existing Cek record...');
+                  const firstCek = existingCek[0];
+                  console.log('   Updating ID:', firstCek.id_cek);
+                  
+                  await googleSheetsService.updateSheetData('db_cek', cekHeaders, 'id_cek', firstCek.id_cek, {
+                    url_cek: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ Cek record updated successfully!');
+                }
+                
+                // Update cekUrl untuk disimpan ke db_profil_perusahaan
+                cekUrl = pdfUrl;
+                console.log('📌 Cek URL will be saved to company profile:', cekUrl);
+              } catch (cekError) {
+                console.error('❌ ERROR in Cek spreadsheet operation:');
+                console.error('   Message:', cekError.message);
+                console.error('   Stack:', cekError.stack);
+              }
+            }
+            
+            // BPJS Document Upload
+            else if (doc.type === 'bpjs') {
+              try {
+                console.log('🔵 Processing BPJS document upload...');
+                const bpjsData = await googleSheetsService.getSheetData('db_bpjs');
+                console.log('   Current BPJS records:', bpjsData.length);
+                
+                const existingBpjs = bpjsData.filter(item => item.id_perusahaan === id);
+                console.log('   Existing BPJS for this company:', existingBpjs.length);
+                
+                // Define headers for db_bpjs - Match with actual spreadsheet columns
+                const bpjsHeaders = [
+                  'id_bpjs',
+                  'id_perusahaan',
+                  'nomor_sertifikat',
+                  'nomor_pendaftaran',
+                  'tanggal_ditetapkan',
+                  'lokasi_ditetapkan',
+                  'url_bpjs',
+                  'tanggal_input',
+                  'author'
+                ];
+                
+                if (existingBpjs.length === 0) {
+                  // Generate new ID
+                  const totalBpjsCount = bpjsData.length;
+                  const newBpjsId = `BPJS${String(totalBpjsCount + 1).padStart(3, '0')}`;
+                  
+                  console.log('📝 Creating new BPJS record...');
+                  console.log('   New ID:', newBpjsId);
+                  console.log('   PDF URL:', pdfUrl);
+                  
+                  await googleSheetsService.addSheetData('db_bpjs', bpjsHeaders, {
+                    id_bpjs: newBpjsId,
+                    id_perusahaan: id,
+                    nomor_sertifikat: '',
+                    nomor_pendaftaran: '',
+                    tanggal_ditetapkan: '',
+                    lokasi_ditetapkan: '',
+                    url_bpjs: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ BPJS record created successfully!');
+                } else {
+                  console.log('📝 Updating existing BPJS record...');
+                  const firstBpjs = existingBpjs[0];
+                  console.log('   Updating ID:', firstBpjs.id_bpjs);
+                  
+                  await googleSheetsService.updateSheetData('db_bpjs', bpjsHeaders, 'id_bpjs', firstBpjs.id_bpjs, {
+                    url_bpjs: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author
+                  });
+                  console.log('✅ BPJS record updated successfully!');
+                }
+                
+                // Update bpjsUrl untuk disimpan ke db_profil_perusahaan
+                bpjsUrl = pdfUrl;
+                console.log('📌 BPJS URL will be saved to company profile:', bpjsUrl);
+              } catch (bpjsError) {
+                console.error('❌ ERROR in BPJS spreadsheet operation:');
+                console.error('   Message:', bpjsError.message);
+                console.error('   Stack:', bpjsError.stack);
+              }
+            }
+            
+          } catch (sheetError) {
+            console.error(`❌ Failed to update ${doc.label} in spreadsheet:`, sheetError.message);
+            console.error('   Stack:', sheetError.stack);
+            // Continue anyway - at least the file is uploaded to Drive
+          }
+          
         } catch (docError) {
           console.error(`❌ Google Drive ${doc.label} upload failed:`, docError.message);
         }
