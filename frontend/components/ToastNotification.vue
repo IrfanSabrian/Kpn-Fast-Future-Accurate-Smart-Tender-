@@ -79,27 +79,7 @@
 </template>
 
 <script setup>
-const toasts = ref([])
-
-const addToast = (toast) => {
-  const id = Date.now()
-  toasts.value.push({ ...toast, id })
-  
-  // Auto remove after duration
-  setTimeout(() => {
-    removeToast(id)
-  }, toast.duration || 5000)
-}
-
-const removeToast = (id) => {
-  const index = toasts.value.findIndex(t => t.id === id)
-  if (index > -1) {
-    toasts.value.splice(index, 1)
-  }
-}
-
-// Expose untuk bisa dipanggil dari parent
-defineExpose({ addToast })
+const { toasts, removeToast } = useToast()
 </script>
 
 <style scoped>

@@ -1,69 +1,101 @@
 // Composable for toast notifications
 export const useToast = () => {
-  const toast = ref({
-    show: false,
-    type: 'info',
-    title: '',
-    message: '',
-    duration: 8000
-  })
+  // State shared across components (singleton pattern for toast list)
+  const toasts = useState("toasts", () => []);
 
-  const showToast = (type, title, message, duration = 8000) => {
-    toast.value = {
+  const addToast = (type, title, message, duration = 5000) => {
+    const id = Date.now() + Math.random().toString(36).substr(2, 9);
+    const newToast = {
+      id,
       show: true,
       type,
       title,
       message,
-      duration
+      duration,
+    };
+
+    // Add to array
+    toasts.value.push(newToast);
+
+    // Auto-remove after duration
+    if (duration > 0) {
+      setTimeout(() => {
+        removeToast(id);
+      }, duration);
     }
-  }
+
+    return id;
+  };
+
+  const removeToast = (id) => {
+    const index = toasts.value.findIndex((t) => t.id === id);
+    if (index > -1) {
+      toasts.value.splice(index, 1);
+    }
+  };
+
+  const clearToasts = () => {
+    toasts.value = [];
+  };
 
   const hideToast = () => {
-    toast.value.show = false
-  }
+    // Deprecated but kept for compatibility - removes the last toast or clears all?
+    // Let's make it clear all to be safe if previously it hid the single active toast
+    clearToasts();
+  };
 
   const success = (...args) => {
-    // If only one parameter, treat it as message with default title
     if (args.length === 1) {
-      showToast('success', 'Berhasil', args[0], 8000)
+      addToast("success", "Berhasil", args[0], 5000);
+    } else if (args.length === 2 && typeof args[1] === "number") {
+      // (message, duration)
+      addToast("success", "Berhasil", args[0], args[1]);
     } else {
-      showToast('success', args[0], args[1], args[2])
+      // (title, message, duration?)
+      addToast("success", args[0], args[1], args[2] || 5000);
     }
-  }
+  };
 
   const error = (...args) => {
-    // If only one parameter, treat it as message with default title
     if (args.length === 1) {
-      showToast('error', 'Gagal', args[0], 8000)
+      addToast("error", "Gagal", args[0], 8000);
+    } else if (args.length === 2 && typeof args[1] === "number") {
+      addToast("error", "Gagal", args[0], args[1]);
     } else {
-      showToast('error', args[0], args[1], args[2])
+      addToast("error", args[0], args[1], args[2] || 8000);
     }
-  }
+  };
 
   const warning = (...args) => {
-    // If only one parameter, treat it as message with default title
     if (args.length === 1) {
-      showToast('warning', 'Peringatan', args[0], 8000)
+      addToast("warning", "Peringatan", args[0], 6000);
+    } else if (args.length === 2 && typeof args[1] === "number") {
+      addToast("warning", "Peringatan", args[0], args[1]);
     } else {
-      showToast('warning', args[0], args[1], args[2])
+      addToast("warning", args[0], args[1], args[2] || 6000);
     }
-  }
+  };
 
   const info = (...args) => {
-    // If only one parameter, treat it as message with default title
     if (args.length === 1) {
-      showToast('info', 'Informasi', args[0], 8000)
+      addToast("info", "Informasi", args[0], 5000);
+    } else if (args.length === 2 && typeof args[1] === "number") {
+      addToast("info", "Informasi", args[0], args[1]);
     } else {
-      showToast('info', args[0], args[1], args[2])
+      addToast("info", args[0], args[1], args[2] || 5000);
     }
-  }
+  };
 
   return {
-    toast,
+    toast: toasts, // Alias for backward compatibility
+    toasts,
+    addToast,
+    removeToast,
+    clearToasts,
     hideToast,
     success,
     error,
     warning,
-    info
-  }
-}
+    info,
+  };
+};

@@ -2,12 +2,12 @@
   <ClientOnly>
     <Teleport to="body">
       <Transition
-        enter-active-class="transition duration-300 ease-out transform"
-        enter-from-class="translate-y-2 opacity-0"
-        enter-to-class="translate-y-0 opacity-100"
-        leave-active-class="transition duration-200 ease-in transform"
-        leave-from-class="translate-y-0 opacity-100"
-        leave-to-class="translate-y-2 opacity-0"
+        enter-active-class="transition duration-500 cubic-bezier(0.16, 1, 0.3, 1) transform"
+        enter-from-class="translate-x-full opacity-0"
+        enter-to-class="translate-x-0 opacity-100"
+        leave-active-class="transition duration-300 ease-in transform"
+        leave-from-class="translate-x-0 opacity-100"
+        leave-to-class="translate-x-full opacity-0"
       >
         <div 
           v-if="isVisible"
