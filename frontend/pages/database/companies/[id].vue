@@ -175,7 +175,11 @@
                  <div class="max-h-[400px] overflow-y-auto pr-2 -mr-2">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                        <!-- Existing Pejabat Cards -->
-                       <div v-for="item in subModules.pejabat || []" :key="item.id_pejabat" class="bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600 p-4 hover:border-cyan-400 transition-all group relative overflow-hidden">
+                       <div 
+                          v-for="item in subModules.pejabat || []" 
+                          :key="item.id_pejabat" 
+                          @click="navigateToPersonnel(item.id_personel)"
+                          class="bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-cyan-400 hover:shadow-md transition-all group relative overflow-hidden cursor-pointer">
                           <div class="absolute top-0 right-0 p-3 opacity-5"><i class="fas fa-user-tie text-5xl"></i></div>
                           <div class="flex items-center gap-3 mb-3 relative z-10">
                              <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-500 dark:text-slate-300 ring-2 ring-white dark:ring-slate-700 shadow-sm text-sm">
@@ -443,27 +447,84 @@
                               <div class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0">
                                   <i class="fas fa-briefcase"></i>
                               </div>
-                              <div>
-                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PENGALAMAN KERJA</div>
-                                  <h4 class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1">{{ item.nama_paket || '-' }}</h4>
+                              <div class="flex-1">
+                                  <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NAMA PEKERJAAN</div>
+                                  <h4 class="font-bold text-slate-800 dark:text-white text-base leading-tight mt-1">{{ item.nama_pekerjaan || '-' }}</h4>
                               </div>
                          </div>
                      </div>
 
                      <div class="space-y-0.5 mt-4">
-                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO KONTRAK</div>
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Bidang Pekerjaan</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.bidang_pekerjaan || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Sub Bidang Pekerjaan</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.sub_bidang_pekerjaan || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Lokasi</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.lokasi || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama Pemberi Tugas</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.nama_pemberi_tugas || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat Pemberi Tugas</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.alamat_pemberi_tugas || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Telepon Pemberi Tugas</div>
+                            <div class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ item.telepon_pemberi_tugas || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Fax Pemberi Tugas</div>
+                            <div class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ item.fax_pemberi_tugas || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kode Pos</div>
+                            <div class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200">{{ item.kode_pos_pemberi_tugas || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nomor Kontrak</div>
                             <div class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ item.nomor_kontrak || '-' }}</div>
                         </div>
                         
-                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">PEMBERI KERJA</div>
-                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.pemberi_kerja || '-' }}</div>
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tanggal Kontrak</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_kontrak || '-' }}</div>
                         </div>
                         
-                        <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NILAI</div>
-                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.nilai_kontrak || '-' }}</div>
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nilai Kontrak</div>
+                            <div class="text-xs font-bold text-green-600 dark:text-green-400">
+                              {{ item.nilai_kontrak ? `Rp ${Number(item.nilai_kontrak).toLocaleString('id-ID')}` : '-' }}
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Waktu Pelaksanaan</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.waktu_pelaksanaan || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tanggal Selesai</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_selesai_kontrak || '-' }}</div>
+                        </div>
+                        
+                        <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl BA Serah Terima</div>
+                            <div class="text-xs font-medium text-slate-700 dark:text-slate-200">{{ item.tanggal_ba_serah_terima || '-' }}</div>
                         </div>
                      </div>
 
@@ -477,26 +538,81 @@
                         <div class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0 opacity-50">
                            <i class="fas fa-briefcase"></i>
                         </div>
-                        <div>
-                           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PENGALAMAN KERJA</div>
-                           <h4 class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1">-</h4>
+                        <div class="flex-1">
+                           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">NAMA PEKERJAAN</div>
+                           <h4 class="font-bold text-slate-400 dark:text-slate-500 text-base leading-tight mt-1">-</h4>
                         </div>
                      </div>
                   </div>
 
                   <div class="space-y-0.5 mt-4">
-                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NO KONTRAK</div>
-                        <div class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
-                     </div>
-                     
-                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">PEMBERI KERJA</div>
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Bidang Pekerjaan</div>
                         <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
                      </div>
                      
-                     <div class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">NILAI</div>
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Sub Bidang Pekerjaan</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Lokasi</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nama Pemberi Tugas</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Alamat Pemberi Tugas</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Telepon Pemberi Tugas</div>
+                        <div class="text-xs font-mono font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Fax Pemberi Tugas</div>
+                        <div class="text-xs font-mono font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Kode Pos</div>
+                        <div class="text-xs font-mono font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nomor Kontrak</div>
+                        <div class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tanggal Kontrak</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Nilai Kontrak</div>
+                        <div class="text-xs font-bold text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Waktu Pelaksanaan</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tanggal Selesai</div>
+                        <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
+                     </div>
+                     
+                     <div class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase pt-0.5">Tgl BA Serah Terima</div>
                         <div class="text-xs font-medium text-slate-400 dark:text-slate-500">-</div>
                      </div>
                   </div>
@@ -508,7 +624,7 @@
                <DocumentPdfPreview
                  documentType="kontrak"
                  label="Kontrak"
-                 :subtitle="selectedItems.kontrak ? `${selectedItems.kontrak.nama_paket || '-'}` : ''"
+                 :subtitle="selectedItems.kontrak ? `${selectedItems.kontrak.lokasi || '-'}` : ''"
                  icon="fas fa-briefcase"
                  iconColor="purple"
                  :existingPdfUrl="getDocumentUrl('kontrak')"
@@ -696,7 +812,7 @@
                <DocumentPdfPreview
                  documentType="bpjs"
                  label="BPJS"
-                 :subtitle="selectedItems.bpjs ? `BPJS: ${selectedItems.bpjs.nomor_bpjs || '-'}` : ''"
+                 :subtitle="selectedItems.bpjs ? `BPJS - ${selectedItems.bpjs.nomor_sertifikat || '-'}` : ''"
                  icon="fas fa-heartbeat"
                  iconColor="pink"
                  :existingPdfUrl="getDocumentUrl('bpjs')"
@@ -3143,6 +3259,27 @@ const clearContactData = async () => {
    } catch (error) {
       console.error('Error clearing contact:', error)
       alert('Gagal menghapus data: ' + error.message)
+   }
+}
+
+// Navigate to personnel detail
+const navigateToPersonnel = (id) => {
+   if (!id) return
+   // ID format typically PRSxxx. If it's a raw ID, we should handle it.
+   // Assuming the route is /database/personel/:id
+   // Try to use existing router instance
+   try {
+      router.push(`/database/personel/${id}`)
+   } catch (e) {
+      console.error('Router navigation failed:', e)
+      // Fallback if router variable is not available in this scope but useRouter is
+      try {
+         const r = useRouter()
+         r.push(`/database/personel/${id}`)
+      } catch (err) {
+         console.error('useRouter failed:', err)
+         toast.error('Gagal navigasi ke halaman personel')
+      }
    }
 }
 
