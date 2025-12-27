@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans">
     <!-- Technical Header (Full Width) -->
     <header
-      class="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-200"
+      class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-200"
     >
       <div
         class="max-w-[1800px] mx-auto px-4 md:px-6 h-16 md:h-24 flex items-center justify-between"
@@ -152,31 +152,13 @@
 
               <!-- Action Buttons (Top Right) -->
               <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
-                <!-- Show Edit & Delete if data exists -->
-                <template v-if="hasContactData(company)">
-                  <button
-                    @click="openEditContactModal"
-                    class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-all hover:scale-110"
-                    title="Edit Kontak & Kop"
-                  >
-                    <i class="fas fa-edit text-sm"></i>
-                  </button>
-                  <button
-                    @click="clearContactData"
-                    class="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center transition-all hover:scale-110"
-                    title="Hapus Kontak"
-                  >
-                    <i class="fas fa-trash-alt text-sm"></i>
-                  </button>
-                </template>
-                <!-- Show Plus if no data -->
+                <!-- Only Edit button (always show) -->
                 <button
-                  v-else
                   @click="openEditContactModal"
-                  class="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 flex items-center justify-center transition-all hover:scale-110"
-                  title="Tambah Kontak & Kop"
+                  class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-all hover:scale-110"
+                  title="Edit Kontak & Kop"
                 >
-                  <i class="fas fa-plus text-sm"></i>
+                  <i class="fas fa-edit text-sm"></i>
                 </button>
               </div>
 

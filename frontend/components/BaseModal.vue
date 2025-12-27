@@ -9,15 +9,15 @@
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
-        <div 
-          v-if="show" 
-          class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6"
+        <div
+          v-if="show"
+          class="fixed inset-0 z-40 flex items-center justify-center p-4 sm:p-6"
           role="dialog"
           aria-modal="true"
         >
           <!-- Backdrop (Reduced blur for performance) -->
-          <div 
-            class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" 
+          <div
+            class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
             @click="$emit('close')"
           ></div>
 
@@ -30,21 +30,30 @@
             leave-from-class="opacity-100 scale-100 translate-y-0"
             leave-to-class="opacity-0 scale-95 translate-y-4"
           >
-            <div 
+            <div
               class="relative w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl flex flex-col max-h-[90vh] transition-all transform overflow-hidden"
               :class="maxWidthClass"
             >
               <!-- Header -->
-              <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 z-10 flex-shrink-0">
+              <div
+                class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800 z-10 flex-shrink-0"
+              >
                 <div v-if="$slots.header">
                   <slot name="header"></slot>
                 </div>
                 <div v-else>
-                  <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ title }}</h3>
-                  <p v-if="subtitle" class="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{{ subtitle }}</p>
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                    {{ title }}
+                  </h3>
+                  <p
+                    v-if="subtitle"
+                    class="text-gray-500 dark:text-gray-400 text-sm mt-0.5"
+                  >
+                    {{ subtitle }}
+                  </p>
                 </div>
-                <button 
-                  @click="$emit('close')" 
+                <button
+                  @click="$emit('close')"
                   class="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center justify-center transition-colors outline-none"
                 >
                   <i class="fas fa-times text-sm"></i>
@@ -58,7 +67,10 @@
               </div>
 
               <!-- Footer (Always Visible at Bottom) -->
-              <div v-if="$slots.footer" class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex-shrink-0 flex justify-end gap-3">
+              <div
+                v-if="$slots.footer"
+                class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex-shrink-0 flex justify-end gap-3"
+              >
                 <slot name="footer"></slot>
               </div>
             </div>
@@ -73,40 +85,40 @@
 const props = defineProps({
   show: {
     type: Boolean,
-    default: false
+    default: false,
   },
   title: {
     type: String,
-    default: ''
+    default: "",
   },
   subtitle: {
     type: String,
-    default: ''
+    default: "",
   },
   maxWidth: {
     type: String,
-    default: '2xl' // sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, full
-  }
-})
+    default: "2xl", // sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, full
+  },
+});
 
-defineEmits(['close'])
+defineEmits(["close"]);
 
 const maxWidthClass = computed(() => {
   const widths = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-    '3xl': 'max-w-3xl',
-    '4xl': 'max-w-4xl',
-    '5xl': 'max-w-5xl',
-    '6xl': 'max-w-6xl',
-    '7xl': 'max-w-7xl',
-    full: 'max-w-full'
-  }
-  return widths[props.maxWidth] || widths['2xl']
-})
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    "2xl": "max-w-2xl",
+    "3xl": "max-w-3xl",
+    "4xl": "max-w-4xl",
+    "5xl": "max-w-5xl",
+    "6xl": "max-w-6xl",
+    "7xl": "max-w-7xl",
+    full: "max-w-full",
+  };
+  return widths[props.maxWidth] || widths["2xl"];
+});
 </script>
 
 <style scoped>
