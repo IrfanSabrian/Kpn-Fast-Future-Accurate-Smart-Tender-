@@ -2023,6 +2023,8 @@ const openEditContactInfo = () => {
 const saveContactInfo = async () => {
   if (isSavingContact.value) return;
 
+  let saveSuccessful = false;
+
   try {
     isSavingContact.value = true;
 
@@ -2043,11 +2045,9 @@ const saveContactInfo = async () => {
       throw new Error(errorData.message || "Failed to update contact info");
     }
 
-    // Close modal
-    showEditContactModal.value = false;
-
     // Show success toast
     success("Informasi kontak berhasil diperbarui");
+    saveSuccessful = true;
 
     // Reload data
     setTimeout(async () => {
@@ -2058,6 +2058,11 @@ const saveContactInfo = async () => {
     showError("Gagal menyimpan informasi kontak: " + err.message);
   } finally {
     isSavingContact.value = false;
+
+    // Close modal only if save was successful
+    if (saveSuccessful) {
+      showEditContactModal.value = false;
+    }
   }
 };
 

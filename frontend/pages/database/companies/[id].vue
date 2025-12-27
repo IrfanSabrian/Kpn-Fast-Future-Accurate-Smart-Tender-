@@ -2103,13 +2103,22 @@
                 >
                   <i class="fas fa-id-card text-blue-500"></i> NPWP Perusahaan
                 </h3>
-                <button
-                  v-if="subModules.npwp?.[0]?.npwp_perusahaan_url"
-                  @click="openNpwpModal(subModules.npwp[0])"
-                  class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors"
-                >
-                  <i class="fas fa-file-pdf"></i> View
-                </button>
+                <div class="flex gap-2">
+                  <button
+                    v-if="subModules.npwp?.[0]?.npwp_perusahaan_url"
+                    @click="openNpwpModal(subModules.npwp[0])"
+                    class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors"
+                  >
+                    <i class="fas fa-file-pdf"></i> View
+                  </button>
+                  <button
+                    @click="showNpwpUploadModal = true"
+                    class="w-6 h-6 rounded bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors"
+                    title="Tambah/Update NPWP"
+                  >
+                    <i class="fas fa-plus text-xs"></i>
+                  </button>
+                </div>
               </div>
               <div v-if="subModules.npwp?.length > 0" class="space-y-2">
                 <div
@@ -2259,6 +2268,13 @@
                   <i class="fas fa-stamp text-orange-500"></i> Status PKP
                 </h3>
                 <button
+                  @click="showPkpUploadModal = true"
+                  class="w-6 h-6 rounded bg-orange-50 hover:bg-orange-100 text-orange-600 flex items-center justify-center transition-colors"
+                  title="Tambah/Update PKP"
+                >
+                  <i class="fas fa-plus text-xs"></i>
+                </button>
+                <button
                   v-if="subModules.pkp?.[0]?.url_pkp"
                   @click="openPkpModal(subModules.pkp[0])"
                   class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 hover:bg-orange-100 transition-colors"
@@ -2375,6 +2391,13 @@
                 >
                   <i class="fas fa-history text-purple-500"></i> Riwayat SPT
                 </h3>
+                <button
+                  @click="showSptUploadModal = true"
+                  class="w-6 h-6 rounded bg-purple-50 hover:bg-purple-100 text-purple-600 flex items-center justify-center transition-colors"
+                  title="Tambah SPT"
+                >
+                  <i class="fas fa-plus text-xs"></i>
+                </button>
               </div>
               <div
                 v-if="subModules.spt?.length > 0"
@@ -2421,11 +2444,20 @@
                         >
                       </td>
                       <td class="px-4 py-2 text-right">
-                        <button
-                          class="text-blue-600 hover:text-blue-700 font-bold"
-                        >
-                          View
-                        </button>
+                        <div class="flex items-center justify-end gap-2">
+                          <button
+                            class="text-blue-600 hover:text-blue-700 font-bold"
+                          >
+                            View
+                          </button>
+                          <button
+                            @click.stop="deleteSptEntry(item.id_spt)"
+                            class="text-red-500 hover:text-red-700"
+                            title="Hapus SPT"
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
@@ -2478,13 +2510,22 @@
                   <i class="fas fa-check-double text-emerald-500"></i> Status
                   KSWP
                 </h3>
-                <button
-                  v-if="subModules.kswp?.[0]?.kswp_url"
-                  @click="openKswpModal(subModules.kswp[0])"
-                  class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors"
-                >
-                  <i class="fas fa-file-pdf"></i> View
-                </button>
+                <div class="flex gap-2">
+                  <button
+                    v-if="subModules.kswp?.[0]?.kswp_url"
+                    @click="openKswpModal(subModules.kswp[0])"
+                    class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors"
+                  >
+                    <i class="fas fa-file-pdf"></i> View
+                  </button>
+                  <button
+                    @click="showKswpUploadModal = true"
+                    class="w-6 h-6 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors"
+                    title="Tambah/Update KSWP"
+                  >
+                    <i class="fas fa-plus text-xs"></i>
+                  </button>
+                </div>
               </div>
               <div v-if="subModules.kswp?.length > 0">
                 <div
@@ -4671,6 +4712,231 @@
 
     <!-- Modals (Simplified for Layout Demo) -->
 
+    <!-- Tax Document Upload Modals -->
+    <CompanyTaxDocumentModal
+      :show="showNpwpUploadModal"
+      @close="showNpwpUploadModal = false"
+      documentType="npwp"
+      :companyName="company?.nama_perusahaan"
+      :isEditMode="false"
+      @save="saveNpwpDocument"
+      @aiScanComplete="handleNpwpAIScan"
+    >
+      <template #form-fields="{ disabled }">
+        <div class="space-y-3">
+          <FormInput
+            v-model="npwpUploadFormData.nomor_npwp"
+            label="Nomor NPWP"
+            placeholder="XX.XXX.XXX.X-XXX.XXX"
+            :disabled="disabled"
+            required
+          />
+          <FormInput
+            v-model="npwpUploadFormData.nama_wp"
+            label="Nama Wajib Pajak"
+            placeholder="Nama perusahaan"
+            :disabled="disabled"
+            required
+          />
+          <FormInput
+            v-model="npwpUploadFormData.alamat"
+            label="Alamat"
+            type="textarea"
+            :rows="3"
+            placeholder="Alamat lengkap"
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="npwpUploadFormData.kpp"
+            label="KPP"
+            placeholder="KPP Pratama ..."
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="npwpUploadFormData.tanggal_terdaftar"
+            label="Tanggal Terdaftar"
+            type="date"
+            :disabled="disabled"
+          />
+        </div>
+      </template>
+    </CompanyTaxDocumentModal>
+
+    <CompanyTaxDocumentModal
+      :show="showSptUploadModal"
+      @close="showSptUploadModal = false"
+      documentType="spt"
+      :companyName="company?.nama_perusahaan"
+      :isEditMode="false"
+      @save="saveSptDocument"
+      @aiScanComplete="handleSptAIScan"
+    >
+      <template #form-fields="{ disabled }">
+        <div class="space-y-3">
+          <div class="grid grid-cols-2 gap-3">
+            <FormInput
+              v-model="sptUploadFormData.tahun_pajak"
+              label="Tahun Pajak"
+              placeholder="2023"
+              :disabled="disabled"
+              required
+            />
+            <FormInput
+              v-model="sptUploadFormData.masa_pajak"
+              label="Masa Pajak"
+              placeholder="Januari-Desember"
+              :disabled="disabled"
+            />
+          </div>
+          <FormInput
+            v-model="sptUploadFormData.jenis_spt"
+            label="Jenis SPT"
+            placeholder="SPT Tahunan PPh Badan"
+            :disabled="disabled"
+          />
+          <div class="grid grid-cols-2 gap-3">
+            <FormInput
+              v-model="sptUploadFormData.pembetulan_ke"
+              label="Pembetulan Ke"
+              placeholder="0"
+              type="number"
+              :disabled="disabled"
+            />
+            <FormInput
+              v-model="sptUploadFormData.nominal"
+              label="Nominal"
+              placeholder="0"
+              type="number"
+              :disabled="disabled"
+            />
+          </div>
+          <FormInput
+            v-model="sptUploadFormData.tanggal_penyampaian"
+            label="Tanggal Penyampaian"
+            type="date"
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="sptUploadFormData.nomor_tanda_terima"
+            label="Nomor Tanda Terima"
+            placeholder="NTTE-..."
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="sptUploadFormData.nama_wp"
+            label="Nama Wajib Pajak"
+            :disabled="disabled"
+          />
+          <div class="grid grid-cols-2 gap-3">
+            <FormInput
+              v-model="sptUploadFormData.npwp"
+              label="NPWP"
+              :disabled="disabled"
+            />
+            <FormInput
+              v-model="sptUploadFormData.nitku"
+              label="NITKU"
+              :disabled="disabled"
+            />
+          </div>
+          <FormInput
+            v-model="sptUploadFormData.status_spt"
+            label="Status SPT"
+            placeholder="Normal"
+            :disabled="disabled"
+          />
+        </div>
+      </template>
+    </CompanyTaxDocumentModal>
+
+    <CompanyTaxDocumentModal
+      :show="showPkpUploadModal"
+      @close="showPkpUploadModal = false"
+      documentType="pkp"
+      :companyName="company?.nama_perusahaan"
+      :isEditMode="false"
+      @save="savePkpDocument"
+      @aiScanComplete="handlePkpAIScan"
+    >
+      <template #form-fields="{ disabled }">
+        <div class="space-y-3">
+          <FormInput
+            v-model="pkpUploadFormData.nomor_pkp"
+            label="Nomor PKP"
+            placeholder="Nomor pengukuhan"
+            :disabled="disabled"
+            required
+          />
+          <FormInput
+            v-model="pkpUploadFormData.tanggal_pengukuhan"
+            label="Tanggal Pengukuhan"
+            type="date"
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="pkpUploadFormData.nama_pkp"
+            label="Nama PKP"
+            placeholder="Nama perusahaan"
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="pkpUploadFormData.alamat"
+            label="Alamat"
+            type="textarea"
+            :rows="3"
+            placeholder="Alamat lengkap"
+            :disabled="disabled"
+          />
+        </div>
+      </template>
+    </CompanyTaxDocumentModal>
+
+    <CompanyTaxDocumentModal
+      :show="showKswpUploadModal"
+      @close="showKswpUploadModal = false"
+      documentType="kswp"
+      :companyName="company?.nama_perusahaan"
+      :isEditMode="false"
+      @save="saveKswpDocument"
+      @aiScanComplete="handleKswpAIScan"
+    >
+      <template #form-fields="{ disabled }">
+        <div class="space-y-3">
+          <FormInput
+            v-model="kswpUploadFormData.nama_wp"
+            label="Nama Wajib Pajak"
+            placeholder="Nama perusahaan"
+            :disabled="disabled"
+            required
+          />
+          <FormInput
+            v-model="kswpUploadFormData.npwp"
+            label="NPWP"
+            placeholder="XX.XXX.XXX.X-XXX.XXX"
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="kswpUploadFormData.tahun_kswp"
+            label="Tahun KSWP"
+            placeholder="2023"
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="kswpUploadFormData.status_kswp"
+            label="Status KSWP"
+            placeholder="Patuh / Tidak Patuh"
+            :disabled="disabled"
+          />
+          <FormInput
+            v-model="kswpUploadFormData.tanggal_terbit"
+            label="Tanggal Terbit"
+            type="date"
+            :disabled="disabled"
+          />
+        </div>
+      </template>
+    </CompanyTaxDocumentModal>
+
     <ToastNotification />
   </div>
 </template>
@@ -4680,6 +4946,7 @@ import BaseModal from "~/components/BaseModal.vue";
 import ToastNotification from "~/components/ToastNotification.vue";
 import FormInput from "~/components/FormInput.vue";
 import DocumentPdfPreview from "~/components/DocumentPdfPreview.vue";
+import CompanyTaxDocumentModal from "~/components/CompanyTaxDocumentModal.vue";
 
 definePageMeta({ layout: "dashboard" });
 
@@ -4750,6 +5017,50 @@ const selectedItems = ref({
   spt: null,
   cek: null,
   bpjs: null,
+});
+
+// Tax Document Upload Modals
+const showNpwpUploadModal = ref(false);
+const showSptUploadModal = ref(false);
+const showPkpUploadModal = ref(false);
+const showKswpUploadModal = ref(false);
+
+// Tax Document Form Data
+const npwpUploadFormData = ref({
+  nomor_npwp: "",
+  nama_wp: "",
+  alamat: "",
+  kpp: "",
+  tanggal_terdaftar: "",
+});
+
+const sptUploadFormData = ref({
+  tahun_pajak: "",
+  masa_pajak: "",
+  jenis_spt: "",
+  pembetulan_ke: "0",
+  nominal: 0,
+  tanggal_penyampaian: "",
+  nomor_tanda_terima: "",
+  nama_wp: "",
+  npwp: "",
+  nitku: "",
+  status_spt: "Normal",
+});
+
+const pkpUploadFormData = ref({
+  nomor_pkp: "",
+  tanggal_pengukuhan: "",
+  nama_pkp: "",
+  alamat: "",
+});
+
+const kswpUploadFormData = ref({
+  nama_wp: "",
+  npwp: "",
+  tahun_kswp: "",
+  status_kswp: "",
+  tanggal_terbit: "",
 });
 
 // Tabs Configuration (Re-ordered & Renamed) - Pejabat removed, moved to Overview
@@ -5473,6 +5784,7 @@ const savePejabat = async () => {
   }
 
   isSubmittingPejabat.value = true;
+  let saveSuccessful = false;
 
   try {
     // Prepare data
@@ -5504,9 +5816,7 @@ const savePejabat = async () => {
     }
 
     toast.success("Pejabat berhasil ditambahkan!");
-
-    // Close modal
-    closeAddPejabatModal();
+    saveSuccessful = true;
 
     // Refresh pejabat data
     await fetchPejabat();
@@ -5515,6 +5825,11 @@ const savePejabat = async () => {
     toast.error("Gagal menambahkan pejabat: " + error.message);
   } finally {
     isSubmittingPejabat.value = false;
+
+    // Close modal only if save was successful
+    if (saveSuccessful) {
+      closeAddPejabatModal();
+    }
   }
 };
 
@@ -5697,6 +6012,7 @@ const cancelDocumentUpload = (documentType) => {
 // Save Contact Data
 const saveContactData = async () => {
   isSubmittingContact.value = true;
+  let saveSuccessful = false;
 
   try {
     const submitData = new FormData();
@@ -5724,15 +6040,20 @@ const saveContactData = async () => {
     }
 
     toast.success("Data kontak berhasil disimpan!");
+    saveSuccessful = true;
 
     // Refresh company data
     await fetchCompanyDetail();
-    closeContactModal();
   } catch (error) {
     console.error("Error saving contact:", error);
     toast.error("Gagal menyimpan data: " + error.message);
   } finally {
     isSubmittingContact.value = false;
+
+    // Close modal only if save was successful
+    if (saveSuccessful) {
+      closeContactModal();
+    }
   }
 };
 
@@ -5768,6 +6089,288 @@ const clearContactData = async () => {
   } catch (error) {
     console.error("Error clearing contact:", error);
     alert("Gagal menghapus data: " + error.message);
+  }
+};
+
+// AI Scan Handlers for Tax Documents
+const handleNpwpAIScan = (data) => {
+  console.log("[AI SCAN] NPWP Perusahaan data:", data);
+  Object.assign(npwpUploadFormData.value, data);
+};
+
+const handleSptAIScan = (data) => {
+  console.log("[AI SCAN] SPT data:", data);
+  Object.assign(sptUploadFormData.value, data);
+};
+
+const handlePkpAIScan = (data) => {
+  console.log("[AI SCAN] PKP data:", data);
+  Object.assign(pkpUploadFormData.value, data);
+};
+
+const handleKswpAIScan = (data) => {
+  console.log("[AI SCAN] KSWP data:", data);
+  Object.assign(kswpUploadFormData.value, data);
+};
+
+// Save Tax Document Handlers
+const saveNpwpDocument = async (file) => {
+  if (!file) {
+    toast.error("File tidak tersedia");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("npwp_perusahaan", file);
+    formData.append("nomor_npwp", npwpUploadFormData.value.nomor_npwp || "");
+    formData.append("nama_wp", npwpUploadFormData.value.nama_wp || "");
+    formData.append("alamat_npwp", npwpUploadFormData.value.alamat || "");
+    formData.append("kpp", npwpUploadFormData.value.kpp || "");
+    formData.append(
+      "tanggal_terdaftar",
+      npwpUploadFormData.value.tanggal_terdaftar || ""
+    );
+    formData.append("nama_perusahaan", company.value.nama_perusahaan);
+    formData.append("status", company.value.status || "Pusat");
+    formData.append("tahun_berdiri", company.value.tahun_berdiri || "");
+    formData.append("email", company.value.email || "");
+    formData.append("no_telp", company.value.no_telp || "");
+    formData.append("alamat", company.value.alamat || "");
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Gagal menyimpan NPWP");
+    }
+
+    toast.success("Dokumen NPWP berhasil disimpan!");
+    await fetchPajak();
+    await fetchCompanyDetail();
+    showNpwpUploadModal.value = false;
+    npwpUploadFormData.value = {
+      nomor_npwp: "",
+      nama_wp: "",
+      alamat: "",
+      kpp: "",
+      tanggal_terdaftar: "",
+    };
+  } catch (error) {
+    console.error("❌ Error saving NPWP:", error);
+    toast.error("Gagal menyimpan NPWP: " + error.message);
+  }
+};
+
+const saveSptDocument = async (file) => {
+  if (!file) {
+    toast.error("File tidak tersedia");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("spt", file);
+    formData.append("tahun_pajak", sptUploadFormData.value.tahun_pajak || "");
+    formData.append("masa_pajak", sptUploadFormData.value.masa_pajak || "");
+    formData.append("jenis_spt", sptUploadFormData.value.jenis_spt || "");
+    formData.append(
+      "pembetulan_ke",
+      sptUploadFormData.value.pembetulan_ke || "0"
+    );
+    formData.append("nominal", sptUploadFormData.value.nominal || "0");
+    formData.append(
+      "tanggal_penyampaian",
+      sptUploadFormData.value.tanggal_penyampaian || ""
+    );
+    formData.append(
+      "nomor_tanda_terima",
+      sptUploadFormData.value.nomor_tanda_terima || ""
+    );
+    formData.append("nama_wp_spt", sptUploadFormData.value.nama_wp || "");
+    formData.append("npwp_spt", sptUploadFormData.value.npwp || "");
+    formData.append("nitku", sptUploadFormData.value.nitku || "");
+    formData.append(
+      "status_spt",
+      sptUploadFormData.value.status_spt || "Normal"
+    );
+    formData.append("nama_perusahaan", company.value.nama_perusahaan);
+    formData.append("status", company.value.status || "Pusat");
+    formData.append("tahun_berdiri", company.value.tahun_berdiri || "");
+    formData.append("email", company.value.email || "");
+    formData.append("no_telp", company.value.no_telp || "");
+    formData.append("alamat", company.value.alamat || "");
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Gagal menyimpan SPT");
+    }
+
+    toast.success("Dokumen SPT berhasil disimpan!");
+    await fetchPajak();
+    await fetchCompanyDetail();
+    showSptUploadModal.value = false;
+    sptUploadFormData.value = {
+      tahun_pajak: "",
+      masa_pajak: "",
+      jenis_spt: "",
+      pembetulan_ke: "0",
+      nominal: 0,
+      tanggal_penyampaian: "",
+      nomor_tanda_terima: "",
+      nama_wp: "",
+      npwp: "",
+      nitku: "",
+      status_spt: "Normal",
+    };
+  } catch (error) {
+    console.error("❌ Error saving SPT:", error);
+    toast.error("Gagal menyimpan SPT: " + error.message);
+  }
+};
+
+const savePkpDocument = async (file) => {
+  if (!file) {
+    toast.error("File tidak tersedia");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("pkp", file);
+    formData.append("nomor_pkp", pkpUploadFormData.value.nomor_pkp || "");
+    formData.append(
+      "tanggal_pengukuhan",
+      pkpUploadFormData.value.tanggal_pengukuhan || ""
+    );
+    formData.append("nama_pkp", pkpUploadFormData.value.nama_pkp || "");
+    formData.append("alamat_pkp", pkpUploadFormData.value.alamat || "");
+    formData.append("nama_perusahaan", company.value.nama_perusahaan);
+    formData.append("status", company.value.status || "Pusat");
+    formData.append("tahun_berdiri", company.value.tahun_berdiri || "");
+    formData.append("email", company.value.email || "");
+    formData.append("no_telp", company.value.no_telp || "");
+    formData.append("alamat", company.value.alamat || "");
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Gagal menyimpan PKP");
+    }
+
+    toast.success("Dokumen PKP berhasil disimpan!");
+    await fetchPajak();
+    await fetchCompanyDetail();
+    showPkpUploadModal.value = false;
+    pkpUploadFormData.value = {
+      nomor_pkp: "",
+      tanggal_pengukuhan: "",
+      nama_pkp: "",
+      alamat: "",
+    };
+  } catch (error) {
+    console.error("❌ Error saving PKP:", error);
+    toast.error("Gagal menyimpan PKP: " + error.message);
+  }
+};
+
+const saveKswpDocument = async (file) => {
+  if (!file) {
+    toast.error("File tidak tersedia");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("kswp", file);
+    formData.append("nama_wp_kswp", kswpUploadFormData.value.nama_wp || "");
+    formData.append("npwp_kswp", kswpUploadFormData.value.npwp || "");
+    formData.append("tahun_kswp", kswpUploadFormData.value.tahun_kswp || "");
+    formData.append("status_kswp", kswpUploadFormData.value.status_kswp || "");
+    formData.append(
+      "tanggal_terbit_kswp",
+      kswpUploadFormData.value.tanggal_terbit || ""
+    );
+    formData.append("nama_perusahaan", company.value.nama_perusahaan);
+    formData.append("status", company.value.status || "Pusat");
+    formData.append("tahun_berdiri", company.value.tahun_berdiri || "");
+    formData.append("email", company.value.email || "");
+    formData.append("no_telp", company.value.no_telp || "");
+    formData.append("alamat", company.value.alamat || "");
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Gagal menyimpan KSWP");
+    }
+
+    toast.success("Dokumen KSWP berhasil disimpan!");
+    await fetchPajak();
+    await fetchCompanyDetail();
+    showKswpUploadModal.value = false;
+    kswpUploadFormData.value = {
+      nama_wp: "",
+      npwp: "",
+      tahun_kswp: "",
+      status_kswp: "",
+      tanggal_terbit: "",
+    };
+  } catch (error) {
+    console.error("❌ Error saving KSWP:", error);
+    toast.error("Gagal menyimpan KSWP: " + error.message);
+  }
+};
+
+// Delete SPT Entry
+const deleteSptEntry = async (sptId) => {
+  if (!sptId) {
+    toast.error("ID SPT tidak valid");
+    return;
+  }
+
+  // Confirm deletion
+  if (!confirm("Apakah Anda yakin ingin menghapus data SPT ini?")) {
+    return;
+  }
+
+  try {
+    console.log(`🗑️ Deleting SPT with ID:`, sptId);
+
+    const response = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/spt/${sptId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Gagal menghapus SPT");
+    }
+
+    toast.success("Data SPT berhasil dihapus!");
+
+    // Refresh data
+    await fetchPajak();
+  } catch (error) {
+    console.error("❌ Error deleting SPT:", error);
+    toast.error("Gagal menghapus SPT: " + error.message);
   }
 };
 

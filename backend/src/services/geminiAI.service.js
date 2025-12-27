@@ -1,6 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import fs from 'fs/promises';
-import path from 'path';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import fs from "fs/promises";
+import path from "path";
 
 class GeminiAIService {
   constructor() {
@@ -13,12 +13,14 @@ class GeminiAIService {
 
     const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error('GOOGLE_GEMINI_API_KEY tidak ditemukan di environment variables');
+      throw new Error(
+        "GOOGLE_GEMINI_API_KEY tidak ditemukan di environment variables"
+      );
     }
 
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    console.log('✅ Gemini AI Service initialized (model: gemini-2.5-flash)');
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    console.log("✅ Gemini AI Service initialized (model: gemini-2.5-flash)");
   }
 
   /**
@@ -27,9 +29,9 @@ class GeminiAIService {
   fileToGenerativePart(buffer, mimeType) {
     return {
       inlineData: {
-        data: buffer.toString('base64'),
-        mimeType
-      }
+        data: buffer.toString("base64"),
+        mimeType,
+      },
     };
   }
 
@@ -71,7 +73,7 @@ Return ONLY valid JSON with this exact structure:
 }`;
 
     try {
-      const imagePart = this.fileToGenerativePart(pdfBuffer, 'application/pdf');
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
       const result = await this.model.generateContent([prompt, imagePart]);
       const response = await result.response;
       const text = response.text();
@@ -79,23 +81,34 @@ Return ONLY valid JSON with this exact structure:
       // Extract JSON from response (remove markdown code blocks if present)
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error('AI tidak dapat menemukan data KTP yang valid di dokumen. Pastikan PDF berisi KTP yang jelas dan terbaca.');
+        throw new Error(
+          "AI tidak dapat menemukan data KTP yang valid di dokumen. Pastikan PDF berisi KTP yang jelas dan terbaca."
+        );
       }
 
       const parsedData = JSON.parse(jsonMatch[0]);
-      
+
       // Validate that we got some actual data (not all empty)
-      const hasData = Object.values(parsedData).some(value => value && value.trim() !== '');
+      const hasData = Object.values(parsedData).some(
+        (value) => value && value.trim() !== ""
+      );
       if (!hasData) {
-        throw new Error('Dokumen tidak dapat dibaca atau bukan KTP yang valid. Silakan gunakan scan/foto yang lebih jelas.');
+        throw new Error(
+          "Dokumen tidak dapat dibaca atau bukan KTP yang valid. Silakan gunakan scan/foto yang lebih jelas."
+        );
       }
 
       return parsedData;
     } catch (error) {
-      if (error.message.includes('AI tidak dapat') || error.message.includes('Dokumen tidak dapat')) {
+      if (
+        error.message.includes("AI tidak dapat") ||
+        error.message.includes("Dokumen tidak dapat")
+      ) {
         throw error;
       }
-      throw new Error(`Gagal memproses KTP: ${error.message}. Kemungkinan file rusak atau bukan dokumen KTP.`);
+      throw new Error(
+        `Gagal memproses KTP: ${error.message}. Kemungkinan file rusak atau bukan dokumen KTP.`
+      );
     }
   }
 
@@ -123,29 +136,40 @@ Return ONLY valid JSON with this exact structure:
 }`;
 
     try {
-      const imagePart = this.fileToGenerativePart(pdfBuffer, 'application/pdf');
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
       const result = await this.model.generateContent([prompt, imagePart]);
       const response = await result.response;
       const text = response.text();
 
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error('AI tidak dapat menemukan data NPWP yang valid di dokumen. Pastikan PDF berisi NPWP yang jelas dan terbaca.');
+        throw new Error(
+          "AI tidak dapat menemukan data NPWP yang valid di dokumen. Pastikan PDF berisi NPWP yang jelas dan terbaca."
+        );
       }
 
       const parsedData = JSON.parse(jsonMatch[0]);
-      
-      const hasData = Object.values(parsedData).some(value => value && value.trim() !== '');
+
+      const hasData = Object.values(parsedData).some(
+        (value) => value && value.trim() !== ""
+      );
       if (!hasData) {
-        throw new Error('Dokumen tidak dapat dibaca atau bukan NPWP yang valid. Silakan gunakan scan/foto yang lebih jelas.');
+        throw new Error(
+          "Dokumen tidak dapat dibaca atau bukan NPWP yang valid. Silakan gunakan scan/foto yang lebih jelas."
+        );
       }
 
       return parsedData;
     } catch (error) {
-      if (error.message.includes('AI tidak dapat') || error.message.includes('Dokumen tidak dapat')) {
+      if (
+        error.message.includes("AI tidak dapat") ||
+        error.message.includes("Dokumen tidak dapat")
+      ) {
         throw error;
       }
-      throw new Error(`Gagal memproses NPWP: ${error.message}. Kemungkinan file rusak atau bukan dokumen NPWP.`);
+      throw new Error(
+        `Gagal memproses NPWP: ${error.message}. Kemungkinan file rusak atau bukan dokumen NPWP.`
+      );
     }
   }
 
@@ -177,14 +201,14 @@ Return ONLY valid JSON with this exact structure:
   "gelar_akademik": "Academic degree (e.g., S.T., S.Kom.)"
 }`;
 
-    const imagePart = this.fileToGenerativePart(pdfBuffer, 'application/pdf');
+    const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
     const result = await this.model.generateContent([prompt, imagePart]);
     const response = await result.response;
     const text = response.text();
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('Failed to extract JSON from AI response');
+      throw new Error("Failed to extract JSON from AI response");
     }
 
     return JSON.parse(jsonMatch[0]);
@@ -219,14 +243,14 @@ Return ONLY valid JSON with this exact structure:
   "sertifikasi_profesional": "Professional certifications (comma-separated)"
 }`;
 
-    const imagePart = this.fileToGenerativePart(pdfBuffer, 'application/pdf');
+    const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
     const result = await this.model.generateContent([prompt, imagePart]);
     const response = await result.response;
     const text = response.text();
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('Failed to extract JSON from AI response');
+      throw new Error("Failed to extract JSON from AI response");
     }
 
     return JSON.parse(jsonMatch[0]);
@@ -236,33 +260,270 @@ Return ONLY valid JSON with this exact structure:
    * Main scan function - routes to appropriate scanner based on document type
    */
   async scanDocument(pdfBuffer, documentType) {
-    console.log(`[GEMINI AI] Scanning ${documentType.toUpperCase()} document...`);
+    console.log(
+      `[GEMINI AI] Scanning ${documentType.toUpperCase()} document...`
+    );
 
     try {
       let result;
-      
+
       switch (documentType.toLowerCase()) {
-        case 'ktp':
+        case "ktp":
           result = await this.scanKTP(pdfBuffer);
           break;
-        case 'npwp':
+        case "npwp":
           result = await this.scanNPWP(pdfBuffer);
           break;
-        case 'ijazah':
+        case "ijazah":
           result = await this.scanIjazah(pdfBuffer);
           break;
-        case 'cv':
+        case "cv":
           result = await this.scanCV(pdfBuffer);
           break;
         default:
           throw new Error(`Unsupported document type: ${documentType}`);
       }
 
-      console.log(`[GEMINI AI] ✅ Successfully scanned ${documentType.toUpperCase()}`);
+      console.log(
+        `[GEMINI AI] ✅ Successfully scanned ${documentType.toUpperCase()}`
+      );
       return result;
-
     } catch (error) {
-      console.error(`[GEMINI AI] ❌ Error scanning ${documentType}:`, error.message);
+      console.error(
+        `[GEMINI AI] ❌ Error scanning ${documentType}:`,
+        error.message
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Scan NPWP Perusahaan (Company Tax ID) document and extract fields
+   */
+  async scanNPWPPerusahaan(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian NPWP Perusahaan (Company Tax ID) document carefully and extract ALL information in JSON format.
+
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document
+- Use UPPERCASE for values that are in uppercase
+- For NPWP number, use format: XX.XXX.XXX.X-XXX.XXX
+- Use format DD-MM-YYYY for dates
+- If a field is not visible, use empty string ""
+
+Return ONLY valid JSON with this exact structure:
+{
+  "nomor_npwp": "NPWP number (XX.XXX.XXX.X-XXX.XXX)",
+  "nama_wp": "Company name as registered",
+  "alamat": "Full registered address",
+  "kpp": "KPP name (e.g., KPP Pratama Jakarta Pusat)",
+  "tanggal_terdaftar": "Registration date (DD-MM-YYYY)"
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error(
+          "AI tidak dapat menemukan data NPWP yang valid di dokumen. Pastikan PDF berisi NPWP perusahaan yang jelas dan terbaca."
+        );
+      }
+
+      const parsedData = JSON.parse(jsonMatch[0]);
+
+      const hasData = Object.values(parsedData).some(
+        (value) => value && value.trim() !== ""
+      );
+      if (!hasData) {
+        throw new Error(
+          "Dokumen tidak dapat dibaca atau bukan NPWP yang valid. Silakan gunakan scan/foto yang lebih jelas."
+        );
+      }
+
+      return parsedData;
+    } catch (error) {
+      if (
+        error.message.includes("AI tidak dapat") ||
+        error.message.includes("Dokumen tidak dapat")
+      ) {
+        throw error;
+      }
+      throw new Error(`Gagal memproses NPWP Perusahaan: ${error.message}.`);
+    }
+  }
+
+  /**
+   * Scan SPT (Surat Pemberitahuan Tahunan) document and extract fields
+   */
+  async scanSPT(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian SPT (Surat Pemberitahuan Tahunan / Annual Tax Return) document carefully and extract ALL information in JSON format.
+
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document
+- Use format DD-MM-YYYY for dates
+- Nominal should be number only (no currency or separators)
+- If a field is not visible, use empty string ""
+
+Return ONLY valid JSON with this exact structure:
+{
+  "tahun_pajak": "Tax year (YYYY)",
+  "masa_pajak": "Tax period (e.g., Januari-Desember)",
+  "jenis_spt": "SPT type (e.g., SPT Tahunan PPh Badan)",
+  "pembetulan_ke": "Revision number (0 for normal)",
+  "nominal": "Tax amount (number only)",
+  "tanggal_penyampaian": "Submission date (DD-MM-YYYY)",
+  "nomor_tanda_terima": "Receipt number",
+  "nama_wp": "Taxpayer name",
+  "npwp": "NPWP number",
+  "nitku": "NITKU if shown",
+  "status_spt": "SPT status (e.g., Normal, Pembetulan)"
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error(
+          "AI tidak dapat menemukan data SPT yang valid di dokumen."
+        );
+      }
+
+      return JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      throw new Error(`Gagal memproses SPT: ${error.message}.`);
+    }
+  }
+
+  /**
+   * Scan PKP (Pengukuhan Kena Pajak) document and extract fields
+   */
+  async scanPKP(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian PKP (Pengukuhan Kena Pajak / VAT Registration) document carefully and extract ALL information in JSON format.
+
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document
+- Use format DD-MM-YYYY for dates
+- If a field is not visible, use empty string ""
+
+Return ONLY valid JSON with this exact structure:
+{
+  "nomor_pkp": "PKP registration number",
+  "tanggal_pengukuhan": "Registration date (DD-MM-YYYY)",
+  "nama_pkp": "Company name",
+  "alamat": "Full address"
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error(
+          "AI tidak dapat menemukan data PKP yang valid di dokumen."
+        );
+      }
+
+      return JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      throw new Error(`Gagal memproses PKP: ${error.message}.`);
+    }
+  }
+
+  /**
+   * Scan KSWP (Kepatuhan Wajib Pajak) document and extract fields
+   */
+  async scanKSWP(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian KSWP (Kepatuhan Wajib Pajak / Tax Compliance) document carefully and extract ALL information in JSON format.
+
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document
+- Use format DD-MM-YYYY for dates
+- Status should be "Patuh" or "Tidak Patuh"
+- If a field is not visible, use empty string ""
+
+Return ONLY valid JSON with this exact structure:
+{
+  "nama_wp": "Taxpayer name",
+  "npwp": "NPWP number",
+  "tahun_kswp": "KSWP year (YYYY)",
+  "status_kswp": "Status (Patuh or Tidak Patuh)",
+  "tanggal_terbit": "Issue date (DD-MM-YYYY)"
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error(
+          "AI tidak dapat menemukan data KSWP yang valid di dokumen."
+        );
+      }
+
+      return JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      throw new Error(`Gagal memproses KSWP: ${error.message}.`);
+    }
+  }
+
+  /**
+   * Main scan function for tax documents - routes to appropriate scanner
+   */
+  async scanTaxDocument(pdfBuffer, documentType) {
+    console.log(
+      `[GEMINI AI TAX] Scanning ${documentType.toUpperCase()} document...`
+    );
+
+    try {
+      let result;
+
+      switch (documentType.toLowerCase()) {
+        case "npwp":
+          result = await this.scanNPWPPerusahaan(pdfBuffer);
+          break;
+        case "spt":
+          result = await this.scanSPT(pdfBuffer);
+          break;
+        case "pkp":
+          result = await this.scanPKP(pdfBuffer);
+          break;
+        case "kswp":
+          result = await this.scanKSWP(pdfBuffer);
+          break;
+        default:
+          throw new Error(`Unsupported tax document type: ${documentType}`);
+      }
+
+      console.log(
+        `[GEMINI AI TAX] ✅ Successfully scanned ${documentType.toUpperCase()}`
+      );
+      return result;
+    } catch (error) {
+      console.error(
+        `[GEMINI AI TAX] ❌ Error scanning ${documentType}:`,
+        error.message
+      );
       throw error;
     }
   }
