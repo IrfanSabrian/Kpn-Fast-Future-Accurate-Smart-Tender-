@@ -25,7 +25,7 @@
       <!-- Left Column: Form Fields (2 cols) - Scrollable -->
       <div class="lg:col-span-2">
         <div
-          class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col h-[500px]"
+          class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col h-[400px]"
         >
           <h4
             class="text-xs font-bold text-slate-900 dark:text-slate-100 px-4 pt-4 pb-3 flex items-center gap-2 flex-shrink-0"
@@ -33,33 +33,6 @@
             <span class="w-1 h-3 bg-blue-500 rounded-full"></span>
             Informasi Dokumen
           </h4>
-
-          <!-- Upload PDF First Notification -->
-          <div
-            v-if="!hasFileUpload && !isEditMode"
-            class="mx-4 mb-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-3 flex items-start gap-3 animate-pulse"
-          >
-            <div
-              class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center flex-shrink-0"
-            >
-              <i
-                class="fas fa-info-circle text-blue-600 dark:text-blue-400 text-sm"
-              ></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h5
-                class="text-xs font-bold text-blue-800 dark:text-blue-300 mb-0.5"
-              >
-                Upload PDF Terlebih Dahulu
-              </h5>
-              <p
-                class="text-[10px] text-blue-600 dark:text-blue-400 leading-relaxed"
-              >
-                Silakan upload file PDF di sebelah kanan untuk mengaktifkan form
-                input dan fitur AI Scan.
-              </p>
-            </div>
-          </div>
 
           <!-- Scrollable Form Container -->
           <div class="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4">
@@ -74,7 +47,7 @@
 
       <!-- Right Column: Upload/Preview (1 col) -->
       <div
-        class="lg:col-span-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[500px] relative group"
+        class="lg:col-span-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[400px] relative group"
       >
         <!-- Header with Actions -->
         <div

@@ -2384,7 +2384,7 @@
               class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
             >
               <div
-                class="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-700"
+                class="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center"
               >
                 <h3
                   class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2"

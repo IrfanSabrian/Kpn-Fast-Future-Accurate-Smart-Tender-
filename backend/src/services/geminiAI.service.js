@@ -309,7 +309,7 @@ IMPORTANT INSTRUCTIONS:
 - Extract EXACTLY as written in the document
 - Use UPPERCASE for values that are in uppercase
 - For NPWP number, use format: XX.XXX.XXX.X-XXX.XXX
-- Use format DD-MM-YYYY for dates
+- For dates, MUST use format YYYY-MM-DD (e.g., "2024-12-09" for 9 Desember 2024)
 - If a field is not visible, use empty string ""
 
 Return ONLY valid JSON with this exact structure:
@@ -318,7 +318,7 @@ Return ONLY valid JSON with this exact structure:
   "nama_wp": "Company name as registered",
   "alamat": "Full registered address",
   "kpp": "KPP name (e.g., KPP Pratama Jakarta Pusat)",
-  "tanggal_terdaftar": "Registration date (DD-MM-YYYY)"
+  "tanggal_terdaftar": "Registration date (YYYY-MM-DD, e.g., 2024-12-09)"
 }`;
 
     try {
@@ -367,7 +367,7 @@ Return ONLY valid JSON with this exact structure:
 
 IMPORTANT INSTRUCTIONS:
 - Extract EXACTLY as written in the document
-- Use format DD-MM-YYYY for dates
+- For dates, MUST use format YYYY-MM-DD (e.g., "2024-12-09" for 9 Desember 2024)
 - Nominal should be number only (no currency or separators)
 - If a field is not visible, use empty string ""
 
@@ -378,7 +378,7 @@ Return ONLY valid JSON with this exact structure:
   "jenis_spt": "SPT type (e.g., SPT Tahunan PPh Badan)",
   "pembetulan_ke": "Revision number (0 for normal)",
   "nominal": "Tax amount (number only)",
-  "tanggal_penyampaian": "Submission date (DD-MM-YYYY)",
+  "tanggal_penyampaian": "Submission date (YYYY-MM-DD, e.g., 2024-12-09)",
   "nomor_tanda_terima": "Receipt number",
   "nama_wp": "Taxpayer name",
   "npwp": "NPWP number",
@@ -415,13 +415,13 @@ Return ONLY valid JSON with this exact structure:
 
 IMPORTANT INSTRUCTIONS:
 - Extract EXACTLY as written in the document
-- Use format DD-MM-YYYY for dates
+- For dates, MUST use format YYYY-MM-DD (e.g., "2024-12-09" for 9 Desember 2024)
 - If a field is not visible, use empty string ""
 
 Return ONLY valid JSON with this exact structure:
 {
   "nomor_pkp": "PKP registration number",
-  "tanggal_pengukuhan": "Registration date (DD-MM-YYYY)",
+  "tanggal_pengukuhan": "Registration date (YYYY-MM-DD, e.g., 2024-12-09)",
   "nama_pkp": "Company name",
   "alamat": "Full address"
 }`;
@@ -455,7 +455,7 @@ Return ONLY valid JSON with this exact structure:
 
 IMPORTANT INSTRUCTIONS:
 - Extract EXACTLY as written in the document
-- Use format DD-MM-YYYY for dates
+- For dates, MUST use format YYYY-MM-DD (e.g., "2024-12-09" for 9 Desember 2024)
 - Status should be "Patuh" or "Tidak Patuh"
 - If a field is not visible, use empty string ""
 
@@ -465,7 +465,7 @@ Return ONLY valid JSON with this exact structure:
   "npwp": "NPWP number",
   "tahun_kswp": "KSWP year (YYYY)",
   "status_kswp": "Status (Patuh or Tidak Patuh)",
-  "tanggal_terbit": "Issue date (DD-MM-YYYY)"
+  "tanggal_terbit": "Issue date (YYYY-MM-DD, e.g., 2024-12-09)"
 }`;
 
     try {
