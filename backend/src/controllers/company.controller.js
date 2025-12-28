@@ -98,7 +98,7 @@ export const getCompanyPejabat = async (req, res) => {
       .map((pejabat) => {
         // Find matching personel by id_personel
         const personel = personelData.find(
-          (p) => p.id_personel === pejabat.id_personel,
+          (p) => p.id_personel === pejabat.id_personel
         );
 
         return {
@@ -184,7 +184,7 @@ export const getCompanySertifikat = async (req, res) => {
   try {
     const { id } = req.params;
     const sertifikatData = await googleSheetsService.getSheetData(
-      "db_sertifikat_standar",
+      "db_sertifikat_standar"
     );
     const filtered = sertifikatData.filter((item) => item.id_perusahaan === id);
     res.json(filtered);
@@ -222,7 +222,7 @@ export const getCompanyPengalaman = async (req, res) => {
   try {
     const { id } = req.params;
     const kontrakData = await googleSheetsService.getSheetData(
-      "db_kontrak_pengalaman",
+      "db_kontrak_pengalaman"
     );
     const filtered = kontrakData.filter((item) => item.id_perusahaan === id);
     res.json(filtered);
@@ -303,13 +303,11 @@ export const addCompany = async (req, res) => {
     });
     console.log(
       "📷 Logo file:",
-      logoFile
-        ? `${logoFile.originalname} (${logoFile.size} bytes)`
-        : "No logo",
+      logoFile ? `${logoFile.originalname} (${logoFile.size} bytes)` : "No logo"
     );
     console.log(
       "🖼️  Kop file:",
-      kopFile ? `${kopFile.originalname} (${kopFile.size} bytes)` : "No kop",
+      kopFile ? `${kopFile.originalname} (${kopFile.size} bytes)` : "No kop"
     );
 
     // Validation
@@ -328,7 +326,7 @@ export const addCompany = async (req, res) => {
     // If logo file is provided, upload to Cloudinary AND Google Drive
     if (logoFile) {
       console.log(
-        "📤 Logo file detected, uploading to Cloudinary and Google Drive...",
+        "📤 Logo file detected, uploading to Cloudinary and Google Drive..."
       );
 
       // Upload to Cloudinary
@@ -339,13 +337,13 @@ export const addCompany = async (req, res) => {
         if (!cloudinaryService.isConfigured()) {
           console.warn("⚠️  Cloudinary not configured, skipping...");
           console.warn(
-            "   Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env",
+            "   Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env"
           );
         } else {
           const cloudinaryResult = await cloudinaryService.uploadCompanyLogo(
             logoFile.path,
             nama_perusahaan,
-            `Logo ${nama_perusahaan}`,
+            `Logo ${nama_perusahaan}`
           );
           logoCloudUrl = cloudinaryResult.url;
           console.log("✅ Cloudinary upload success:", logoCloudUrl);
@@ -368,7 +366,7 @@ export const addCompany = async (req, res) => {
           console.error("   💡 To fix:");
           console.error("   1. Check your internet connection");
           console.error(
-            "   2. Try accessing https://cloudinary.com in your browser",
+            "   2. Try accessing https://cloudinary.com in your browser"
           );
           console.error("   3. Check firewall/antivirus settings");
           console.error("   4. Try using a VPN or different network");
@@ -380,7 +378,7 @@ export const addCompany = async (req, res) => {
         } else {
           console.error(
             "❌ Cloudinary upload failed:",
-            cloudinaryError.message,
+            cloudinaryError.message
           );
           console.error("   Stack:", cloudinaryError.stack);
         }
@@ -402,14 +400,14 @@ export const addCompany = async (req, res) => {
         const driveResult = await uploadLogoToDrive(
           logoFile,
           nama_perusahaan,
-          folderNumber,
+          folderNumber
         );
         logoDriveUrl = driveResult.webViewLink;
         console.log("✅ Google Drive logo upload success:", logoDriveUrl);
       } catch (driveError) {
         console.error(
           "❌ Google Drive logo upload failed:",
-          driveError.message,
+          driveError.message
         );
         console.error("   Stack:", driveError.stack);
         // Continue without drive URL
@@ -423,7 +421,7 @@ export const addCompany = async (req, res) => {
         const kopResult = await uploadKopToDrive(
           kopFile,
           nama_perusahaan,
-          folderNumber,
+          folderNumber
         );
         kopDriveUrl = kopResult.webViewLink;
         console.log("✅ Google Drive kop upload success:", kopDriveUrl);
@@ -445,7 +443,7 @@ export const addCompany = async (req, res) => {
         } catch (cleanupError) {
           console.warn(
             "⚠️  Could not delete temporary file:",
-            cleanupError.message,
+            cleanupError.message
           );
         }
       }
@@ -555,7 +553,7 @@ async function uploadLogoToDrive(file, namaPerusahaan, folderNumber) {
     fileName,
     file.mimetype,
     folderPath,
-    basePerusahaanFolderId,
+    basePerusahaanFolderId
   );
 
   // NOTE: File cleanup is handled by the controller after all uploads complete
@@ -600,7 +598,7 @@ async function uploadKopToDrive(file, namaPerusahaan, folderNumber) {
     fileName,
     file.mimetype,
     folderPath,
-    basePerusahaanFolderId,
+    basePerusahaanFolderId
   );
 
   // NOTE: File cleanup is handled by the controller after all uploads complete
@@ -639,7 +637,7 @@ async function uploadCompanyProfileToDrive(file, namaPerusahaan, folderNumber) {
     fileName,
     "application/pdf",
     folderPath,
-    basePerusahaanFolderId,
+    basePerusahaanFolderId
   );
 
   // NOTE: File cleanup is handled by the controller after all uploads complete
@@ -654,7 +652,7 @@ async function uploadDocumentToDrive(
   file,
   namaPerusahaan,
   folderNumber,
-  documentType,
+  documentType
 ) {
   const basePerusahaanFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
 
@@ -697,7 +695,7 @@ async function uploadDocumentToDrive(
     fileName,
     "application/pdf",
     folderPath,
-    basePerusahaanFolderId,
+    basePerusahaanFolderId
   );
 
   return {
@@ -744,7 +742,7 @@ export const updateCompany = async (req, res) => {
     console.log("🖼️  New kop:", kopFile ? "Yes" : "No");
     console.log(
       "📋 New company profile PDF:",
-      companyProfileFile ? "Yes" : "No",
+      companyProfileFile ? "Yes" : "No"
     );
     console.log("📜 New documents:", {
       akta: aktaFile ? "Yes" : "No",
@@ -774,7 +772,7 @@ export const updateCompany = async (req, res) => {
     const folderNumber = String(companyIndex + 1).padStart(2, "0");
 
     console.log(
-      `📂 Company Folder: ${folderNumber}. ${existingCompany.nama_perusahaan}`,
+      `📂 Company Folder: ${folderNumber}. ${existingCompany.nama_perusahaan}`
     );
 
     // Prepare URL holders (keep existing if no new file)
@@ -801,7 +799,7 @@ export const updateCompany = async (req, res) => {
           const cloudinaryResult = await cloudinaryService.uploadCompanyLogo(
             logoFile.path,
             nama_perusahaan || existingCompany.nama_perusahaan,
-            `Logo ${nama_perusahaan || existingCompany.nama_perusahaan}`,
+            `Logo ${nama_perusahaan || existingCompany.nama_perusahaan}`
           );
           logoCloudUrl = cloudinaryResult.url;
           console.log("✅ Cloudinary logo updated:", logoCloudUrl);
@@ -815,14 +813,14 @@ export const updateCompany = async (req, res) => {
         const driveResult = await uploadLogoToDrive(
           logoFile,
           nama_perusahaan || existingCompany.nama_perusahaan,
-          folderNumber,
+          folderNumber
         );
         logoDriveUrl = driveResult.webViewLink;
         console.log("✅ Google Drive logo updated:", logoDriveUrl);
       } catch (driveError) {
         console.error(
           "❌ Google Drive logo upload failed:",
-          driveError.message,
+          driveError.message
         );
       }
     }
@@ -834,7 +832,7 @@ export const updateCompany = async (req, res) => {
         const kopResult = await uploadKopToDrive(
           kopFile,
           nama_perusahaan || existingCompany.nama_perusahaan,
-          folderNumber,
+          folderNumber
         );
         kopDriveUrl = kopResult.webViewLink;
         console.log("✅ Google Drive kop updated:", kopDriveUrl);
@@ -850,17 +848,17 @@ export const updateCompany = async (req, res) => {
         const profileResult = await uploadCompanyProfileToDrive(
           companyProfileFile,
           nama_perusahaan || existingCompany.nama_perusahaan,
-          folderNumber,
+          folderNumber
         );
         companyProfileUrl = profileResult.webViewLink;
         console.log(
           "✅ Google Drive company profile updated:",
-          companyProfileUrl,
+          companyProfileUrl
         );
       } catch (profileError) {
         console.error(
           "❌ Google Drive company profile upload failed:",
-          profileError.message,
+          profileError.message
         );
       }
     }
@@ -895,7 +893,7 @@ export const updateCompany = async (req, res) => {
             doc.file,
             nama_perusahaan || existingCompany.nama_perusahaan,
             folderNumber,
-            doc.type,
+            doc.type
           );
           const pdfUrl = result.webViewLink;
 
@@ -941,10 +939,11 @@ export const updateCompany = async (req, res) => {
             // Handle each document type differently
             if (doc.type === "akta") {
               // Check if company has any akta records
-              const aktaData =
-                await googleSheetsService.getSheetData("db_akta");
+              const aktaData = await googleSheetsService.getSheetData(
+                "db_akta"
+              );
               const existingAkta = aktaData.filter(
-                (item) => item.id_perusahaan === id,
+                (item) => item.id_perusahaan === id
               );
 
               // Define headers for db_akta - MUST match exact column order in spreadsheet!
@@ -967,7 +966,7 @@ export const updateCompany = async (req, res) => {
                 const totalAktaCount = aktaData.length;
                 const newAktaId = `AKTA${String(totalAktaCount + 1).padStart(
                   3,
-                  "0",
+                  "0"
                 )}`;
 
                 // Create new akta record
@@ -987,7 +986,7 @@ export const updateCompany = async (req, res) => {
                 });
                 console.log(
                   "✅ Akta record created in spreadsheet with ID:",
-                  newAktaId,
+                  newAktaId
                 );
               } else {
                 // Update first akta record's URL
@@ -1002,7 +1001,7 @@ export const updateCompany = async (req, res) => {
                     akta_perusahaan_url: pdfUrl,
                     tanggal_input: tanggalInput,
                     author: author,
-                  },
+                  }
                 );
                 console.log("✅ Akta record updated in spreadsheet");
               }
@@ -1011,16 +1010,17 @@ export const updateCompany = async (req, res) => {
             else if (doc.type === "nib") {
               try {
                 console.log("🔵 Processing NIB document upload...");
-                const nibData =
-                  await googleSheetsService.getSheetData("db_nib");
+                const nibData = await googleSheetsService.getSheetData(
+                  "db_nib"
+                );
                 console.log("   Current NIB records:", nibData.length);
 
                 const existingNib = nibData.filter(
-                  (item) => item.id_perusahaan === id,
+                  (item) => item.id_perusahaan === id
                 );
                 console.log(
                   "   Existing NIB for this company:",
-                  existingNib.length,
+                  existingNib.length
                 );
 
                 // TEMPORARY: Use simplified headers - we'll adjust based on actual spreadsheet
@@ -1042,7 +1042,7 @@ export const updateCompany = async (req, res) => {
                   const totalNibCount = nibData.length;
                   const newNibId = `NIB${String(totalNibCount + 1).padStart(
                     3,
-                    "0",
+                    "0"
                   )}`;
 
                   console.log("📝 Creating new NIB record...");
@@ -1066,7 +1066,7 @@ export const updateCompany = async (req, res) => {
                   await googleSheetsService.addSheetData(
                     "db_nib",
                     nibHeaders,
-                    nibRecord,
+                    nibRecord
                   );
                   console.log("✅ NIB record created successfully!");
                 } else {
@@ -1083,7 +1083,7 @@ export const updateCompany = async (req, res) => {
                       nib_url: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ NIB record updated successfully!");
                 }
@@ -1098,16 +1098,17 @@ export const updateCompany = async (req, res) => {
             else if (doc.type === "sbu") {
               try {
                 console.log("🟢 Processing SBU document upload...");
-                const sbuData =
-                  await googleSheetsService.getSheetData("db_sbu");
+                const sbuData = await googleSheetsService.getSheetData(
+                  "db_sbu"
+                );
                 console.log("   Current SBU records:", sbuData.length);
 
                 const existingSbu = sbuData.filter(
-                  (item) => item.id_perusahaan === id,
+                  (item) => item.id_perusahaan === id
                 );
                 console.log(
                   "   Existing SBU for this company:",
-                  existingSbu.length,
+                  existingSbu.length
                 );
 
                 // Define headers for db_sbu - Match with actual spreadsheet columns
@@ -1139,7 +1140,7 @@ export const updateCompany = async (req, res) => {
                   const totalSbuCount = sbuData.length;
                   const newSbuId = `SBU${String(totalSbuCount + 1).padStart(
                     3,
-                    "0",
+                    "0"
                   )}`;
 
                   console.log("📝 Creating new SBU record...");
@@ -1170,7 +1171,7 @@ export const updateCompany = async (req, res) => {
                   });
                   console.log(
                     "✅ SBU record created in spreadsheet with ID:",
-                    newSbuId,
+                    newSbuId
                   );
                 } else {
                   console.log("📝 Updating existing SBU record...");
@@ -1186,7 +1187,7 @@ export const updateCompany = async (req, res) => {
                       sbu_url: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ SBU record updated successfully!");
                 }
@@ -1202,16 +1203,17 @@ export const updateCompany = async (req, res) => {
             else if (doc.type === "kta") {
               try {
                 console.log("🔵 Processing KTA document upload...");
-                const ktaData =
-                  await googleSheetsService.getSheetData("db_kta");
+                const ktaData = await googleSheetsService.getSheetData(
+                  "db_kta"
+                );
                 console.log("   Current KTA records:", ktaData.length);
 
                 const existingKta = ktaData.filter(
-                  (item) => item.id_perusahaan === id,
+                  (item) => item.id_perusahaan === id
                 );
                 console.log(
                   "   Existing KTA for this company:",
-                  existingKta.length,
+                  existingKta.length
                 );
 
                 // Define headers for db_kta - Match with actual spreadsheet columns
@@ -1232,11 +1234,12 @@ export const updateCompany = async (req, res) => {
 
                 if (existingKta.length === 0) {
                   // Generate new ID
-                  const totalKtaCount = ktaData.length;
-                  const newKtaId = `KTA${String(totalKtaCount + 1).padStart(
-                    3,
-                    "0",
-                  )}`;
+                  // Generate new ID
+                  const newKtaId = googleSheetsService.generateNewId(
+                    ktaData,
+                    "id_kta",
+                    "KTA"
+                  );
 
                   console.log("📝 Creating new KTA record...");
                   console.log("   New ID:", newKtaId);
@@ -1271,7 +1274,7 @@ export const updateCompany = async (req, res) => {
                       kta_url: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ KTA record updated successfully!");
                 }
@@ -1287,19 +1290,19 @@ export const updateCompany = async (req, res) => {
               try {
                 console.log("🔵 Processing Sertifikat document upload...");
                 const sertifikatData = await googleSheetsService.getSheetData(
-                  "db_sertifikat_standar",
+                  "db_sertifikat_standar"
                 );
                 console.log(
                   "   Current Sertifikat records:",
-                  sertifikatData.length,
+                  sertifikatData.length
                 );
 
                 const existingSertifikat = sertifikatData.filter(
-                  (item) => item.id_perusahaan === id,
+                  (item) => item.id_perusahaan === id
                 );
                 console.log(
                   "   Existing Sertifikat for this company:",
-                  existingSertifikat.length,
+                  existingSertifikat.length
                 );
 
                 // Define headers for db_sertifikat_standar - Match with actual spreadsheet columns
@@ -1320,10 +1323,12 @@ export const updateCompany = async (req, res) => {
 
                 if (existingSertifikat.length === 0) {
                   // Generate new ID
-                  const totalSertifikatCount = sertifikatData.length;
-                  const newSertifikatId = `SRT${String(
-                    totalSertifikatCount + 1,
-                  ).padStart(3, "0")}`;
+                  // Generate new ID
+                  const newSertifikatId = googleSheetsService.generateNewId(
+                    sertifikatData,
+                    "id_sertifikat_standar",
+                    "SERT"
+                  );
 
                   console.log("📝 Creating new Sertifikat record...");
                   console.log("   New ID:", newSertifikatId);
@@ -1345,7 +1350,7 @@ export const updateCompany = async (req, res) => {
                       sertifikat_standar_url: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ Sertifikat record created successfully!");
                 } else {
@@ -1353,7 +1358,7 @@ export const updateCompany = async (req, res) => {
                   const firstSertifikat = existingSertifikat[0];
                   console.log(
                     "   Updating ID:",
-                    firstSertifikat.id_sertifikat_standar,
+                    firstSertifikat.id_sertifikat_standar
                   );
 
                   await googleSheetsService.updateSheetData(
@@ -1365,7 +1370,7 @@ export const updateCompany = async (req, res) => {
                       sertifikat_standar_url: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ Sertifikat record updated successfully!");
                 }
@@ -1381,16 +1386,16 @@ export const updateCompany = async (req, res) => {
               try {
                 console.log("🔵 Processing Kontrak document upload...");
                 const kontrakData = await googleSheetsService.getSheetData(
-                  "db_kontrak_pengalaman",
+                  "db_kontrak_pengalaman"
                 );
                 console.log("   Current Kontrak records:", kontrakData.length);
 
                 const existingKontrak = kontrakData.filter(
-                  (item) => item.id_perusahaan === id,
+                  (item) => item.id_perusahaan === id
                 );
                 console.log(
                   "   Existing Kontrak for this company:",
-                  existingKontrak.length,
+                  existingKontrak.length
                 );
 
                 // Define headers for db_kontrak_pengalaman - Match with actual spreadsheet columns
@@ -1419,10 +1424,12 @@ export const updateCompany = async (req, res) => {
 
                 if (existingKontrak.length === 0) {
                   // Generate new ID
-                  const totalKontrakCount = kontrakData.length;
-                  const newKontrakId = `KONTR${String(
-                    totalKontrakCount + 1,
-                  ).padStart(3, "0")}`;
+                  // Generate new ID
+                  const newKontrakId = googleSheetsService.generateNewId(
+                    kontrakData,
+                    "id_kontrak",
+                    "KONTR"
+                  );
 
                   console.log("📝 Creating new Kontrak record...");
                   console.log("   New ID:", newKontrakId);
@@ -1452,7 +1459,7 @@ export const updateCompany = async (req, res) => {
                       kontrak_url: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ Kontrak record created successfully!");
                 } else {
@@ -1469,7 +1476,7 @@ export const updateCompany = async (req, res) => {
                       kontrak_url: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ Kontrak record updated successfully!");
                 }
@@ -1478,7 +1485,7 @@ export const updateCompany = async (req, res) => {
                 kontrakUrl = pdfUrl;
                 console.log(
                   "📌 Kontrak URL will be saved to company profile:",
-                  kontrakUrl,
+                  kontrakUrl
                 );
               } catch (kontrakError) {
                 console.error("❌ ERROR in Kontrak spreadsheet operation:");
@@ -1491,16 +1498,17 @@ export const updateCompany = async (req, res) => {
             else if (doc.type === "cek") {
               try {
                 console.log("🔵 Processing Cek document upload...");
-                const cekData =
-                  await googleSheetsService.getSheetData("db_cek");
+                const cekData = await googleSheetsService.getSheetData(
+                  "db_cek"
+                );
                 console.log("   Current Cek records:", cekData.length);
 
                 const existingCek = cekData.filter(
-                  (item) => item.id_perusahaan === id,
+                  (item) => item.id_perusahaan === id
                 );
                 console.log(
                   "   Existing Cek for this company:",
-                  existingCek.length,
+                  existingCek.length
                 );
 
                 // Define headers for db_cek - Match with actual spreadsheet columns
@@ -1516,11 +1524,12 @@ export const updateCompany = async (req, res) => {
 
                 if (existingCek.length === 0) {
                   // Generate new ID
-                  const totalCekCount = cekData.length;
-                  const newCekId = `CEK${String(totalCekCount + 1).padStart(
-                    3,
-                    "0",
-                  )}`;
+                  // Generate new ID
+                  const newCekId = googleSheetsService.generateNewId(
+                    cekData,
+                    "id_cek",
+                    "CEK"
+                  );
 
                   console.log("📝 Creating new Cek record...");
                   console.log("   New ID:", newCekId);
@@ -1550,7 +1559,7 @@ export const updateCompany = async (req, res) => {
                       url_cek: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ Cek record updated successfully!");
                 }
@@ -1559,7 +1568,7 @@ export const updateCompany = async (req, res) => {
                 cekUrl = pdfUrl;
                 console.log(
                   "📌 Cek URL will be saved to company profile:",
-                  cekUrl,
+                  cekUrl
                 );
               } catch (cekError) {
                 console.error("❌ ERROR in Cek spreadsheet operation:");
@@ -1572,16 +1581,17 @@ export const updateCompany = async (req, res) => {
             else if (doc.type === "bpjs") {
               try {
                 console.log("🔵 Processing BPJS document upload...");
-                const bpjsData =
-                  await googleSheetsService.getSheetData("db_bpjs");
+                const bpjsData = await googleSheetsService.getSheetData(
+                  "db_bpjs"
+                );
                 console.log("   Current BPJS records:", bpjsData.length);
 
                 const existingBpjs = bpjsData.filter(
-                  (item) => item.id_perusahaan === id,
+                  (item) => item.id_perusahaan === id
                 );
                 console.log(
                   "   Existing BPJS for this company:",
-                  existingBpjs.length,
+                  existingBpjs.length
                 );
 
                 // Define headers for db_bpjs - Match with actual spreadsheet columns
@@ -1599,11 +1609,12 @@ export const updateCompany = async (req, res) => {
 
                 if (existingBpjs.length === 0) {
                   // Generate new ID
-                  const totalBpjsCount = bpjsData.length;
-                  const newBpjsId = `BPJS${String(totalBpjsCount + 1).padStart(
-                    3,
-                    "0",
-                  )}`;
+                  // Generate new ID
+                  const newBpjsId = googleSheetsService.generateNewId(
+                    bpjsData,
+                    "id_bpjs",
+                    "BPJS"
+                  );
 
                   console.log("📝 Creating new BPJS record...");
                   console.log("   New ID:", newBpjsId);
@@ -1622,7 +1633,7 @@ export const updateCompany = async (req, res) => {
                       url_bpjs: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ BPJS record created successfully!");
                 } else {
@@ -1639,7 +1650,7 @@ export const updateCompany = async (req, res) => {
                       url_bpjs: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
-                    },
+                    }
                   );
                   console.log("✅ BPJS record updated successfully!");
                 }
@@ -1648,7 +1659,7 @@ export const updateCompany = async (req, res) => {
                 bpjsUrl = pdfUrl;
                 console.log(
                   "📌 BPJS URL will be saved to company profile:",
-                  bpjsUrl,
+                  bpjsUrl
                 );
               } catch (bpjsError) {
                 console.error("❌ ERROR in BPJS spreadsheet operation:");
@@ -1659,7 +1670,7 @@ export const updateCompany = async (req, res) => {
           } catch (sheetError) {
             console.error(
               `❌ Failed to update ${doc.label} in spreadsheet:`,
-              sheetError.message,
+              sheetError.message
             );
             console.error("   Stack:", sheetError.stack);
             // Continue anyway - at least the file is uploaded to Drive
@@ -1667,7 +1678,7 @@ export const updateCompany = async (req, res) => {
         } catch (docError) {
           console.error(
             `❌ Google Drive ${doc.label} upload failed:`,
-            docError.message,
+            docError.message
           );
         }
       }
@@ -1726,7 +1737,7 @@ export const updateCompany = async (req, res) => {
 
     const result = await googleSheetsService.updateProfilPerusahaan(
       id,
-      updateData,
+      updateData
     );
 
     console.log("✅ Google Sheets updated successfully");
@@ -1815,7 +1826,7 @@ export const getCompanyKop = async (req, res) => {
 
     // Extract file ID from Google Drive URL
     const fileId = oauth2GoogleService.extractFileIdFromUrl(
-      company.kop_perusahaan,
+      company.kop_perusahaan
     );
 
     if (!fileId) {
@@ -1842,7 +1853,7 @@ export const getCompanyKop = async (req, res) => {
     });
 
     console.log(
-      `  ✅ Kop image served successfully (${fileBuffer.length} bytes)`,
+      `  ✅ Kop image served successfully (${fileBuffer.length} bytes)`
     );
     res.send(fileBuffer);
   } catch (error) {
@@ -1965,5 +1976,27 @@ Only return the JSON object, no additional text. If any field is not found, use 
       success: false,
       message: error.message || "Failed to scan company profile",
     });
+  }
+};
+
+/* Update Company KBLI Batch */
+export const updateCompanyKbliBatch = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { kbliCodes } = req.body; // Expect array of string codes
+
+    if (!Array.isArray(kbliCodes)) {
+      return res.status(400).json({ error: "kbliCodes must be an array" });
+    }
+
+    const result = await googleSheetsService.batchUpdateKBLI(
+      id,
+      kbliCodes,
+      "system"
+    );
+    res.json(result);
+  } catch (error) {
+    console.error("Error updating KBLI batch:", error);
+    res.status(500).json({ error: error.message });
   }
 };

@@ -527,6 +527,225 @@ Return ONLY valid JSON with this exact structure:
       throw error;
     }
   }
+  /**
+   * Scan Akta Perusahaan document
+   */
+  async scanAkta(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian Akta Perusahaan (Deed of Company) document carefully and extract ALL information in JSON format.
+    
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document
+- "jenis_akta" MUST be "Pendirian" or "Perubahan". Look for title or context (e.g. "AKTA PENDIRIAN" -> "Pendirian", "AKTA PERUBAHAN" -> "Perubahan").
+- "nomor_akta": Extract the deed number.
+- "tanggal_akta": Extract the date of deed in YYYY-MM-DD format.
+- "notaris": Extract the notary's full name.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "jenis_akta": "Pendirian",
+  "nomor_akta": "...",
+  "tanggal_akta": "YYYY-MM-DD",
+  "notaris": "..."
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("AI failed to extract JSON");
+      }
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      throw new Error("Gagal memproses Akta: " + e.message);
+    }
+  }
+
+  /**
+   * Scan NIB (Nomor Induk Berusaha) document
+   */
+  async scanNIB(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian NIB (Nomor Induk Berusaha) document carefully and extract ALL information in JSON format.
+    
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document
+- "nomor_nib": Extract the NIB number (usually 13 digits).
+- "tanggal_terbit": Extract the date of issuance in YYYY-MM-DD format. "Diterbitkan tanggal: ..."
+- "status_penanaman_modal": Extract investment status (e.g., "PMDN", "PMA").
+- "skala_usaha": Extract business scale (e.g., "Mikro", "Kecil", "Menengah", "Besar").
+- "kbli": Extract ALL KBLI codes found (usually 5-digit numbers). Return as an array of strings.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "nomor_nib": "...",
+  "tanggal_terbit": "YYYY-MM-DD",
+  "status_penanaman_modal": "...",
+  "skala_usaha": "...",
+  "kbli": ["...", "..."]
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("AI failed to extract JSON");
+      }
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      throw new Error("Gagal memproses NIB: " + e.message);
+    }
+  }
+
+  /**
+   * Scan SBU (Sertifikat Badan Usaha) document
+   */
+  async scanSBU(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian SBU (Sertifikat Badan Usaha) document carefully and extract ALL information in JSON format.
+    
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document.
+- "nomor_sbu": Extract SBU Number.
+- "nomor_pb_umku": Extract PB-UMKU Number (if available).
+- "jenis_usaha": Extract type of business (e.g. Jasa Konstruksi).
+- "asosiasi": Extract Association name.
+- "pjbu": Extract PJBU Name (Penanggung Jawab Badan Usaha).
+- "pjtbu": Extract PJTBU Name (Penanggung Jawab Teknik).
+- "nomor_registrasi_lpjk": Extract LPJK Registration Number.
+- "pelaksana_sertifikasi": Extract Certification Body (LSBU).
+- "tanggal_terbit": Extract Issue Date (YYYY-MM-DD).
+- "masa_berlaku": Extract valid until Date (YYYY-MM-DD).
+- "kualifikasi": Extract Qualification (e.g. Kecil, Menengah, Besar).
+- "kode_subklasifikasi": Extract Subclassification Code.
+- "sifat": Extract nature (Sifat).
+- "kode_kbli": Extract KBLI Code.
+- "nama_pjskbu": Extract PJSKBU Name.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "nomor_sbu": "...",
+  "nomor_pb_umku": "...",
+  "jenis_usaha": "...",
+  "asosiasi": "...",
+  "pjbu": "...",
+  "pjtbu": "...",
+  "nomor_registrasi_lpjk": "...",
+  "pelaksana_sertifikasi": "...",
+  "tanggal_terbit": "YYYY-MM-DD",
+  "masa_berlaku": "YYYY-MM-DD",
+  "kualifikasi": "...",
+  "kode_subklasifikasi": "...",
+  "sifat": "...",
+  "kode_kbli": "...",
+  "nama_pjskbu": "..."
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("AI failed to extract JSON");
+      }
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      throw new Error("Gagal memproses SBU: " + e.message);
+    }
+  }
+
+  /**
+   * Scan KTA (Kartu Tanda Anggota) document
+   */
+  async scanKTA(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian KTA (Kartu Tanda Anggota) document and extract information in JSON format.
+
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document.
+- "nomor_anggota": Extract Membership Number.
+- "nama_asosiasi": Extract Association Name.
+- "penanggung_jawab": Extract Person in Charge.
+- "status_keanggotaan": Extract Status (e.g. Aktif).
+- "tanggal_terbit": Extract Issue Date (YYYY-MM-DD).
+
+Return ONLY valid JSON with this exact structure:
+{
+  "nomor_anggota": "...",
+  "nama_asosiasi": "...",
+  "penanggung_jawab": "...",
+  "status_keanggotaan": "...",
+  "tanggal_terbit": "YYYY-MM-DD"
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("AI failed to extract JSON");
+      }
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      throw new Error("Gagal memproses KTA: " + e.message);
+    }
+  }
+
+  /**
+   * Scan Company Document (Akta, NIB, etc.)
+   */
+  async scanCompanyDocument(pdfBuffer, documentType) {
+    console.log(
+      `[GEMINI AI COMPANY] Scanning ${documentType.toUpperCase()}...`
+    );
+    try {
+      let result;
+      switch (documentType.toLowerCase()) {
+        case "akta":
+          result = await this.scanAkta(pdfBuffer);
+          break;
+        case "nib":
+          result = await this.scanNIB(pdfBuffer);
+          break;
+        case "sbu":
+          result = await this.scanSBU(pdfBuffer);
+          break;
+        case "kta":
+          result = await this.scanKTA(pdfBuffer);
+          break;
+        default:
+          throw new Error(`Unsupported company document type: ${documentType}`);
+      }
+      console.log(
+        `[GEMINI AI COMPANY] ✅ Successfully scanned ${documentType.toUpperCase()}`
+      );
+      return result;
+    } catch (e) {
+      console.error(
+        `[GEMINI AI COMPANY] ❌ Error scanning ${documentType}:`,
+        e.message
+      );
+      throw e;
+    }
+  }
 }
 
 // Export singleton instance

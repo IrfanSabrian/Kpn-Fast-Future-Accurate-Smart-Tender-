@@ -146,59 +146,37 @@
           <div class="lg:col-span-7 space-y-4">
             <!-- Document Tabs -->
             <div
-              class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden"
+              class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden p-2"
             >
-              <div class="grid grid-cols-2 md:grid-cols-4" role="tablist">
-                <button
-                  @click="selectedDocument = 'ktp'"
-                  :class="[
-                    'px-4 py-4 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2',
-                    selectedDocument === 'ktp'
-                      ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                      : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50',
-                  ]"
-                >
-                  <i class="far fa-id-card text-base"></i>
-                  <span>KTP</span>
-                </button>
+              <div
+                class="relative flex items-center gap-0.5 md:gap-1"
+                role="tablist"
+              >
+                <!-- Glider -->
+                <div
+                  class="absolute rounded-xl transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-0 pointer-events-none"
+                  :class="activeTabGradient"
+                  :style="gliderStyle"
+                ></div>
 
                 <button
-                  @click="selectedDocument = 'npwp'"
-                  :class="[
-                    'px-4 py-4 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2',
-                    selectedDocument === 'npwp'
-                      ? 'text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400 bg-orange-50/50 dark:bg-orange-900/10'
-                      : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50',
-                  ]"
+                  v-for="(tab, index) in documentTabs"
+                  :key="tab.id"
+                  :ref="(el) => (tabRefs[index] = el)"
+                  @click="
+                    selectedDocument = tab.id;
+                    updateGlider();
+                  "
+                  class="group relative z-10 px-2.5 md:px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap bg-transparent"
+                  :class="
+                    selectedDocument === tab.id
+                      ? 'text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 ' +
+                        tab.hoverText
+                  "
                 >
-                  <i class="fas fa-credit-card text-base"></i>
-                  <span>NPWP</span>
-                </button>
-
-                <button
-                  @click="selectedDocument = 'ijazah'"
-                  :class="[
-                    'px-4 py-4 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2',
-                    selectedDocument === 'ijazah'
-                      ? 'text-purple-600 dark:text-purple-400 border-purple-600 dark:border-purple-400 bg-purple-50/50 dark:bg-purple-900/10'
-                      : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50',
-                  ]"
-                >
-                  <i class="fas fa-graduation-cap text-base"></i>
-                  <span>Ijazah</span>
-                </button>
-
-                <button
-                  @click="selectedDocument = 'cv'"
-                  :class="[
-                    'px-4 py-4 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2',
-                    selectedDocument === 'cv'
-                      ? 'text-emerald-600 dark:text-emerald-400 border-emerald-600 dark:border-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/10'
-                      : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50',
-                  ]"
-                >
-                  <i class="fas fa-file-alt text-base"></i>
-                  <span>CV</span>
+                  <i :class="[tab.icon, 'text-base opacity-75']"></i>
+                  <span>{{ tab.label }}</span>
                 </button>
               </div>
             </div>
@@ -212,487 +190,492 @@
               @delete="openDeleteConfirm(selectedDocument)"
             >
               <template #content>
-                <!-- KTP Details -->
-                <div v-if="selectedDocument === 'ktp'" class="space-y-2">
+                <Transition name="tab-fade" mode="out-in">
+                  <!-- KTP Details -->
+                  <div v-if="selectedDocument === 'ktp'" class="space-y-2">
+                    <div
+                      class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-blue-50 dark:bg-blue-900/20 px-4 rounded-lg mb-3 border border-blue-100 dark:border-blue-800"
+                    >
+                      <div
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                      >
+                        NIK
+                      </div>
+                      <div
+                        class="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wide"
+                      >
+                        {{ ktp.nik || "-" }}
+                      </div>
+                    </div>
+
+                    <div class="space-y-1">
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Nama Lengkap</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.nama_ktp || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Tempat Lahir</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.tempat_lahir_ktp || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Tanggal Lahir</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.tanggal_lahir_ktp || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Jenis Kelamin</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.jenis_kelamin || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Golongan Darah</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.golongan_darah || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Alamat</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug"
+                          >{{ ktp.alamat_ktp || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >RT/RW</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.rt_rw || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Kelurahan/Desa</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.kelurahan_desa || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Kecamatan</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.kecamatan || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Kota/Kabupaten</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.kota_kabupaten || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Provinsi</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.provinsi || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Agama</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.agama || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Status Perkawinan</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.status_perkawinan || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Pekerjaan</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.pekerjaan || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Kewarganegaraan</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.kewarganegaraan || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Berlaku Hingga</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.berlaku_hingga || "-" }}</span
+                        >
+                      </div>
+                      <div class="grid grid-cols-[120px_1fr] gap-3 py-1">
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Tanggal Terbit</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ktp.tanggal_terbit_ktp || "-" }}</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- NPWP Details -->
                   <div
-                    class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-blue-50 dark:bg-blue-900/20 px-4 rounded-lg mb-3 border border-blue-100 dark:border-blue-800"
+                    v-else-if="selectedDocument === 'npwp'"
+                    class="space-y-2"
                   >
                     <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                      class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-orange-50 dark:bg-orange-900/20 px-4 rounded-lg mb-3 border border-orange-100 dark:border-orange-800"
                     >
-                      NIK
+                      <div
+                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                      >
+                        NO. NPWP
+                      </div>
+                      <div
+                        class="text-sm font-mono font-bold text-orange-600 dark:text-orange-400 tracking-wide"
+                      >
+                        {{ npwp.nomor_npwp_personel || "-" }}
+                      </div>
                     </div>
-                    <div
-                      class="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wide"
-                    >
-                      {{ ktp.nik || "-" }}
+
+                    <div class="space-y-1">
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >NIK NPWP</span
+                        >
+                        <span
+                          class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
+                          >{{ npwp.nik_npwp_personel || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Nama WP</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ npwp.nama_npwp_personel || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Alamat NPWP</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug"
+                          >{{ npwp.alamat_npwp_personel || "-" }}</span
+                        >
+                      </div>
+                      <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >KPP</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ npwp.kpp_npwp_personel || "-" }}</span
+                        >
+                      </div>
                     </div>
                   </div>
 
-                  <div class="space-y-1">
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Nama Lengkap</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.nama_ktp || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Tempat Lahir</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.tempat_lahir_ktp || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Tanggal Lahir</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.tanggal_lahir_ktp || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Jenis Kelamin</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.jenis_kelamin || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Golongan Darah</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.golongan_darah || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Alamat</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug"
-                        >{{ ktp.alamat_ktp || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >RT/RW</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.rt_rw || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Kelurahan/Desa</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.kelurahan_desa || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Kecamatan</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.kecamatan || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Kota/Kabupaten</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.kota_kabupaten || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Provinsi</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.provinsi || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Agama</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.agama || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Status Perkawinan</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.status_perkawinan || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Pekerjaan</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.pekerjaan || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Kewarganegaraan</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.kewarganegaraan || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Berlaku Hingga</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.berlaku_hingga || "-" }}</span
-                      >
-                    </div>
-                    <div class="grid grid-cols-[120px_1fr] gap-3 py-1">
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Tanggal Terbit</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ktp.tanggal_terbit_ktp || "-" }}</span
-                      >
-                    </div>
-                  </div>
-                </div>
-
-                <!-- NPWP Details -->
-                <div v-else-if="selectedDocument === 'npwp'" class="space-y-2">
+                  <!-- Ijazah Details -->
                   <div
-                    class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-orange-50 dark:bg-orange-900/20 px-4 rounded-lg mb-3 border border-orange-100 dark:border-orange-800"
+                    v-else-if="selectedDocument === 'ijazah'"
+                    class="space-y-2"
                   >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      NO. NPWP
-                    </div>
-                    <div
-                      class="text-sm font-mono font-bold text-orange-600 dark:text-orange-400 tracking-wide"
-                    >
-                      {{ npwp.nomor_npwp_personel || "-" }}
+                    <div class="space-y-1">
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Jenjang</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ijazah.jenjang_pendidikan || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Institusi</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ijazah.nama_institusi_pendidikan || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Fakultas</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ijazah.fakultas || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Program Studi</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ijazah.program_studi || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >No. Ijazah</span
+                        >
+                        <span
+                          class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ijazah.nomor_ijazah || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Tahun</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ijazah.tahun_masuk || "-" }} -
+                          {{ ijazah.tahun_lulus || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Gelar</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ijazah.gelar_akademik || "-" }}</span
+                        >
+                      </div>
+                      <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >IPK</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ ijazah.ipk || "-" }}</span
+                        >
+                      </div>
                     </div>
                   </div>
 
-                  <div class="space-y-1">
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >NIK NPWP</span
+                  <!-- CV Details -->
+                  <div v-else-if="selectedDocument === 'cv'" class="space-y-2">
+                    <div class="space-y-1">
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                       >
-                      <span
-                        class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
-                        >{{ npwp.nik_npwp_personel || "-" }}</span
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Nama Lengkap</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ cv.nama_lengkap_cv || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                       >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Nama WP</span
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Ringkasan Profil</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed"
+                          >{{ cv.ringkasan_profil || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                       >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ npwp.nama_npwp_personel || "-" }}</span
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Keahlian Utama</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ cv.keahlian_utama || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                       >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Alamat NPWP</span
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Pengalaman</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ cv.total_pengalaman_tahun || "-" }} Tahun</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                       >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug"
-                        >{{ npwp.alamat_npwp_personel || "-" }}</span
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Posisi Terakhir</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ cv.pengalaman_kerja_terakhir || "-" }}</span
+                        >
+                      </div>
+                      <div
+                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                       >
-                    </div>
-                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >KPP</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ npwp.kpp_npwp_personel || "-" }}</span
-                      >
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Ijazah Details -->
-                <div
-                  v-else-if="selectedDocument === 'ijazah'"
-                  class="space-y-2"
-                >
-                  <div class="space-y-1">
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Jenjang</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ijazah.jenjang_pendidikan || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Institusi</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ijazah.nama_institusi_pendidikan || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Fakultas</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ijazah.fakultas || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Program Studi</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ijazah.program_studi || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >No. Ijazah</span
-                      >
-                      <span
-                        class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ijazah.nomor_ijazah || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Tahun</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ijazah.tahun_masuk || "-" }} -
-                        {{ ijazah.tahun_lulus || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Gelar</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ijazah.gelar_akademik || "-" }}</span
-                      >
-                    </div>
-                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >IPK</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ ijazah.ipk || "-" }}</span
-                      >
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Sertifikasi</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed"
+                          >{{ cv.sertifikasi_profesional || "-" }}</span
+                        >
+                      </div>
+                      <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
+                        <span
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                          >Bahasa</span
+                        >
+                        <span
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                          >{{ cv.bahasa_dikuasai || "-" }}</span
+                        >
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <!-- CV Details -->
-                <div v-else-if="selectedDocument === 'cv'" class="space-y-2">
-                  <div class="space-y-1">
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Nama Lengkap</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ cv.nama_lengkap_cv || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Ringkasan Profil</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed"
-                        >{{ cv.ringkasan_profil || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Keahlian Utama</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ cv.keahlian_utama || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Pengalaman</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ cv.total_pengalaman_tahun || "-" }} Tahun</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Posisi Terakhir</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ cv.pengalaman_kerja_terakhir || "-" }}</span
-                      >
-                    </div>
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                    >
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Sertifikasi</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed"
-                        >{{ cv.sertifikasi_profesional || "-" }}</span
-                      >
-                    </div>
-                    <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                      <span
-                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                        >Bahasa</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ cv.bahasa_dikuasai || "-" }}</span
-                      >
-                    </div>
-                  </div>
-                </div>
+                </Transition>
               </template>
             </PersonnelDocumentManager>
           </div>
@@ -1640,6 +1623,98 @@ const cv = ref(null);
 // Document Selection State
 const selectedDocument = ref("ktp");
 
+/* Data for Sliding Tabs */
+const documentTabs = [
+  {
+    id: "ktp",
+    label: "KTP",
+    icon: "far fa-id-card",
+    gradient: "from-blue-600 to-indigo-600",
+    shadow: "shadow-blue-500/30",
+    hoverText: "hover:text-blue-600 dark:hover:text-blue-400",
+  },
+  {
+    id: "npwp",
+    label: "NPWP",
+    icon: "fas fa-credit-card",
+    gradient: "from-orange-600 to-amber-600",
+    shadow: "shadow-orange-500/30",
+    hoverText: "hover:text-orange-600 dark:hover:text-orange-400",
+  },
+  {
+    id: "ijazah",
+    label: "Ijazah",
+    icon: "fas fa-graduation-cap",
+    gradient: "from-purple-600 to-violet-600",
+    shadow: "shadow-purple-500/30",
+    hoverText: "hover:text-purple-600 dark:hover:text-purple-400",
+  },
+  {
+    id: "cv",
+    label: "CV",
+    icon: "fas fa-file-alt",
+    gradient: "from-emerald-600 to-teal-600",
+    shadow: "shadow-emerald-500/30",
+    hoverText: "hover:text-emerald-600 dark:hover:text-emerald-400",
+  },
+];
+
+const tabRefs = ref([]);
+const gliderStyle = ref({
+  width: "0px",
+  transform: "translateX(0px)",
+  opacity: 0,
+  height: "0px",
+  top: "0px",
+});
+
+const activeTabGradient = computed(() => {
+  const tab = documentTabs.find((t) => t.id === selectedDocument.value);
+  return tab
+    ? `bg-gradient-to-r ${tab.gradient} shadow-lg ${tab.shadow}`
+    : "bg-slate-500";
+});
+
+const updateGlider = async () => {
+  await nextTick();
+  const index = documentTabs.findIndex((t) => t.id === selectedDocument.value);
+  const el = tabRefs.value[index];
+  if (el) {
+    gliderStyle.value = {
+      width: `${el.offsetWidth}px`,
+      transform: `translateX(${el.offsetLeft}px)`,
+      opacity: 1,
+      height: `${el.offsetHeight}px`,
+      top: `${el.offsetTop}px`,
+    };
+  }
+};
+
+// Use flush: 'post' to ensure DOM is updated before callback
+watch(selectedDocument, updateGlider, { flush: "post" });
+
+// Watch for person data to load (which renders the tabs) this fixes initial glider visibility
+watch(
+  person,
+  (val) => {
+    if (val) {
+      nextTick(() => {
+        updateGlider();
+        setTimeout(updateGlider, 200);
+      });
+    }
+  },
+  { flush: "post" }
+);
+
+onMounted(() => {
+  // Multiple attempts to stabilize the glider on initial load
+  nextTick(() => updateGlider());
+  setTimeout(updateGlider, 150);
+  setTimeout(updateGlider, 500);
+  window.addEventListener("resize", updateGlider);
+});
+
 // Modal States for Document Upload
 const showKtpUploadModal = ref(false);
 const showNpwpUploadModal = ref(false);
@@ -2142,3 +2217,21 @@ onMounted(() => {
   fetchPersonDetail();
 });
 </script>
+
+<style scoped>
+/* Tab Transitions */
+.tab-fade-enter-active,
+.tab-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tab-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.tab-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>

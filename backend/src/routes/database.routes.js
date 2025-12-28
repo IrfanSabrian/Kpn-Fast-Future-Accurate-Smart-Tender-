@@ -1,136 +1,169 @@
-import express from 'express';
-import multer from 'multer';
-import * as companyController from '../controllers/company.controller.js';
-import googleSheetsService from '../services/googleSheets.service.js';
+import express from "express";
+import multer from "multer";
+import * as companyController from "../controllers/company.controller.js";
+import googleSheetsService from "../services/googleSheets.service.js";
 
 const router = express.Router();
 
 // Multer configuration for file upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = process.env.UPLOAD_PATH || './uploads';
+    const uploadPath = process.env.UPLOAD_PATH || "./uploads";
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = file.originalname.split('.').pop();
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = file.originalname.split(".").pop();
     cb(null, `company-logo-${uniqueSuffix}.${ext}`);
-  }
+  },
 });
 
 const upload = multer({
   storage,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 52428800 // 50MB default
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 52428800, // 50MB default
   },
   fileFilter: (req, file, cb) => {
     // List of document fields that accept PDF
-    const pdfFields = ['companyProfile', 'akta', 'nib', 'sbu', 'kta', 'sertifikat', 'kontrak', 'cek', 'bpjs'];
-    
+    const pdfFields = [
+      "companyProfile",
+      "akta",
+      "nib",
+      "sbu",
+      "kta",
+      "sertifikat",
+      "kontrak",
+      "cek",
+      "bpjs",
+    ];
+
     // Allow PDF for document fields
     if (pdfFields.includes(file.fieldname)) {
-      if (file.mimetype === 'application/pdf') {
+      if (file.mimetype === "application/pdf") {
         cb(null, true);
       } else {
         cb(new Error(`${file.fieldname} must be a PDF file.`));
       }
-    } 
+    }
     // Accept images only for logo and kop
     else {
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
       if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed for images.'));
+        cb(
+          new Error(
+            "Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed for images."
+          )
+        );
       }
     }
-  }
+  },
 });
-
 
 // ========================================
 // MAIN COMPANY ROUTES
 // ========================================
 
 // Get all companies (summary list)
-router.get('/', companyController.getAllCompanies);
+router.get("/", companyController.getAllCompanies);
 
 // Get company by ID (overview only)
-router.get('/:id', companyController.getCompanyById);
+router.get("/:id", companyController.getCompanyById);
 
 // Add new company with logo and kop upload
-router.post('/', upload.fields([
-  { name: 'logo', maxCount: 1 },
-  { name: 'kop', maxCount: 1 }
-]), companyController.addCompany);
+router.post(
+  "/",
+  upload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "kop", maxCount: 1 },
+  ]),
+  companyController.addCompany
+);
 
 // Update company by ID
-router.put('/:id', upload.fields([
-  { name: 'logo', maxCount: 1 },
-  { name: 'kop', maxCount: 1 },
-  { name: 'companyProfile', maxCount: 1 },
-  { name: 'akta', maxCount: 1 },
-  { name: 'nib', maxCount: 1 },
-  { name: 'sbu', maxCount: 1 },
-  { name: 'kta', maxCount: 1 },
-  { name: 'sertifikat', maxCount: 1 },
-  { name: 'kontrak', maxCount: 1 },
-  { name: 'cek', maxCount: 1 },
-  { name: 'bpjs', maxCount: 1 }
-]), companyController.updateCompany);
+router.put(
+  "/:id",
+  upload.fields([
+    { name: "logo", maxCount: 1 },
+    { name: "kop", maxCount: 1 },
+    { name: "companyProfile", maxCount: 1 },
+    { name: "akta", maxCount: 1 },
+    { name: "nib", maxCount: 1 },
+    { name: "sbu", maxCount: 1 },
+    { name: "kta", maxCount: 1 },
+    { name: "sertifikat", maxCount: 1 },
+    { name: "kontrak", maxCount: 1 },
+    { name: "cek", maxCount: 1 },
+    { name: "bpjs", maxCount: 1 },
+  ]),
+  companyController.updateCompany
+);
 
 // Delete company by ID
-router.delete('/:id', companyController.deleteCompany);
+router.delete("/:id", companyController.deleteCompany);
 
 // Get company kop image (proxy from Google Drive)
-router.get('/:id/kop', companyController.getCompanyKop);
+router.get("/:id/kop", companyController.getCompanyKop);
 
 // AI Scan company profile PDF
-router.post('/:id/scan-profile', upload.single('pdf'), companyController.scanCompanyProfile);
+router.post(
+  "/:id/scan-profile",
+  upload.single("pdf"),
+  companyController.scanCompanyProfile
+);
 
 // ========================================
 // SUB-MODULE ROUTES - Lazy Loading
 // ========================================
 
 // Get company's Akta data
-router.get('/:id/akta', companyController.getCompanyAkta);
+router.get("/:id/akta", companyController.getCompanyAkta);
 
 // Get company's Pejabat data
-router.get('/:id/pejabat', companyController.getCompanyPejabat);
+router.get("/:id/pejabat", companyController.getCompanyPejabat);
 
 // Get company's NIB data
-router.get('/:id/nib', companyController.getCompanyNib);
+router.get("/:id/nib", companyController.getCompanyNib);
 
 // Get company's SBU data
-router.get('/:id/sbu', companyController.getCompanySbu);
+router.get("/:id/sbu", companyController.getCompanySbu);
 
 // Get company's KTA data
-router.get('/:id/kta', companyController.getCompanyKta);
+router.get("/:id/kta", companyController.getCompanyKta);
 
 // Get company's Sertifikat data
-router.get('/:id/sertifikat', companyController.getCompanySertifikat);
+router.get("/:id/sertifikat", companyController.getCompanySertifikat);
 
 // Get company's Pajak data (NPWP, KSWP, SPT, PKP)
-router.get('/:id/pajak', companyController.getCompanyPajak);
+router.get("/:id/pajak", companyController.getCompanyPajak);
 
 // Get company's Pengalaman/Kontrak data
-router.get('/:id/pengalaman', companyController.getCompanyPengalaman);
+router.get("/:id/pengalaman", companyController.getCompanyPengalaman);
 
 // Get company's KBLI data
-router.get('/:id/kbli', companyController.getCompanyKbli);
+router.get("/:id/kbli", companyController.getCompanyKbli);
+
+// Batch update KBLI data
+router.put("/:id/kbli/batch", companyController.updateCompanyKbliBatch);
 
 // Get company's Cek (bank checks) data
-router.get('/:id/cek', companyController.getCompanyCek);
+router.get("/:id/cek", companyController.getCompanyCek);
 
 // Get company's BPJS data
-router.get('/:id/bpjs', companyController.getCompanyBpjs);
+router.get("/:id/bpjs", companyController.getCompanyBpjs);
 
 // ========================================
 // CRUD FOR SUB-MODULES
 // ========================================
 
-
-router.post('/:id/akta', async (req, res) => {
+router.post("/:id/akta", async (req, res) => {
   try {
     const data = { ...req.body, id_perusahaan: req.params.id };
     const result = await googleSheetsService.addAkta(data);
@@ -140,18 +173,21 @@ router.post('/:id/akta', async (req, res) => {
   }
 });
 
-router.put('/akta/:aktaId', async (req, res) => {
+router.put("/:id/akta/:itemId", async (req, res) => {
   try {
-    const result = await googleSheetsService.updateAkta(req.params.aktaId, req.body);
+    const result = await googleSheetsService.updateAkta(
+      req.params.itemId,
+      req.body
+    );
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.delete('/akta/:aktaId', async (req, res) => {
+router.delete("/:id/akta/:itemId", async (req, res) => {
   try {
-    const result = await googleSheetsService.deleteAkta(req.params.aktaId);
+    const result = await googleSheetsService.deleteAkta(req.params.itemId);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -159,7 +195,7 @@ router.delete('/akta/:aktaId', async (req, res) => {
 });
 
 // --- PEJABAT CRUD ---
-router.post('/:id/pejabat', async (req, res) => {
+router.post("/:id/pejabat", async (req, res) => {
   try {
     const data = { ...req.body, id_perusahaan: req.params.id };
     const result = await googleSheetsService.addPejabat(data);
@@ -169,18 +205,21 @@ router.post('/:id/pejabat', async (req, res) => {
   }
 });
 
-router.put('/pejabat/:nik', async (req, res) => {
+router.put("/:id/pejabat/:itemId", async (req, res) => {
   try {
-    const result = await googleSheetsService.updatePejabat(req.params.nik, req.body);
+    const result = await googleSheetsService.updatePejabat(
+      req.params.itemId,
+      req.body
+    );
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.delete('/pejabat/:nik', async (req, res) => {
+router.delete("/:id/pejabat/:itemId", async (req, res) => {
   try {
-    const result = await googleSheetsService.deletePejabat(req.params.nik);
+    const result = await googleSheetsService.deletePejabat(req.params.itemId);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -188,7 +227,7 @@ router.delete('/pejabat/:nik', async (req, res) => {
 });
 
 // --- NIB CRUD ---
-router.post('/:id/nib', async (req, res) => {
+router.post("/:id/nib", async (req, res) => {
   try {
     const data = { ...req.body, id_perusahaan: req.params.id };
     const result = await googleSheetsService.addNIB(data);
@@ -198,28 +237,28 @@ router.post('/:id/nib', async (req, res) => {
   }
 });
 
-router.put('/nib/:nomorNib', async (req, res) => {
+router.put("/:id/nib/:itemId", async (req, res) => {
   try {
-    const nomorNib = decodeURIComponent(req.params.nomorNib);
-    const result = await googleSheetsService.updateNIB(nomorNib, req.body);
+    const itemId = decodeURIComponent(req.params.itemId);
+    const result = await googleSheetsService.updateNIB(itemId, req.body);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.delete('/nib/:nomorNib', async (req, res) => {
+router.delete("/:id/nib/:itemId", async (req, res) => {
   try {
-    const nomorNib = decodeURIComponent(req.params.nomorNib);
-    const result = await googleSheetsService.deleteNIB(nomorNib);
+    const itemId = decodeURIComponent(req.params.itemId);
+    const result = await googleSheetsService.deleteNIB(itemId);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// --- PENGALAMAN CRUD ---
-router.post('/:id/pengalaman', async (req, res) => {
+// --- PENGALAMAN (KONTRAK) CRUD ---
+router.post("/:id/pengalaman", async (req, res) => {
   try {
     const data = { ...req.body, id_perusahaan: req.params.id };
     const result = await googleSheetsService.addPengalaman(data);
@@ -229,20 +268,182 @@ router.post('/:id/pengalaman', async (req, res) => {
   }
 });
 
-router.put('/pengalaman/:nomorKontrak', async (req, res) => {
+router.put("/:id/pengalaman/:itemId", async (req, res) => {
   try {
-    const nomorKontrak = decodeURIComponent(req.params.nomorKontrak);
-    const result = await googleSheetsService.updatePengalaman(nomorKontrak, req.body);
+    const itemId = decodeURIComponent(req.params.itemId);
+    const result = await googleSheetsService.updatePengalaman(itemId, req.body);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.delete('/pengalaman/:nomorKontrak', async (req, res) => {
+router.delete("/:id/pengalaman/:itemId", async (req, res) => {
   try {
-    const nomorKontrak = decodeURIComponent(req.params.nomorKontrak);
-    const result = await googleSheetsService.deletePengalaman(nomorKontrak);
+    const itemId = decodeURIComponent(req.params.itemId);
+    const result = await googleSheetsService.deletePengalaman(itemId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- SBU CRUD ---
+router.post("/:id/sbu", async (req, res) => {
+  try {
+    const data = { ...req.body, id_perusahaan: req.params.id };
+    const result = await googleSheetsService.addSBU(data);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/:id/sbu/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.updateSBU(
+      req.params.itemId,
+      req.body
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/:id/sbu/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.deleteSBU(req.params.itemId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- KTA CRUD ---
+router.post("/:id/kta", async (req, res) => {
+  try {
+    const data = { ...req.body, id_perusahaan: req.params.id };
+    const result = await googleSheetsService.addKTA(data);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/:id/kta/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.updateKTA(
+      req.params.itemId,
+      req.body
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/:id/kta/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.deleteKTA(req.params.itemId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- SERTIFIKAT CRUD ---
+router.post("/:id/sertifikat", async (req, res) => {
+  try {
+    const data = { ...req.body, id_perusahaan: req.params.id };
+    const result = await googleSheetsService.addSertifikat(data);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/:id/sertifikat/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.updateSertifikat(
+      req.params.itemId,
+      req.body
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/:id/sertifikat/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.deleteSertifikat(
+      req.params.itemId
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- CEK CRUD ---
+router.post("/:id/cek", async (req, res) => {
+  try {
+    const data = { ...req.body, id_perusahaan: req.params.id };
+    const result = await googleSheetsService.addCek(data);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/:id/cek/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.updateCek(
+      req.params.itemId,
+      req.body
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/:id/cek/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.deleteCek(req.params.itemId);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- BPJS CRUD ---
+router.post("/:id/bpjs", async (req, res) => {
+  try {
+    const data = { ...req.body, id_perusahaan: req.params.id };
+    const result = await googleSheetsService.addBPJS(data);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put("/:id/bpjs/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.updateBPJS(
+      req.params.itemId,
+      req.body
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/:id/bpjs/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.deleteBPJS(req.params.itemId);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -251,16 +452,18 @@ router.delete('/pengalaman/:nomorKontrak', async (req, res) => {
 
 // --- PROJECT ROUTES ---
 // Get projects by company ID
-router.get('/:id/projects', async (req, res) => {
+router.get("/:id/projects", async (req, res) => {
   try {
-    const projects = await googleSheetsService.getProjectsByCompany(req.params.id);
+    const projects = await googleSheetsService.getProjectsByCompany(
+      req.params.id
+    );
     res.json(projects);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/:id/projects', async (req, res) => {
+router.post("/:id/projects", async (req, res) => {
   try {
     const data = { ...req.body, id_perusahaan: req.params.id };
     const result = await googleSheetsService.addProject(data);
@@ -270,18 +473,23 @@ router.post('/:id/projects', async (req, res) => {
   }
 });
 
-router.put('/projects/:idProject', async (req, res) => {
+router.put("/projects/:idProject", async (req, res) => {
   try {
-    const result = await googleSheetsService.updateProject(req.params.idProject, req.body);
+    const result = await googleSheetsService.updateProject(
+      req.params.idProject,
+      req.body
+    );
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.delete('/projects/:idProject', async (req, res) => {
+router.delete("/projects/:idProject", async (req, res) => {
   try {
-    const result = await googleSheetsService.deleteProject(req.params.idProject);
+    const result = await googleSheetsService.deleteProject(
+      req.params.idProject
+    );
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -290,24 +498,26 @@ router.delete('/projects/:idProject', async (req, res) => {
 
 // --- PERSONEL PROJECT ROUTES ---
 // Add personel to project
-router.post('/projects/:idProject/personel', async (req, res) => {
+router.post("/projects/:idProject/personel", async (req, res) => {
   try {
-    const data = { 
+    const data = {
       id_project: req.params.idProject,
       id_perusahaan: req.body.id_perusahaan, // Should be passed or fetched
-      nik: req.body.nik 
+      nik: req.body.nik,
     };
-    
+
     // If id_perusahaan is missing, fetch it from project
     if (!data.id_perusahaan) {
-      const project = await googleSheetsService.getProjectById(req.params.idProject);
+      const project = await googleSheetsService.getProjectById(
+        req.params.idProject
+      );
       if (project) {
         data.id_perusahaan = project.id_perusahaan;
       } else {
-        return res.status(404).json({ error: 'Project not found' });
+        return res.status(404).json({ error: "Project not found" });
       }
     }
-    
+
     const result = await googleSheetsService.addPersonelProject(data);
     res.status(201).json(result);
   } catch (error) {
@@ -316,7 +526,7 @@ router.post('/projects/:idProject/personel', async (req, res) => {
 });
 
 // Delete personel from project
-router.delete('/projects/:idProject/personel/:nik', async (req, res) => {
+router.delete("/projects/:idProject/personel/:nik", async (req, res) => {
   try {
     // Note: We need to implement deletePersonelProject properly in service
     // For now, assume service has this method or we implement logic here?
@@ -324,17 +534,20 @@ router.delete('/projects/:idProject/personel/:nik', async (req, res) => {
     // Actually, since we don't have a proper delete in service yet (due to no ID),
     // we might need to rely on a workaround or just accept it's not fully implemented.
     // BUT, I must provide a working solution.
-    
-    // Let's implement a "delete by filter" logic in service? 
+
+    // Let's implement a "delete by filter" logic in service?
     // Or just use deleteSheetData if we can find the row index.
-    // Since I can't easily modify the base deleteSheetData, I will assume 
+    // Since I can't easily modify the base deleteSheetData, I will assume
     // the user will handle the sheet modification or I will add a specific method later.
     // For now, I will call the service method I created.
-    
-    // WAIT: I need to make sure delete works. 
+
+    // WAIT: I need to make sure delete works.
     // I'll update the service to actually delete the row.
     // But first, let's add the route.
-    const result = await googleSheetsService.deletePersonelProject(req.params.idProject, req.params.nik);
+    const result = await googleSheetsService.deletePersonelProject(
+      req.params.idProject,
+      req.params.nik
+    );
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });

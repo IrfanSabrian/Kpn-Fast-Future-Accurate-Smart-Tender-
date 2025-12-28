@@ -3,6 +3,7 @@ import multer from "multer";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import geminiAIService from "../services/geminiAI.service.js";
+import oauth2GoogleService from "../services/oauth2Google.service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -151,6 +152,70 @@ router.post("/scan-tax-document", upload.single("file"), async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message || "Failed to scan tax document",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/ai/scan-drive-file
+ * Scan document from Google Drive URL
+ */
+router.post("/scan-drive-file", async (req, res) => {
+  try {
+    const { fileUrl, documentType, category } = req.body;
+
+    if (!fileUrl || !documentType) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing fileUrl or documentType",
+      });
+    }
+
+    // Extract File ID
+    const fileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+
+    if (!fileId) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Google Drive URL",
+      });
+    }
+
+    console.log(
+      `[AI DRIVE SCAN] Downloading file ${fileId} for type ${documentType}...`
+    );
+    const buffer = await oauth2GoogleService.downloadFile(fileId);
+
+    let data;
+    // Route to appropriate scanner based on category/type
+    if (category === "tax") {
+      data = await geminiAIService.scanTaxDocument(buffer, documentType);
+    } else if (category === "company") {
+      data = await geminiAIService.scanCompanyDocument(buffer, documentType);
+    } else {
+      // Default logic
+      const taxTypes = ["npwp", "spt", "pkp", "kswp"];
+      if (taxTypes.includes(documentType.toLowerCase())) {
+        data = await geminiAIService.scanTaxDocument(buffer, documentType);
+      } else if (["akta", "nib", "sbu"].includes(documentType.toLowerCase())) {
+        data = await geminiAIService.scanCompanyDocument(buffer, documentType);
+      } else {
+        // Personnel default
+        data = await geminiAIService.scanDocument(buffer, documentType);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `${documentType.toUpperCase()} scanned successfully`,
+      data: data,
+    });
+  } catch (error) {
+    console.error("[AI DRIVE SCAN] Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to scan drive file",
       error: error.message,
     });
   }

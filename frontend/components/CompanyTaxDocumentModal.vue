@@ -21,7 +21,10 @@
       </div>
     </template>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div
+      class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      @keydown.enter="handleEnterKey"
+    >
       <!-- Left Column: Form Fields (2 cols) - Scrollable -->
       <div class="lg:col-span-2">
         <div
@@ -211,6 +214,13 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close", "save", "aiScanComplete"]);
+
+// Helper to prevent Enter key from submitting form (except Textarea)
+const handleEnterKey = (e) => {
+  if (e.target.tagName !== "TEXTAREA") {
+    e.preventDefault();
+  }
+};
 
 const documentConfig = {
   npwp: {

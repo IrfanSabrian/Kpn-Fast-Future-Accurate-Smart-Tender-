@@ -1,121 +1,21 @@
 <template>
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans">
     <!-- Technical Header (Full Width) -->
-    <header
-      class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-200"
-    >
-      <div
-        class="max-w-[1800px] mx-auto px-4 md:px-6 h-16 md:h-24 flex items-center justify-between"
-      >
-        <div class="flex items-center gap-4 md:gap-6 flex-1 min-w-0">
-          <button
-            @click="router.push('/database/companies')"
-            class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 transition-colors border border-slate-100 dark:border-slate-700"
-          >
-            <i class="fas fa-arrow-left"></i>
-          </button>
-
-          <div class="flex items-center gap-5 flex-1 min-w-0">
-            <!-- Logo with better container -->
-            <div
-              class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center p-1.5 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden"
-            >
-              <img
-                v-if="shouldShowLogo(company)"
-                :src="getCompanyLogoUrl(company)"
-                class="w-full h-full object-contain"
-                @error="(e) => handleImageError(e, company)"
-              />
-              <div
-                v-else
-                class="w-full h-full bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center"
-              >
-                <span class="text-sm font-bold text-slate-400 font-mono">{{
-                  company ? getInitials(company.nama_perusahaan) : "..."
-                }}</span>
-              </div>
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-3 mb-1">
-                <h1
-                  class="text-lg md:text-2xl font-black text-slate-900 dark:text-white leading-tight truncate"
-                >
-                  {{ company?.nama_perusahaan || "Loading Database..." }}
-                </h1>
-                <!-- Status Badge (Fixed Shape) -->
-                <span
-                  v-if="company?.status"
-                  class="hidden md:inline-flex items-center justify-center uppercase text-[10px] font-bold tracking-widest px-3 py-1 rounded-md border h-6"
-                  :class="
-                    company.status === 'Pusat'
-                      ? 'bg-blue-50 border-blue-100 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300'
-                      : 'bg-slate-100 border-slate-200 text-slate-600'
-                  "
-                >
-                  {{ company?.status }}
-                </span>
-              </div>
-
-              <div
-                class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium"
-              >
-                <div class="flex items-center gap-2 font-mono">
-                  <span class="text-slate-300">ID:</span>
-                  <span
-                    class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300"
-                    >{{ company?.id_perusahaan || "ID-____" }}</span
-                  >
-                </div>
-                <div class="flex items-center gap-2" v-if="company?.npwp">
-                  <i class="fas fa-id-card text-slate-300"></i>
-                  <span>NPWP: {{ company.npwp }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Kop (Letterhead) di sisi kanan -->
-        <div
-          v-if="shouldShowKop(company)"
-          class="hidden md:flex items-center justify-end ml-4"
-        >
-          <div
-            class="h-16 md:h-20 max-w-[200px] lg:max-w-[300px] flex items-center justify-end"
-          >
-            <img
-              :src="getCompanyKopUrl(company)"
-              class="h-full w-auto object-contain"
-              @error="(e) => handleKopImageError(e, company)"
-              alt="Company Letterhead"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Horizontal Navigation Tabs (Sticky under header) -->
-      <div
-        class="max-w-[1800px] mx-auto px-4 md:px-6 overflow-x-auto no-scrollbar mask-gradient bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm"
-      >
-        <div class="flex items-center gap-1 md:gap-2 pb-0.5">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="activeTab = tab.id"
-            class="relative px-3 py-3 text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border-b-2"
-            :class="
-              activeTab === tab.id
-                ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'
-            "
-          >
-            <i :class="tab.icon" class="text-base opacity-75"></i>
-            {{ tab.label }}
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Technical Header (Full Width) Using Component -->
+    <CompanyDetailHeader
+      :company="company"
+      :active-tab="activeTab"
+      :tabs="tabs"
+      :logo-url="getCompanyLogoUrl(company)"
+      :kop-url="getCompanyKopUrl(company)"
+      :should-show-logo="shouldShowLogo(company)"
+      :should-show-kop="shouldShowKop(company)"
+      :initials="company ? getInitials(company.nama_perusahaan) : '?'"
+      @back="router.push('/database/companies')"
+      @tab-change="activeTab = $event"
+      @logo-error="(e) => handleImageError(e, company)"
+      @kop-error="(e) => handleKopImageError(e, company)"
+    />
 
     <!-- Main Content Area (Full Width) -->
     <main class="max-w-[1800px] mx-auto px-4 md:px-6 py-6 min-h-[60vh]">
@@ -132,3913 +32,1082 @@
 
       <!-- Content Views -->
       <div v-else class="animate-fade-in-up">
-        <!-- OVERVIEW TAB (Redesigned) -->
-        <div
-          v-if="activeTab === 'overview' && company"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left Column: Company Info & KBLI (Wider: 7 cols) -->
-          <div class="lg:col-span-7 space-y-6">
-            <!-- Company Contacts Card -->
+        <Transition name="tab-fade" mode="out-in">
+          <div :key="activeTab" class="w-full">
+            <!-- OVERVIEW TAB (Redesigned) -->
+            <CompanyOverviewTab
+              v-if="activeTab === 'overview' && company"
+              :company="company"
+              :pejabat-list="subModules.pejabat"
+              :pending-profile-file="pendingCompanyProfileFile"
+              :pending-profile-preview="pendingCompanyProfilePreview"
+              :is-uploading-profile="isUploadingCompanyProfile"
+              @edit-contact="openEditContactModal"
+              @add-pejabat="openAddPejabatModal"
+              @navigate-personnel="navigateToPersonnel"
+              @profile-select="handleCompanyProfileSelect"
+              @profile-save="saveCompanyProfile"
+              @profile-cancel="cancelCompanyProfileUpload"
+            />
+
+            <!-- 1. AKTA TAB -->
+            <!-- 1. AKTA TAB -->
+            <CompanyDocumentTab
+              ref="aktaTab"
+              v-if="activeTab === 'akta'"
+              :single-mode="true"
+              label="Akta Perusahaan"
+              document-type="akta"
+              :items="subModules.akta"
+              id-key="id_akta"
+              title-key="jenis_akta"
+              title-label="JENIS AKTA"
+              :fields="[
+                {
+                  label: 'JENIS AKTA',
+                  key: 'jenis_akta',
+                  type: 'select',
+                  options: ['Pendirian', 'Perubahan'],
+                },
+                { label: 'NOMOR AKTA', key: 'nomor_akta', type: 'text' },
+                {
+                  label: 'TANGGAL',
+                  key: 'tanggal_akta',
+                  type: 'date',
+                  format: formatDate,
+                },
+                { label: 'NOTARIS', key: 'notaris', type: 'text' },
+              ]"
+              icon="fas fa-file-contract"
+              color="orange"
+              :selected-item="selectedItems.akta"
+              :selected-url="getSelectedDocUrl('akta')"
+              :pending-file="pendingUploads.akta?.file"
+              :pending-preview="pendingUploads.akta?.preview"
+              :is-uploading="uploadingState.akta"
+              @select-item="(item) => selectItem('akta', item)"
+              @upload-select="(file) => handleFileSelect('akta', file)"
+              @upload-save="() => handleUploadSave('akta')"
+              @upload-cancel="() => handleUploadCancel('akta')"
+              @update-item="(data) => handleUpdateItem('akta', data)"
+              @ai-scan="(data) => handleAiScan('akta', data)"
+            />
+
+            <!-- KONTRAK/PENGALAMAN TAB -->
+            <CompanyDocumentTab
+              v-if="activeTab === 'kontrak'"
+              label="Kontrak"
+              document-type="kontrak"
+              :items="subModules.kontrak"
+              id-key="id_kontrak"
+              title-key="nama_pekerjaan"
+              title-label="NAMA PEKERJAAN"
+              :fields="[
+                { label: 'BIDANG PEKERJAAN', key: 'bidang_pekerjaan' },
+                { label: 'SUB BIDANG', key: 'sub_bidang_pekerjaan' },
+                { label: 'LOKASI', key: 'lokasi' },
+                { label: 'NAMA PEMBERI TUGAS', key: 'nama_pemberi_tugas' },
+                { label: 'ALAMAT PEMBERI TUGAS', key: 'alamat_pemberi_tugas' },
+                { label: 'TELP PEMBERI TUGAS', key: 'telepon_pemberi_tugas' },
+                { label: 'FAX PEMBERI TUGAS', key: 'fax_pemberi_tugas' },
+                { label: 'NOMOR KONTRAK', key: 'nomor_kontrak' },
+                { label: 'TANGGAL KONTRAK', key: 'tanggal_kontrak' },
+                {
+                  label: 'BIDANG PEKERJAAN',
+                  key: 'bidang_pekerjaan',
+                  type: 'text',
+                },
+                {
+                  label: 'SUB BIDANG',
+                  key: 'sub_bidang_pekerjaan',
+                  type: 'text',
+                },
+                { label: 'LOKASI', key: 'lokasi', type: 'text' },
+                {
+                  label: 'NAMA PEMBERI TUGAS',
+                  key: 'nama_pemberi_tugas',
+                  type: 'text',
+                },
+                {
+                  label: 'ALAMAT PEMBERI TUGAS',
+                  key: 'alamat_pemberi_tugas',
+                  type: 'textarea',
+                },
+                {
+                  label: 'TELP PEMBERI TUGAS',
+                  key: 'telepon_pemberi_tugas',
+                  type: 'text',
+                },
+                {
+                  label: 'FAX PEMBERI TUGAS',
+                  key: 'fax_pemberi_tugas',
+                  type: 'text',
+                },
+                { label: 'NOMOR KONTRAK', key: 'nomor_kontrak', type: 'text' },
+                {
+                  label: 'TANGGAL KONTRAK',
+                  key: 'tanggal_kontrak',
+                  type: 'date',
+                  format: formatDate,
+                },
+                {
+                  label: 'NILAI KONTRAK',
+                  key: 'nilai_kontrak',
+                  type: 'number',
+                  format: (val) =>
+                    val ? `Rp ${Number(val).toLocaleString('id-ID')}` : '-',
+                },
+                {
+                  label: 'WAKTU PELAKSANAAN',
+                  key: 'waktu_pelaksanaan',
+                  type: 'text',
+                },
+                {
+                  label: 'TANGGAL SELESAI',
+                  key: 'tanggal_selesai_kontrak',
+                  type: 'date',
+                  format: formatDate,
+                },
+                {
+                  label: 'TGL BA SERAH TERIMA',
+                  key: 'tanggal_ba_serah_terima',
+                  type: 'date',
+                  format: formatDate,
+                },
+              ]"
+              icon="fas fa-briefcase"
+              color="purple"
+              :selected-item="selectedItems.kontrak"
+              :selected-url="getSelectedDocUrl('kontrak')"
+              :pending-file="pendingUploads.kontrak?.file"
+              :pending-preview="pendingUploads.kontrak?.preview"
+              :is-uploading="uploadingState.kontrak"
+              @select-item="(item) => selectItem('kontrak', item)"
+              @upload-select="(file) => handleFileSelect('kontrak', file)"
+              @upload-save="() => handleUploadSave('kontrak')"
+              @upload-cancel="() => handleUploadCancel('kontrak')"
+              @update-item="(data) => handleUpdateItem('kontrak', data)"
+            />
+
+            <!-- CEK TAB -->
+            <CompanyDocumentTab
+              v-if="activeTab === 'cek'"
+              :single-mode="true"
+              label="Cek Referensi Bank"
+              document-type="cek"
+              :items="subModules.cek"
+              id-key="id_cek"
+              title-key="nama_bank"
+              title-label="CEK REFERENSI BANK"
+              :fields="[
+                { label: 'NO REKENING', key: 'no_rekening', type: 'text' },
+                { label: 'NAMA BANK', key: 'nama_bank', type: 'text' },
+              ]"
+              icon="fas fa-money-check"
+              color="green"
+              :selected-item="selectedItems.cek"
+              :selected-url="getSelectedDocUrl('cek')"
+              :pending-file="pendingUploads.cek?.file"
+              :pending-preview="pendingUploads.cek?.preview"
+              :is-uploading="uploadingState.cek"
+              @select-item="(item) => selectItem('cek', item)"
+              @upload-select="(file) => handleFileSelect('cek', file)"
+              @upload-save="() => handleUploadSave('cek')"
+              @upload-cancel="() => handleUploadCancel('cek')"
+              @update-item="(data) => handleUpdateItem('cek', data)"
+            />
+
+            <!-- BPJS TAB -->
+            <CompanyDocumentTab
+              v-if="activeTab === 'bpjs'"
+              :single-mode="true"
+              label="BPJS"
+              document-type="bpjs"
+              :items="subModules.bpjs"
+              id-key="id_bpjs"
+              title-key="nomor_bpjs"
+              title-label="BPJS"
+              :fields="[
+                {
+                  label: 'NO. SERTIFIKAT',
+                  key: 'nomor_sertifikat',
+                  type: 'text',
+                },
+                {
+                  label: 'NO. PENDAFTARAN',
+                  key: 'nomor_pendaftaran',
+                  type: 'text',
+                },
+                {
+                  label: 'TGL DITETAPKAN',
+                  key: 'tanggal_ditetapkan',
+                  type: 'date',
+                  format: formatDate,
+                },
+                {
+                  label: 'LOKASI DITETAPKAN',
+                  key: 'lokasi_ditetapkan',
+                  type: 'text',
+                },
+              ]"
+              icon="fas fa-heartbeat"
+              color="pink"
+              :selected-item="selectedItems.bpjs"
+              :selected-url="getSelectedDocUrl('bpjs')"
+              :pending-file="pendingUploads.bpjs?.file"
+              :pending-preview="pendingUploads.bpjs?.preview"
+              :is-uploading="uploadingState.bpjs"
+              @select-item="(item) => selectItem('bpjs', item)"
+              @upload-select="(file) => handleFileSelect('bpjs', file)"
+              @upload-save="() => handleUploadSave('bpjs')"
+              @upload-cancel="() => handleUploadCancel('bpjs')"
+              @update-item="(data) => handleUpdateItem('bpjs', data)"
+            />
+
+            <!-- 2. NIB TAB (DISABLED - using original NIB tab at line 987 instead) -->
             <div
-              class="relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm group"
+              v-if="false"
+              class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
             >
-              <!-- Background Icon -->
-              <div
-                class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"
-              >
-                <i class="fas fa-building text-9xl"></i>
-              </div>
-
-              <!-- Action Buttons (Top Right) -->
-              <div class="absolute top-4 right-4 z-20 flex items-center gap-2">
-                <!-- Only Edit button (always show) -->
-                <button
-                  @click="openEditContactModal"
-                  class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-all hover:scale-110"
-                  title="Edit Kontak & Kop"
-                >
-                  <i class="fas fa-edit text-sm"></i>
-                </button>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                <!-- Email -->
-                <div class="flex items-start gap-4">
+              <!-- Left: NIB Details + KBLI (7 cols) -->
+              <div class="lg:col-span-7 space-y-6">
+                <div v-if="subModules.nib?.length > 0">
                   <div
-                    class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 border border-blue-100 dark:border-blue-900/50"
+                    v-for="(item, index) in subModules.nib"
+                    :key="item.id_nib"
+                    class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 mb-4 last:mb-0"
                   >
-                    <i class="fas fa-envelope"></i>
-                  </div>
-                  <div>
-                    <p
-                      class="text-[10px] uppercase font-bold text-slate-400 tracking-wider"
+                    <!-- Header -->
+                    <div
+                      class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700"
                     >
-                      Email Perusahaan
-                    </p>
-                    <p
-                      class="font-medium text-slate-700 dark:text-slate-200 break-all"
-                    >
-                      {{ company.email || "-" }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Phone -->
-                <div class="flex items-start gap-4">
-                  <div
-                    class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-100 dark:border-emerald-900/50"
-                  >
-                    <i class="fas fa-phone"></i>
-                  </div>
-                  <div>
-                    <p
-                      class="text-[10px] uppercase font-bold text-slate-400 tracking-wider"
-                    >
-                      No. Telepon
-                    </p>
-                    <p class="font-medium text-slate-700 dark:text-slate-200">
-                      {{ company.no_telp || "-" }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Address -->
-                <div class="md:col-span-2 flex items-start gap-4">
-                  <div
-                    class="w-10 h-10 rounded-full bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0 border border-violet-100 dark:border-violet-900/50"
-                  >
-                    <i class="fas fa-map-marker-alt"></i>
-                  </div>
-                  <div>
-                    <p
-                      class="text-[10px] uppercase font-bold text-slate-400 tracking-wider"
-                    >
-                      Alamat Lengkap
-                    </p>
-                    <p
-                      class="font-medium text-slate-700 dark:text-slate-200 leading-relaxed"
-                    >
-                      {{ company.alamat || "-" }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Pejabat Section (Moved from tab) -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm"
-            >
-              <div class="flex items-center justify-between mb-6">
-                <h3
-                  class="font-bold text-slate-700 dark:text-slate-200 text-lg flex items-center gap-2"
-                >
-                  <i class="fas fa-user-tie text-cyan-500"></i>
-                  Pejabat Perusahaan
-                </h3>
-                <span
-                  class="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full"
-                  >{{ subModules.pejabat?.length || 0 }} Pejabat</span
-                >
-              </div>
-
-              <!-- Scrollable Container -->
-              <div class="max-h-[400px] overflow-y-auto pr-2 -mr-2">
-                <div
-                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                >
-                  <!-- Existing Pejabat Cards -->
-                  <div
-                    v-for="item in subModules.pejabat || []"
-                    :key="item.id_pejabat"
-                    @click="navigateToPersonnel(item.id_personel)"
-                    class="bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:border-cyan-400 hover:shadow-md transition-all group relative overflow-hidden cursor-pointer"
-                  >
-                    <div class="absolute top-0 right-0 p-3 opacity-5">
-                      <i class="fas fa-user-tie text-5xl"></i>
-                    </div>
-                    <div class="flex items-center gap-3 mb-3 relative z-10">
                       <div
-                        class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-500 dark:text-slate-300 ring-2 ring-white dark:ring-slate-700 shadow-sm text-sm"
+                        class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0"
                       >
-                        {{ getInitials(item.nama_lengkap || "Personel") }}
+                        <i class="fas fa-id-badge"></i>
                       </div>
-                      <div class="flex-1 min-w-0">
+                      <div class="flex-1">
                         <div
-                          class="text-[10px] font-bold text-cyan-600 uppercase bg-cyan-50 dark:bg-cyan-900/20 px-2 py-0.5 rounded inline-block mb-1"
+                          class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
                         >
-                          {{
-                            item.jenis_jabatan ||
-                            item.jabatan_custom ||
-                            "JABATAN"
-                          }}
+                          NIB
                         </div>
                         <h4
-                          class="font-bold text-slate-800 dark:text-white truncate text-sm"
-                          :title="item.nama_lengkap"
+                          class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
                         >
-                          {{ item.nama_lengkap || "NAMA PERSONEL" }}
+                          #{{ index + 1 }}
                         </h4>
                       </div>
                     </div>
-                  </div>
 
-                  <!-- Add Pejabat Card -->
-                  <div
-                    @click="openAddPejabatModal"
-                    class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-2 border-dashed border-green-300 dark:border-green-700 p-4 hover:border-green-500 dark:hover:border-green-500 hover:shadow-lg transition-all cursor-pointer group relative overflow-hidden min-h-[80px] flex items-center justify-center"
-                  >
-                    <div
-                      class="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity"
-                    >
-                      <i class="fas fa-user-plus text-5xl text-green-600"></i>
-                    </div>
-                    <div class="flex items-center gap-3 relative z-10">
+                    <!-- NIB Details Grid -->
+                    <div class="space-y-0.5">
                       <div
-                        class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform"
+                        class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                       >
-                        <i class="fas fa-plus text-lg"></i>
-                      </div>
-                      <div>
-                        <h4
-                          class="font-bold text-green-700 dark:text-green-400 text-sm"
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
                         >
-                          Tambah Pejabat
-                        </h4>
-                        <p class="text-xs text-green-600 dark:text-green-500">
-                          Klik untuk menambahkan
-                        </p>
+                          Nomor NIB
+                        </div>
+                        <div
+                          class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200"
+                        >
+                          {{ item.nomor_nib || "-" }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                        >
+                          Tgl Terbit
+                        </div>
+                        <div
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          {{ item.tanggal_terbit || "-" }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                        >
+                          Status Modal
+                        </div>
+                        <div
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          {{ item.status || "-" }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                        >
+                          Skala Usaha
+                        </div>
+                        <div
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          {{ item.skala_usaha || "-" }}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Right Column: Profile Document Preview (Adjusted Height) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <div
-              class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24"
-            >
-              <div
-                class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0"
-              >
-                <h3
-                  class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm"
-                >
-                  <i class="fas fa-file-pdf text-red-500"></i>
-                  Company Profile
-                </h3>
-                <div class="flex gap-2">
-                  <!-- Update Button (when PDF exists and not uploading) -->
-                  <button
-                    v-if="
-                      company.profil_perusahaan_url &&
-                      !pendingCompanyProfileFile
-                    "
-                    @click="$refs.companyProfileUpdateInput.click()"
-                    class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
-                    title="Perbarui PDF"
-                  >
-                    <i class="fas fa-sync-alt"></i>
-                    <span>Perbarui</span>
-                  </button>
-                  <!-- Hidden file input for update -->
-                  <input
-                    ref="companyProfileUpdateInput"
-                    type="file"
-                    accept="application/pdf"
-                    @change="handleCompanyProfileSelect"
-                    class="hidden"
-                  />
-                  <a
-                    v-if="
-                      company.profil_perusahaan_url &&
-                      !pendingCompanyProfileFile
-                    "
-                    :href="company.profil_perusahaan_url"
-                    target="_blank"
-                    class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors"
-                  >
-                    <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                  </a>
-                </div>
-              </div>
-
-              <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                <!-- Existing PDF Preview -->
-                <iframe
-                  v-if="
-                    company.profil_perusahaan_url && !pendingCompanyProfileFile
-                  "
-                  :src="getPreviewUrl(company.profil_perusahaan_url)"
-                  class="w-full h-full absolute inset-0 border-none"
-                ></iframe>
-
-                <!-- New PDF Preview (during upload) -->
-                <div
-                  v-else-if="
-                    pendingCompanyProfileFile && pendingCompanyProfilePreview
-                  "
-                  class="w-full h-full flex flex-col"
-                >
-                  <iframe
-                    :src="pendingCompanyProfilePreview"
-                    class="flex-1 w-full border-none"
-                  ></iframe>
-                  <!-- Footer with Save/Cancel -->
-                  <div
-                    class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between"
-                  >
-                    <div class="flex-1 min-w-0">
-                      <p
-                        class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate"
-                      >
-                        {{ pendingCompanyProfileFile.name }}
-                      </p>
-                      <p class="text-xs text-slate-500">
-                        {{ formatFileSize(pendingCompanyProfileFile.size) }}
-                      </p>
-                    </div>
-                    <div class="flex gap-2 ml-4">
-                      <button
-                        @click="cancelCompanyProfileUpload"
-                        :disabled="isUploadingCompanyProfile"
-                        class="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all"
-                      >
-                        Batal
-                      </button>
-                      <button
-                        @click="saveCompanyProfile"
-                        :disabled="isUploadingCompanyProfile"
-                        class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        <i
-                          v-if="isUploadingCompanyProfile"
-                          class="fas fa-spinner fa-spin"
-                        ></i>
-                        <i v-else class="fas fa-save"></i>
-                        {{
-                          isUploadingCompanyProfile ? "Menyimpan..." : "Simpan"
-                        }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Upload State (No PDF) -->
+                <!-- Empty State (if no NIB data) -->
                 <div
                   v-else
-                  class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-                  @click="$refs.companyProfileUploadInput.click()"
+                  class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
                 >
-                  <input
-                    ref="companyProfileUploadInput"
-                    type="file"
-                    accept="application/pdf"
-                    @change="handleCompanyProfileSelect"
-                    class="hidden"
-                  />
                   <div
-                    class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-500 mb-4"
+                    class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700"
                   >
-                    <i class="fas fa-file-pdf text-3xl"></i>
-                  </div>
-                  <p
-                    class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1"
-                  >
-                    Upload Company Profile
-                  </p>
-                  <p class="text-xs text-slate-500">
-                    Klik untuk pilih file PDF (Max 50MB)
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- GENERIC EMPTY STATE (Except Overview, Pajak, Kontrak, Cek, BPJS, Akta, NIB, SBU, KTA, Sertifikat) - 2 Column Layout -->
-        <div
-          v-else-if="
-            activeTab !== 'overview' &&
-            activeTab !== 'pajak' &&
-            activeTab !== 'kontrak' &&
-            activeTab !== 'cek' &&
-            activeTab !== 'bpjs' &&
-            activeTab !== 'akta' &&
-            activeTab !== 'nib' &&
-            activeTab !== 'sbu' &&
-            activeTab !== 'kta' &&
-            activeTab !== 'sertifikat' &&
-            (!getTabData(activeTab) || getTabData(activeTab).length === 0)
-          "
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: Empty State Message (7 cols) -->
-          <div class="lg:col-span-7">
-            <div
-              class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-12 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-800/20"
-            >
-              <i
-                :class="getTabIcon(activeTab)"
-                class="text-4xl mb-3 opacity-30"
-              ></i>
-              <p class="text-sm font-medium">
-                Belum ada data {{ getTabLabel(activeTab) }}.
-              </p>
-            </div>
-          </div>
-
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <div
-              class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24"
-            >
-              <div
-                class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0"
-              >
-                <div>
-                  <h3
-                    class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm"
-                  >
-                    <i class="fas fa-file-pdf text-red-500"></i>
-                    Dokumen {{ getTabLabel(activeTab) }}
-                  </h3>
-                </div>
-              </div>
-
-              <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                <div
-                  class="w-full h-full flex flex-col items-center justify-center text-slate-400"
-                >
-                  <i class="fas fa-file-invoice text-4xl mb-4 opacity-20"></i>
-                  <p class="text-sm">Pilih item untuk preview</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 1. AKTA TAB (Redesigned with Complete Info) -->
-        <div
-          v-if="activeTab === 'akta'"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: Data List (7 cols) -->
-          <div class="lg:col-span-7 space-y-4">
-            <!-- Data Cards (when data exists) -->
-            <div v-if="subModules.akta?.length > 0" class="space-y-3">
-              <div
-                v-for="item in subModules.akta"
-                :key="item.id_akta"
-                class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-              >
-                <div
-                  class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-                >
-                  <div class="flex items-center gap-3">
                     <div
-                      class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 flex items-center justify-center shrink-0"
+                      class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0 opacity-50"
                     >
-                      <i class="fas fa-file-contract"></i>
+                      <i class="fas fa-id-badge"></i>
                     </div>
                     <div>
                       <div
                         class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
                       >
-                        JENIS AKTA
+                        NIB
                       </div>
                       <h4
-                        class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
+                        class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1"
                       >
-                        {{ item.jenis_akta }}
+                        #1
                       </h4>
                     </div>
                   </div>
-                </div>
 
-                <div class="space-y-0.5 mt-4">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
+                  <div class="space-y-0.5">
                     <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                      class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                     >
-                      NOMOR AKTA
-                    </div>
-                    <div
-                      class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nomor_akta }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      TANGGAL
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_akta || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      NOTARIS
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                    >
-                      {{ item.notaris || "-" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty State (when no data) - Show structure with "-" values -->
-            <div
-              v-else
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
-            >
-              <div
-                class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-              >
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-10 h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 flex items-center justify-center shrink-0 opacity-50"
-                  >
-                    <i class="fas fa-file-contract"></i>
-                  </div>
-                  <div>
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      JENIS AKTA
-                    </div>
-                    <h4
-                      class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1"
-                    >
-                      -
-                    </h4>
-                  </div>
-                </div>
-              </div>
-
-              <div class="space-y-0.5 mt-4">
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    NOMOR AKTA
-                  </div>
-                  <div
-                    class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    TANGGAL
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    NOTARIS
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500 truncate"
-                  >
-                    -
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <DocumentPdfPreview
-              documentType="akta"
-              label="Akta"
-              :subtitle="
-                selectedItems.akta
-                  ? `${selectedItems.akta.jenis_akta} - ${selectedItems.akta.nomor_akta}`
-                  : ''
-              "
-              icon="fas fa-file-contract"
-              iconColor="orange"
-              :existingPdfUrl="getDocumentUrl('akta')"
-              :pendingFile="pendingDocuments.akta.file"
-              :pendingPreview="pendingDocuments.akta.preview"
-              :isUploading="pendingDocuments.akta.uploading"
-              @file-selected="(event) => handleDocumentSelect('akta', event)"
-              @save="saveDocument('akta')"
-              @cancel="cancelDocumentUpload('akta')"
-            />
-          </div>
-        </div>
-
-        <!-- KONTRAK/PENGALAMAN TAB -->
-        <div
-          v-if="activeTab === 'kontrak'"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: Data List (7 cols) -->
-          <div class="lg:col-span-7 space-y-4">
-            <!-- Data Cards (when data exists) -->
-            <div v-if="subModules.kontrak?.length > 0" class="space-y-3">
-              <div
-                v-for="item in subModules.kontrak"
-                :key="item.id_kontrak"
-                class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-              >
-                <div
-                  class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-                >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0"
-                    >
-                      <i class="fas fa-briefcase"></i>
-                    </div>
-                    <div class="flex-1">
                       <div
-                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
                       >
-                        NAMA PEKERJAAN
+                        Nomor NIB
                       </div>
-                      <h4
-                        class="font-bold text-slate-800 dark:text-white text-base leading-tight mt-1"
-                      >
-                        {{ item.nama_pekerjaan || "-" }}
-                      </h4>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="space-y-0.5 mt-4">
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Bidang Pekerjaan
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.bidang_pekerjaan || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Sub Bidang Pekerjaan
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.sub_bidang_pekerjaan || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Lokasi
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.lokasi || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Nama Pemberi Tugas
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nama_pemberi_tugas || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Alamat Pemberi Tugas
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.alamat_pemberi_tugas || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Telepon Pemberi Tugas
-                    </div>
-                    <div
-                      class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.telepon_pemberi_tugas || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Fax Pemberi Tugas
-                    </div>
-                    <div
-                      class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.fax_pemberi_tugas || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Kode Pos
-                    </div>
-                    <div
-                      class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.kode_pos_pemberi_tugas || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Nomor Kontrak
-                    </div>
-                    <div
-                      class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nomor_kontrak || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tanggal Kontrak
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_kontrak || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Nilai Kontrak
-                    </div>
-                    <div
-                      class="text-xs font-bold text-green-600 dark:text-green-400"
-                    >
-                      {{
-                        item.nilai_kontrak
-                          ? `Rp ${Number(item.nilai_kontrak).toLocaleString(
-                              "id-ID"
-                            )}`
-                          : "-"
-                      }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Waktu Pelaksanaan
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.waktu_pelaksanaan || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tanggal Selesai
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_selesai_kontrak || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tgl BA Serah Terima
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_ba_serah_terima || "-" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty State (when no data) -->
-            <div
-              v-else
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
-            >
-              <div
-                class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-              >
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0 opacity-50"
-                  >
-                    <i class="fas fa-briefcase"></i>
-                  </div>
-                  <div class="flex-1">
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      NAMA PEKERJAAN
-                    </div>
-                    <h4
-                      class="font-bold text-slate-400 dark:text-slate-500 text-base leading-tight mt-1"
-                    >
-                      -
-                    </h4>
-                  </div>
-                </div>
-              </div>
-
-              <div class="space-y-0.5 mt-4">
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Bidang Pekerjaan
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Sub Bidang Pekerjaan
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Lokasi
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Nama Pemberi Tugas
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Alamat Pemberi Tugas
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Telepon Pemberi Tugas
-                  </div>
-                  <div
-                    class="text-xs font-mono font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Fax Pemberi Tugas
-                  </div>
-                  <div
-                    class="text-xs font-mono font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Kode Pos
-                  </div>
-                  <div
-                    class="text-xs font-mono font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Nomor Kontrak
-                  </div>
-                  <div
-                    class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Tanggal Kontrak
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Nilai Kontrak
-                  </div>
-                  <div
-                    class="text-xs font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Waktu Pelaksanaan
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Tanggal Selesai
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[150px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Tgl BA Serah Terima
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <DocumentPdfPreview
-              documentType="kontrak"
-              label="Kontrak"
-              :subtitle="
-                selectedItems.kontrak
-                  ? `${selectedItems.kontrak.lokasi || '-'}`
-                  : ''
-              "
-              icon="fas fa-briefcase"
-              iconColor="purple"
-              :existingPdfUrl="getDocumentUrl('kontrak')"
-              :pendingFile="pendingDocuments.kontrak.file"
-              :pendingPreview="pendingDocuments.kontrak.preview"
-              :isUploading="pendingDocuments.kontrak.uploading"
-              @file-selected="(event) => handleDocumentSelect('kontrak', event)"
-              @save="saveDocument('kontrak')"
-              @cancel="cancelDocumentUpload('kontrak')"
-            />
-          </div>
-        </div>
-
-        <!-- CEK TAB -->
-        <div
-          v-if="activeTab === 'cek'"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: Data List (7 cols) -->
-          <div class="lg:col-span-7 space-y-4">
-            <!-- Data Cards (when data exists) -->
-            <div v-if="subModules.cek?.length > 0" class="space-y-3">
-              <div
-                v-for="item in subModules.cek"
-                :key="item.id_cek"
-                class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-              >
-                <div
-                  class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-                >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0"
-                    >
-                      <i class="fas fa-money-check"></i>
-                    </div>
-                    <div>
                       <div
-                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                        class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500"
                       >
-                        CEK REFERENSI BANK
+                        -
                       </div>
-                      <h4
-                        class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
-                      >
-                        {{ item.nama_bank || "-" }}
-                      </h4>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="space-y-0.5 mt-4">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      NO REKENING
                     </div>
                     <div
-                      class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200"
+                      class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
                     >
-                      {{ item.no_rekening || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      NAMA BANK
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nama_bank || "-" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty State (when no data) -->
-            <div
-              v-else
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
-            >
-              <div
-                class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-              >
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0 opacity-50"
-                  >
-                    <i class="fas fa-money-check"></i>
-                  </div>
-                  <div>
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      CEK REFERENSI BANK
-                    </div>
-                    <h4
-                      class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1"
-                    >
-                      -
-                    </h4>
-                  </div>
-                </div>
-              </div>
-
-              <div class="space-y-0.5 mt-4">
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    NO REKENING
-                  </div>
-                  <div
-                    class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    NAMA BANK
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <DocumentPdfPreview
-              documentType="cek"
-              label="Cek"
-              :subtitle="
-                selectedItems.cek
-                  ? `${selectedItems.cek.nama_bank} - ${selectedItems.cek.no_rekening}`
-                  : ''
-              "
-              icon="fas fa-money-check"
-              iconColor="green"
-              :existingPdfUrl="getDocumentUrl('cek')"
-              :pendingFile="pendingDocuments.cek.file"
-              :pendingPreview="pendingDocuments.cek.preview"
-              :isUploading="pendingDocuments.cek.uploading"
-              @file-selected="(event) => handleDocumentSelect('cek', event)"
-              @save="saveDocument('cek')"
-              @cancel="cancelDocumentUpload('cek')"
-            />
-          </div>
-        </div>
-
-        <!-- BPJS TAB -->
-        <div
-          v-if="activeTab === 'bpjs'"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: Data List (7 cols) -->
-          <div class="lg:col-span-7 space-y-4">
-            <!-- Data Cards (when data exists) -->
-            <div v-if="subModules.bpjs?.length > 0" class="space-y-3">
-              <div
-                v-for="item in subModules.bpjs"
-                :key="item.id_bpjs"
-                class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-              >
-                <div
-                  class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-                >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-10 h-10 rounded-lg bg-pink-50 dark:bg-pink-900/20 text-pink-600 flex items-center justify-center shrink-0"
-                    >
-                      <i class="fas fa-heartbeat"></i>
-                    </div>
-                    <div>
                       <div
-                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
                       >
-                        BPJS KETENAGAKERJAAN
+                        Tgl Terbit
                       </div>
-                      <h4
-                        class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
+                      <div
+                        class="text-xs font-medium text-slate-400 dark:text-slate-500"
                       >
-                        {{ item.nomor_bpjs || "BPJS" }}
-                      </h4>
+                        -
+                      </div>
+                    </div>
+                    <div
+                      class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                    >
+                      <div
+                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                      >
+                        Status Modal
+                      </div>
+                      <div
+                        class="text-xs font-medium text-slate-400 dark:text-slate-500"
+                      >
+                        -
+                      </div>
+                    </div>
+                    <div
+                      class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                    >
+                      <div
+                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                      >
+                        Skala Usaha
+                      </div>
+                      <div
+                        class="text-xs font-medium text-slate-400 dark:text-slate-500"
+                      >
+                        -
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div class="space-y-0.5 mt-4">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      NO. SERTIFIKAT
-                    </div>
-                    <div
-                      class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nomor_sertifikat || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      NO. PENDAFTARAN
-                    </div>
-                    <div
-                      class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nomor_pendaftaran || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      TGL DITETAPKAN
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_ditetapkan || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      LOKASI DITETAPKAN
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.lokasi_ditetapkan || "-" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty State (when no data) -->
-            <div
-              v-else
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
-            >
-              <div
-                class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-              >
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-10 h-10 rounded-lg bg-pink-50 dark:bg-pink-900/20 text-pink-600 flex items-center justify-center shrink-0 opacity-50"
-                  >
-                    <i class="fas fa-heartbeat"></i>
-                  </div>
-                  <div>
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      BPJS KETENAGAKERJAAN
-                    </div>
-                    <h4
-                      class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1"
-                    >
-                      -
-                    </h4>
-                  </div>
-                </div>
-              </div>
-
-              <div class="space-y-0.5 mt-4">
+                <!-- KBLI Section -->
                 <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                  class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6"
                 >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    NO. SERTIFIKAT
-                  </div>
-                  <div
-                    class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    NO. PENDAFTARAN
-                  </div>
-                  <div
-                    class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    TGL DITETAPKAN
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    LOKASI DITETAPKAN
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <DocumentPdfPreview
-              documentType="bpjs"
-              label="BPJS"
-              :subtitle="
-                selectedItems.bpjs
-                  ? `BPJS - ${selectedItems.bpjs.nomor_sertifikat || '-'}`
-                  : ''
-              "
-              icon="fas fa-heartbeat"
-              iconColor="pink"
-              :existingPdfUrl="getDocumentUrl('bpjs')"
-              :pendingFile="pendingDocuments.bpjs.file"
-              :pendingPreview="pendingDocuments.bpjs.preview"
-              :isUploading="pendingDocuments.bpjs.uploading"
-              @file-selected="(event) => handleDocumentSelect('bpjs', event)"
-              @save="saveDocument('bpjs')"
-              @cancel="cancelDocumentUpload('bpjs')"
-            />
-          </div>
-        </div>
-
-        <!-- 2. NIB TAB (DISABLED - using original NIB tab at line 987 instead) -->
-        <div
-          v-if="false"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: NIB Details + KBLI (7 cols) -->
-          <div class="lg:col-span-7 space-y-6">
-            <div v-if="subModules.nib?.length > 0">
-              <div
-                v-for="(item, index) in subModules.nib"
-                :key="item.id_nib"
-                class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 mb-4 last:mb-0"
-              >
-                <!-- Header -->
-                <div
-                  class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0"
-                  >
-                    <i class="fas fa-id-badge"></i>
-                  </div>
-                  <div class="flex-1">
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      NIB
-                    </div>
-                    <h4
-                      class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
-                    >
-                      #{{ index + 1 }}
-                    </h4>
-                  </div>
-                </div>
-
-                <!-- NIB Details Grid -->
-                <div class="space-y-0.5">
-                  <div
-                    class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Nomor NIB
-                    </div>
-                    <div
-                      class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nomor_nib || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tgl Terbit
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_terbit || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Status Modal
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.status || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Skala Usaha
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.skala_usaha || "-" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty State (if no NIB data) -->
-            <div
-              v-else
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
-            >
-              <div
-                class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700"
-              >
-                <div
-                  class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0 opacity-50"
-                >
-                  <i class="fas fa-id-badge"></i>
-                </div>
-                <div>
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                  >
-                    NIB
-                  </div>
                   <h4
-                    class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1"
+                    class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2"
                   >
-                    #1
+                    <i class="fas fa-sitemap text-xs"></i>
+                    Kualifikasi KBLI
+                    <span
+                      v-if="subModules.kbli?.length"
+                      class="ml-auto text-blue-600 dark:text-blue-400"
+                      >({{ subModules.kbli.length }})</span
+                    >
                   </h4>
-                </div>
-              </div>
 
-              <div class="space-y-0.5">
-                <div
-                  class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
+                  <!-- KBLI Grid (if data exists) -->
                   <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                    v-if="subModules.kbli?.length > 0"
+                    class="grid grid-cols-2 gap-2"
                   >
-                    Nomor NIB
-                  </div>
-                  <div
-                    class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Tgl Terbit
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Status Modal
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[130px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Skala Usaha
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- KBLI Section -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6"
-            >
-              <h4
-                class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2"
-              >
-                <i class="fas fa-sitemap text-xs"></i>
-                Kualifikasi KBLI
-                <span
-                  v-if="subModules.kbli?.length"
-                  class="ml-auto text-blue-600 dark:text-blue-400"
-                  >({{ subModules.kbli.length }})</span
-                >
-              </h4>
-
-              <!-- KBLI Grid (if data exists) -->
-              <div
-                v-if="subModules.kbli?.length > 0"
-                class="grid grid-cols-2 gap-2"
-              >
-                <div
-                  v-for="kbli in subModules.kbli"
-                  :key="kbli.id_kbli"
-                  class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-600 transition-all group"
-                >
-                  <div
-                    class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 mb-1"
-                  >
-                    {{ kbli.kode_kbli }}
-                  </div>
-                  <div
-                    class="text-xs text-slate-700 dark:text-slate-300 leading-tight line-clamp-2"
-                  >
-                    {{ kbli.judul_kbli || kbli.nama_klasifikasi }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- KBLI Empty State -->
-              <div v-else class="text-center py-6 text-slate-400">
-                <i class="fas fa-sitemap text-2xl mb-2 opacity-30"></i>
-                <p class="text-xs">Belum ada data KBLI terdaftar.</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <DocumentPdfPreview
-              documentType="nib"
-              label="NIB"
-              :subtitle="
-                selectedItems.nib
-                  ? `NIB: ${selectedItems.nib.nomor_nib || '-'}`
-                  : ''
-              "
-              icon="fas fa-id-badge"
-              iconColor="blue"
-              :existingPdfUrl="getDocumentUrl('nib')"
-              :pendingFile="pendingDocuments.nib.file"
-              :pendingPreview="pendingDocuments.nib.preview"
-              :isUploading="pendingDocuments.nib.uploading"
-              @file-selected="(event) => handleDocumentSelect('nib', event)"
-              @save="saveDocument('nib')"
-              @cancel="cancelDocumentUpload('nib')"
-            />
-          </div>
-        </div>
-
-        <!-- 2.5 SBU TAB (DISABLED - using original SBU tab at line 1249 instead) -->
-        <div
-          v-if="false"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: Data List (7 cols) -->
-          <div class="lg:col-span-7 space-y-4">
-            <!-- Data Cards (when data exists) -->
-            <div v-if="subModules.sbu?.length > 0" class="space-y-3">
-              <div
-                v-for="item in subModules.sbu"
-                :key="item.id_sbu"
-                class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-              >
-                <div
-                  class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-                >
-                  <div class="flex items-center gap-3">
                     <div
-                      class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0"
+                      v-for="kbli in subModules.kbli"
+                      :key="kbli.id_kbli"
+                      class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-600 transition-all group"
                     >
-                      <i class="fas fa-certificate"></i>
-                    </div>
-                    <div>
                       <div
-                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                      >
-                        NOMOR SBU
-                      </div>
-                      <h4
-                        class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
-                      >
-                        {{ item.nomor_sbu || "-" }}
-                      </h4>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="space-y-0.5 mt-4">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      SUB BIDANG
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.sub_bidang || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      GRADE
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.grade || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      TGL TERBIT
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_terbit || "-" }}
-                    </div>
-                  </div>
-
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      MASA BERLAKU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.masa_berlaku || "-" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty State (when no data) -->
-            <div
-              v-else
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
-            >
-              <div
-                class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-              >
-                <div class="flex items-center gap-3">
-                  <div
-                    class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0 opacity-50"
-                  >
-                    <i class="fas fa-certificate"></i>
-                  </div>
-                  <div>
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      NOMOR SBU
-                    </div>
-                    <h4
-                      class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1"
-                    >
-                      -
-                    </h4>
-                  </div>
-                </div>
-              </div>
-
-              <div class="space-y-0.5 mt-4">
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    SUB BIDANG
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    GRADE
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    TGL TERBIT
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    MASA BERLAKU
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <DocumentPdfPreview
-              documentType="sbu"
-              label="SBU"
-              :subtitle="
-                selectedItems.sbu
-                  ? `SBU: ${selectedItems.sbu.nomor_sbu || '-'}`
-                  : ''
-              "
-              icon="fas fa-certificate"
-              iconColor="green"
-              :existingPdfUrl="getDocumentUrl('sbu')"
-              :pendingFile="pendingDocuments.sbu.file"
-              :pendingPreview="pendingDocuments.sbu.preview"
-              :isUploading="pendingDocuments.sbu.uploading"
-              @file-selected="(event) => handleDocumentSelect('sbu', event)"
-              @save="saveDocument('sbu')"
-              @cancel="cancelDocumentUpload('sbu')"
-            />
-          </div>
-        </div>
-
-        <!-- 3. PAJAK TAB (Style Dashboard) -->
-        <!-- 3. PAJAK TAB (Compact Style) -->
-        <div
-          v-if="activeTab === 'pajak'"
-          class="grid grid-cols-1 lg:grid-cols-2 gap-6"
-        >
-          <!-- Left: NPWP & PKP -->
-          <div class="space-y-6">
-            <!-- NPWP Compact -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5"
-            >
-              <div
-                class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-              >
-                <h3
-                  class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2"
-                >
-                  <i class="fas fa-id-card text-blue-500"></i> NPWP Perusahaan
-                </h3>
-                <div class="flex gap-2">
-                  <button
-                    v-if="subModules.npwp?.[0]?.npwp_perusahaan_url"
-                    @click="openNpwpModal(subModules.npwp[0])"
-                    class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors"
-                  >
-                    <i class="fas fa-file-pdf"></i> View
-                  </button>
-                  <button
-                    @click="showNpwpUploadModal = true"
-                    class="w-6 h-6 rounded bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors"
-                    title="Tambah/Update NPWP"
-                  >
-                    <i class="fas fa-plus text-xs"></i>
-                  </button>
-                </div>
-              </div>
-              <div v-if="subModules.npwp?.length > 0" class="space-y-2">
-                <div
-                  v-for="item in subModules.npwp"
-                  :key="item.id_npwp_perusahaan"
-                >
-                  <div
-                    class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      NOMOR NPWP
-                    </div>
-                    <div
-                      class="text-sm font-mono font-bold text-slate-800 dark:text-white"
-                    >
-                      {{ item.nomor_npwp }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      NAMA WAJIB PAJAK
-                    </div>
-                    <div
-                      class="text-xs font-bold text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nama_wajib_pajak }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      ALAMAT
-                    </div>
-                    <div class="text-xs text-slate-600 dark:text-slate-300">
-                      {{ item.alamat_npwp }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      KPP
-                    </div>
-                    <div class="text-xs text-slate-700 dark:text-slate-200">
-                      {{ item.kpp || "-" }}
-                    </div>
-                  </div>
-                  <div class="grid grid-cols-[140px_1fr] gap-2 py-1">
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      TGL TERDAFTAR
-                    </div>
-                    <div class="text-xs text-slate-700 dark:text-slate-200">
-                      {{ item.tanggal_terdaftar || "-" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="space-y-2">
-                <div
-                  class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    NOMOR NPWP
-                  </div>
-                  <div
-                    class="text-sm font-mono font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    NAMA WAJIB PAJAK
-                  </div>
-                  <div
-                    class="text-xs font-bold text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    ALAMAT
-                  </div>
-                  <div class="text-xs text-slate-400 dark:text-slate-500">
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-50 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    KPP
-                  </div>
-                  <div class="text-xs text-slate-400 dark:text-slate-500">
-                    -
-                  </div>
-                </div>
-                <div class="grid grid-cols-[140px_1fr] gap-2 py-1">
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    TGL TERDAFTAR
-                  </div>
-                  <div class="text-xs text-slate-400 dark:text-slate-500">
-                    -
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- PKP -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5"
-            >
-              <div
-                class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-              >
-                <h3
-                  class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2"
-                >
-                  <i class="fas fa-stamp text-orange-500"></i> Status PKP
-                </h3>
-                <button
-                  @click="showPkpUploadModal = true"
-                  class="w-6 h-6 rounded bg-orange-50 hover:bg-orange-100 text-orange-600 flex items-center justify-center transition-colors"
-                  title="Tambah/Update PKP"
-                >
-                  <i class="fas fa-plus text-xs"></i>
-                </button>
-                <button
-                  v-if="subModules.pkp?.[0]?.url_pkp"
-                  @click="openPkpModal(subModules.pkp[0])"
-                  class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 hover:bg-orange-100 transition-colors"
-                >
-                  <i class="fas fa-file-pdf"></i> View
-                </button>
-              </div>
-              <div v-if="subModules.pkp?.length > 0">
-                <div
-                  v-for="item in subModules.pkp"
-                  :key="item.id_pkp"
-                  class="space-y-4"
-                >
-                  <div class="flex items-center gap-3">
-                    <div
-                      class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center"
-                    >
-                      <i class="fas fa-check"></i>
-                    </div>
-                    <div>
-                      <div
-                        class="text-[10px] font-bold text-slate-400 uppercase"
-                      >
-                        STATUS
-                      </div>
-                      <div
-                        class="text-sm font-bold text-slate-800 dark:text-white"
-                      >
-                        {{ item.status || "PKP" }}
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    class="space-y-2 mt-2 bg-slate-50 dark:bg-slate-700/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700"
-                  >
-                    <div class="flex justify-between">
-                      <span
-                        class="text-[10px] font-bold text-slate-500 uppercase"
-                        >Nomor PKP</span
-                      >
-                      <span
-                        class="text-xs font-mono font-bold text-slate-700 dark:text-slate-200"
-                        >{{ item.nomor_pkp }}</span
-                      >
-                    </div>
-                    <div class="flex justify-between">
-                      <span
-                        class="text-[10px] font-bold text-slate-500 uppercase"
-                        >Tgl Pengukuhan</span
-                      >
-                      <span
-                        class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                        >{{ item.tanggal_pengukuhan }}</span
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-else>
-                <div class="flex items-center gap-3 mb-3">
-                  <div
-                    class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 text-orange-400 flex items-center justify-center opacity-50"
-                  >
-                    <i class="fas fa-check"></i>
-                  </div>
-                  <div>
-                    <div class="text-[10px] font-bold text-slate-400 uppercase">
-                      STATUS
-                    </div>
-                    <div
-                      class="text-sm font-bold text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="space-y-2 mt-2 bg-slate-50 dark:bg-slate-700/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700"
-                >
-                  <div class="flex justify-between">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase"
-                      >Nomor PKP</span
-                    >
-                    <span
-                      class="text-xs font-mono font-bold text-slate-400 dark:text-slate-500"
-                      >-</span
-                    >
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase"
-                      >Tgl Pengukuhan</span
-                    >
-                    <span
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                      >-</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: SPT & KSWP -->
-          <div class="space-y-6">
-            <!-- SPT History Compact -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
-            >
-              <div
-                class="bg-slate-50 dark:bg-slate-800/50 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center"
-              >
-                <h3
-                  class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2"
-                >
-                  <i class="fas fa-history text-purple-500"></i> Riwayat SPT
-                </h3>
-                <button
-                  @click="showSptUploadModal = true"
-                  class="w-6 h-6 rounded bg-purple-50 hover:bg-purple-100 text-purple-600 flex items-center justify-center transition-colors"
-                  title="Tambah SPT"
-                >
-                  <i class="fas fa-plus text-xs"></i>
-                </button>
-              </div>
-              <div
-                v-if="subModules.spt?.length > 0"
-                class="max-h-[300px] overflow-y-auto"
-              >
-                <table class="w-full text-xs text-left">
-                  <thead
-                    class="bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase font-bold sticky top-0 dark:text-slate-400"
-                  >
-                    <tr>
-                      <th class="px-4 py-2 bg-slate-50 dark:bg-slate-800">
-                        Tahun
-                      </th>
-                      <th class="px-4 py-2 bg-slate-50 dark:bg-slate-800">
-                        Jenis
-                      </th>
-                      <th class="px-4 py-2 bg-slate-50 dark:bg-slate-800">
-                        Status
-                      </th>
-                      <th
-                        class="px-4 py-2 bg-slate-50 dark:bg-slate-800 text-right"
-                      >
-                        #
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody
-                    class="divide-y divide-slate-100 dark:divide-slate-700"
-                  >
-                    <tr
-                      v-for="item in subModules.spt"
-                      :key="item.id_spt"
-                      @click="openSptModal(item)"
-                      class="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer"
-                    >
-                      <td class="px-4 py-2 font-bold">
-                        {{ item.tahun_pajak }}
-                      </td>
-                      <td class="px-4 py-2">{{ item.jenis_spt }}</td>
-                      <td class="px-4 py-2">
-                        <span
-                          class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-green-100 text-green-700 border border-green-200"
-                          >{{ item.status_spt }}</span
-                        >
-                      </td>
-                      <td class="px-4 py-2 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                          <button
-                            class="text-blue-600 hover:text-blue-700 font-bold"
-                          >
-                            View
-                          </button>
-                          <button
-                            @click.stop="deleteSptEntry(item.id_spt)"
-                            class="text-red-500 hover:text-red-700"
-                            title="Hapus SPT"
-                          >
-                            <i class="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div v-else>
-                <table class="w-full text-xs text-left">
-                  <thead
-                    class="bg-slate-50 dark:bg-slate-800 text-slate-500 uppercase font-bold dark:text-slate-400"
-                  >
-                    <tr>
-                      <th class="px-4 py-2 bg-slate-50 dark:bg-slate-800">
-                        Tahun
-                      </th>
-                      <th class="px-4 py-2 bg-slate-50 dark:border-slate-800">
-                        Jenis
-                      </th>
-                      <th class="px-4 py-2 bg-slate-50 dark:bg-slate-800">
-                        Status
-                      </th>
-                      <th
-                        class="px-4 py-2 bg-slate-50 dark:bg-slate-800 text-right"
-                      >
-                        #
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="border-b border-slate-100 dark:border-slate-700">
-                      <td class="px-4 py-3 font-bold text-slate-400">-</td>
-                      <td class="px-4 py-3 text-slate-400">-</td>
-                      <td class="px-4 py-3 text-slate-400">-</td>
-                      <td class="px-4 py-3 text-right text-slate-400">-</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- KSWP -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5"
-            >
-              <div
-                class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-              >
-                <h3
-                  class="font-bold text-slate-700 dark:text-slate-200 text-sm flex items-center gap-2"
-                >
-                  <i class="fas fa-check-double text-emerald-500"></i> Status
-                  KSWP
-                </h3>
-                <div class="flex gap-2">
-                  <button
-                    v-if="subModules.kswp?.[0]?.kswp_url"
-                    @click="openKswpModal(subModules.kswp[0])"
-                    class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors"
-                  >
-                    <i class="fas fa-file-pdf"></i> View
-                  </button>
-                  <button
-                    @click="showKswpUploadModal = true"
-                    class="w-6 h-6 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors"
-                    title="Tambah/Update KSWP"
-                  >
-                    <i class="fas fa-plus text-xs"></i>
-                  </button>
-                </div>
-              </div>
-              <div v-if="subModules.kswp?.length > 0">
-                <div
-                  v-for="item in subModules.kswp"
-                  :key="item.id_kswp"
-                  class="space-y-3"
-                >
-                  <div class="text-center mb-3">
-                    <div
-                      class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200 text-xs"
-                    >
-                      <i class="fas fa-check-circle"></i>
-                      {{ item.status_kswp || "VALID" }}
-                    </div>
-                  </div>
-                  <div
-                    class="space-y-2 bg-slate-50 dark:bg-slate-700/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700"
-                  >
-                    <div class="flex justify-between text-[10px]">
-                      <span class="font-bold text-slate-500 uppercase"
-                        >NIK/NPWP (15)</span
-                      >
-                      <span
-                        class="font-mono font-bold text-slate-700 dark:text-slate-200"
-                        >{{ item.nik_npwp15 }}</span
-                      >
-                    </div>
-                    <div class="flex justify-between text-[10px]">
-                      <span class="font-bold text-slate-500 uppercase"
-                        >NPWP (16)</span
-                      >
-                      <span
-                        class="font-mono font-bold text-slate-700 dark:text-slate-200"
-                        >{{ item.npwp16 }}</span
-                      >
-                    </div>
-                    <div class="flex justify-between text-[10px]">
-                      <span class="font-bold text-slate-500 uppercase"
-                        >Nama WP</span
-                      >
-                      <span
-                        class="text-xs font-semibold text-slate-700 dark:text-slate-200"
-                        >{{ item.nama_wp }}</span
-                      >
-                    </div>
-                    <div
-                      class="text-[10px] pt-2 border-t border-slate-200 dark:border-slate-600"
-                    >
-                      <span
-                        class="font-bold text-slate-500 uppercase block mb-1"
-                        >Alamat</span
-                      >
-                      <span
-                        class="text-xs text-slate-600 dark:text-slate-300"
-                        >{{ item.alamat }}</span
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div v-else>
-                <div class="text-center mb-3">
-                  <div
-                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 font-bold border border-slate-200 dark:border-slate-600 text-xs opacity-50"
-                  >
-                    <i class="fas fa-check-circle"></i> -
-                  </div>
-                </div>
-                <div
-                  class="space-y-2 bg-slate-50 dark:bg-slate-700/30 p-3 rounded-lg border border-slate-100 dark:border-slate-700"
-                >
-                  <div class="flex justify-between text-[10px]">
-                    <span class="font-bold text-slate-400 uppercase"
-                      >NIK/NPWP (15)</span
-                    >
-                    <span
-                      class="font-mono font-bold text-slate-400 dark:text-slate-500"
-                      >-</span
-                    >
-                  </div>
-                  <div class="flex justify-between text-[10px]">
-                    <span class="font-bold text-slate-400 uppercase"
-                      >NPWP (16)</span
-                    >
-                    <span
-                      class="font-mono font-bold text-slate-400 dark:text-slate-500"
-                      >-</span
-                    >
-                  </div>
-                  <div class="flex justify-between text-[10px]">
-                    <span class="font-bold text-slate-400 uppercase"
-                      >Nama WP</span
-                    >
-                    <span
-                      class="text-xs font-semibold text-slate-400 dark:text-slate-500"
-                      >-</span
-                    >
-                  </div>
-                  <div
-                    class="text-[10px] pt-2 border-t border-slate-200 dark:border-slate-600"
-                  >
-                    <span class="font-bold text-slate-400 uppercase block mb-1"
-                      >Alamat</span
-                    >
-                    <span class="text-xs text-slate-400 dark:text-slate-500"
-                      >-</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5. NIB TAB - Separate Layout with KBLI Section -->
-        <div
-          v-if="activeTab === 'nib'"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: NIB Data + KBLI (7 cols) -->
-          <div class="lg:col-span-7 space-y-4">
-            <!-- NIB Cards -->
-            <div v-if="subModules.nib?.length > 0" class="space-y-3">
-              <div
-                v-for="(item, idx) in subModules.nib"
-                :key="idx"
-                class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
-              >
-                <div
-                  class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0"
-                  >
-                    <i class="fas fa-id-badge"></i>
-                  </div>
-                  <div>
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      NIB
-                    </div>
-                    <h4
-                      class="font-bold text-slate-800 dark:text-white text-lg font-mono leading-none mt-1"
-                    >
-                      {{ item.nomor_nib || "-" }}
-                    </h4>
-                  </div>
-                </div>
-
-                <!-- NIB Specific Fields -->
-                <div class="space-y-0.5 mt-2">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tgl Terbit
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_terbit || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Status Modal
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.status_penanaman_modal || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Skala Usaha
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.skala_usaha || "-" }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty NIB Card -->
-            <div
-              v-else
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
-            >
-              <div
-                class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700"
-              >
-                <div
-                  class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0 opacity-50"
-                >
-                  <i class="fas fa-id-badge"></i>
-                </div>
-                <div>
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                  >
-                    NIB
-                  </div>
-                  <h4
-                    class="font-bold text-slate-400 dark:text-slate-500 text-lg font-mono leading-none mt-1"
-                  >
-                    -
-                  </h4>
-                </div>
-              </div>
-
-              <div class="space-y-0.5 mt-2">
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Tgl Terbit
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Status Modal
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-                <div
-                  class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                  >
-                    Skala Usaha
-                  </div>
-                  <div
-                    class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    -
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- KBLI Qualifications Section (Separate Card Below NIB) - Compact with Scroll -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden max-h-[300px]"
-            >
-              <!-- Header (Fixed) -->
-              <div
-                class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 shrink-0"
-              >
-                <h4
-                  class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between"
-                >
-                  <span>Kualifikasi KBLI</span>
-                  <span
-                    v-if="subModules.kbli?.length"
-                    class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-full"
-                  >
-                    {{ subModules.kbli.length }} ITEMS
-                  </span>
-                </h4>
-              </div>
-
-              <!-- Content (Scrollable) -->
-              <div class="flex-1 overflow-y-auto p-4">
-                <!-- Grid Layout (2 Columns) with Consistent Item Heights -->
-                <div
-                  v-if="subModules.kbli?.length > 0"
-                  class="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr"
-                >
-                  <div
-                    v-for="kbli in subModules.kbli"
-                    :key="kbli.id_perusahaan_kbli"
-                    class="group relative p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-300 min-h-[60px] flex items-center"
-                  >
-                    <!-- Active/Primary Indicator -->
-                    <div
-                      v-if="kbli.is_primary === 'true'"
-                      class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm"
-                      title="KBLI Utama"
-                    ></div>
-
-                    <div class="flex items-center gap-2 w-full">
-                      <!-- Code Badge: Text becomes blue on card hover -->
-                      <div
-                        class="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded text-[10px] font-mono font-bold shrink-0 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors"
+                        class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 mb-1"
                       >
                         {{ kbli.kode_kbli }}
                       </div>
-                      <div class="flex-1 min-w-0">
-                        <h5
-                          class="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight transition-colors line-clamp-2"
-                          :title="kbli.judul_kbli || kbli.nama_klasifikasi"
-                        >
-                          {{
-                            kbli.judul_kbli ||
-                            kbli.nama_klasifikasi ||
-                            "Klasifikasi KBLI"
-                          }}
-                        </h5>
+                      <div
+                        class="text-xs text-slate-700 dark:text-slate-300 leading-tight line-clamp-2"
+                      >
+                        {{ kbli.judul_kbli || kbli.nama_klasifikasi }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- KBLI Empty State -->
+                  <div v-else class="text-center py-6 text-slate-400">
+                    <i class="fas fa-sitemap text-2xl mb-2 opacity-30"></i>
+                    <p class="text-xs">Belum ada data KBLI terdaftar.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: PDF Preview (5 cols) -->
+              <div class="lg:col-span-5 flex flex-col h-full">
+                <DocumentPdfPreview
+                  documentType="nib"
+                  label="NIB"
+                  :subtitle="
+                    selectedItems.nib
+                      ? `NIB: ${selectedItems.nib.nomor_nib || '-'}`
+                      : ''
+                  "
+                  icon="fas fa-id-badge"
+                  iconColor="blue"
+                  :existingPdfUrl="getDocumentUrl('nib')"
+                  :pendingFile="pendingDocuments.nib.file"
+                  :pendingPreview="pendingDocuments.nib.preview"
+                  :isUploading="pendingDocuments.nib.uploading"
+                  @file-selected="(event) => handleDocumentSelect('nib', event)"
+                  @save="saveDocument('nib')"
+                  @cancel="cancelDocumentUpload('nib')"
+                />
+              </div>
+            </div>
+
+            <!-- 2.5 SBU TAB (DISABLED - using original SBU tab at line 1249 instead) -->
+            <div
+              v-if="false"
+              class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+            >
+              <!-- Left: Data List (7 cols) -->
+              <div class="lg:col-span-7 space-y-4">
+                <!-- Data Cards (when data exists) -->
+                <div v-if="subModules.sbu?.length > 0" class="space-y-3">
+                  <div
+                    v-for="item in subModules.sbu"
+                    :key="item.id_sbu"
+                    class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
+                  >
+                    <div
+                      class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
+                    >
+                      <div class="flex items-center gap-3">
                         <div
-                          v-if="kbli.is_primary === 'true'"
-                          class="inline-flex items-center gap-1 mt-1"
+                          class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0"
                         >
-                          <i class="fas fa-star text-[8px] text-amber-400"></i>
-                          <span
-                            class="text-[9px] font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider"
-                            >Primary</span
+                          <i class="fas fa-certificate"></i>
+                        </div>
+                        <div>
+                          <div
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
                           >
+                            NOMOR SBU
+                          </div>
+                          <h4
+                            class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
+                          >
+                            {{ item.nomor_sbu || "-" }}
+                          </h4>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="space-y-0.5 mt-4">
+                      <div
+                        class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                        >
+                          SUB BIDANG
+                        </div>
+                        <div
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          {{ item.sub_bidang || "-" }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                        >
+                          GRADE
+                        </div>
+                        <div
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          {{ item.grade || "-" }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                        >
+                          TGL TERBIT
+                        </div>
+                        <div
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          {{ item.tanggal_terbit || "-" }}
+                        </div>
+                      </div>
+
+                      <div
+                        class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                      >
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                        >
+                          MASA BERLAKU
+                        </div>
+                        <div
+                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
+                        >
+                          {{ item.masa_berlaku || "-" }}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- Empty State -->
+                <!-- Empty State (when no data) -->
                 <div
                   v-else
-                  class="flex flex-col items-center justify-center h-full min-h-[200px] text-center"
+                  class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
                 >
                   <div
-                    class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3"
+                    class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
                   >
-                    <i
-                      class="fas fa-tags text-slate-300 dark:text-slate-500 text-2xl"
-                    ></i>
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center shrink-0 opacity-50"
+                      >
+                        <i class="fas fa-certificate"></i>
+                      </div>
+                      <div>
+                        <div
+                          class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                        >
+                          NOMOR SBU
+                        </div>
+                        <h4
+                          class="font-bold text-slate-400 dark:text-slate-500 text-lg leading-none mt-1"
+                        >
+                          -
+                        </h4>
+                      </div>
+                    </div>
                   </div>
-                  <p
-                    class="text-slate-500 dark:text-slate-400 text-sm font-medium"
-                  >
-                    Belum ada data KBLI terdaftar.
-                  </p>
+
+                  <div class="space-y-0.5 mt-4">
+                    <div
+                      class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                    >
+                      <div
+                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                      >
+                        SUB BIDANG
+                      </div>
+                      <div
+                        class="text-xs font-medium text-slate-400 dark:text-slate-500"
+                      >
+                        -
+                      </div>
+                    </div>
+                    <div
+                      class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                    >
+                      <div
+                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                      >
+                        GRADE
+                      </div>
+                      <div
+                        class="text-xs font-medium text-slate-400 dark:text-slate-500"
+                      >
+                        -
+                      </div>
+                    </div>
+                    <div
+                      class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                    >
+                      <div
+                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                      >
+                        TGL TERBIT
+                      </div>
+                      <div
+                        class="text-xs font-medium text-slate-400 dark:text-slate-500"
+                      >
+                        -
+                      </div>
+                    </div>
+                    <div
+                      class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
+                    >
+                      <div
+                        class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                      >
+                        MASA BERLAKU
+                      </div>
+                      <div
+                        class="text-xs font-medium text-slate-400 dark:text-slate-500"
+                      >
+                        -
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              <!-- Right: PDF Preview (5 cols) -->
+              <div class="lg:col-span-5 flex flex-col h-full">
+                <DocumentPdfPreview
+                  documentType="sbu"
+                  label="SBU"
+                  :subtitle="
+                    selectedItems.sbu
+                      ? `SBU: ${selectedItems.sbu.nomor_sbu || '-'}`
+                      : ''
+                  "
+                  icon="fas fa-certificate"
+                  iconColor="green"
+                  :existingPdfUrl="getDocumentUrl('sbu')"
+                  :pendingFile="pendingDocuments.sbu.file"
+                  :pendingPreview="pendingDocuments.sbu.preview"
+                  :isUploading="pendingDocuments.sbu.uploading"
+                  @file-selected="(event) => handleDocumentSelect('sbu', event)"
+                  @save="saveDocument('sbu')"
+                  @cancel="cancelDocumentUpload('sbu')"
+                />
               </div>
             </div>
-          </div>
 
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <div
-              class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24"
+            <!-- 3. PAJAK TAB (Style Dashboard) -->
+            <!-- 3. PAJAK TAB (Compact Style) -->
+            <CompanyTaxTab
+              v-if="activeTab === 'pajak'"
+              :tax-data="subModules"
+              @open-modal="handleOpenTaxModal"
+              @delete-spt="deleteSptEntry"
+            />
+
+            <!-- 5. NIB TAB -->
+            <CompanyDocumentTab
+              ref="nibTab"
+              v-if="activeTab === 'nib'"
+              :items="subModules.nib"
+              document-type="nib"
+              label="NIB"
+              icon="fas fa-id-badge"
+              color="blue"
+              id-key="nomor_nib"
+              title-key="nomor_nib"
+              title-label="Nomor NIB"
+              :fields="[
+                { label: 'Nomor NIB', key: 'nomor_nib', type: 'text' },
+                {
+                  label: 'Tanggal Terbit',
+                  key: 'tanggal_terbit',
+                  type: 'date',
+                  format: formatDate,
+                },
+                {
+                  label: 'Status Modal',
+                  key: 'status_penanaman_modal',
+                  type: 'text',
+                },
+                { label: 'Skala Usaha', key: 'skala_usaha', type: 'text' },
+              ]"
+              :selected-item="selectedItems.nib"
+              :selected-url="getSelectedDocUrl('nib')"
+              :pending-file="pendingUploads.nib?.file"
+              :pending-preview="pendingUploads.nib?.preview"
+              :is-uploading="uploadingState.nib"
+              single-mode
+              @select-item="(item) => selectItem('nib', item)"
+              @upload-select="(file) => handleFileSelect('nib', file)"
+              @upload-save="() => handleUploadSave('nib')"
+              @upload-cancel="() => handleUploadCancel('nib')"
+              @update-item="(data) => handleUpdateItem('nib', data)"
+              @ai-scan="(data) => handleAiScan('nib', data)"
             >
-              <div
-                class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0"
-              >
-                <div>
-                  <h3
-                    class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm"
-                  >
-                    <i class="fas fa-file-pdf text-red-500"></i>
-                    Dokumen NIB
-                  </h3>
-                  <p
-                    v-if="selectedItems.nib"
-                    class="text-xs text-slate-500 mt-1"
-                  >
-                    {{ selectedItems.nib.nomor_nib }}
-                  </p>
-                </div>
-                <div class="flex gap-2">
-                  <button
-                    v-if="getDocumentUrl('nib') && !pendingDocuments.nib?.file"
-                    @click="
-                      $refs.nibUpdateInput && $refs.nibUpdateInput.click()
-                    "
-                    class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
-                  >
-                    <i class="fas fa-sync-alt"></i>
-                    <span>Perbarui</span>
-                  </button>
-                  <input
-                    ref="nibUpdateInput"
-                    type="file"
-                    accept="application/pdf"
-                    @change="handleDocumentSelect('nib', $event)"
-                    class="hidden"
-                  />
-                  <a
-                    v-if="getDocumentUrl('nib') && !pendingDocuments.nib?.file"
-                    :href="getDocumentUrl('nib')"
-                    target="_blank"
-                    class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors"
-                  >
-                    <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                  </a>
-                </div>
-              </div>
+              <template #sidebar-extra="{ isEditing }">
+                <!-- KBLI Qualifications Section -->
 
-              <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                <!-- Existing PDF -->
-                <iframe
-                  v-if="getDocumentUrl('nib') && !pendingDocuments.nib?.file"
-                  :key="'nib-doc'"
-                  :src="getPreviewUrl(getDocumentUrl('nib'))"
-                  class="w-full h-full absolute inset-0 border-none"
-                >
-                </iframe>
-
-                <!-- Pending Upload Preview -->
+                <!-- VIEW MODE -->
                 <div
-                  v-else-if="
-                    pendingDocuments.nib?.file && pendingDocuments.nib?.preview
-                  "
-                  class="w-full h-full flex flex-col"
+                  v-if="!isEditing"
+                  class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden max-h-[300px]"
                 >
-                  <iframe
-                    :src="pendingDocuments.nib.preview"
-                    class="flex-1 w-full border-none"
-                  ></iframe>
+                  <!-- Header -->
                   <div
-                    class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between"
+                    class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 shrink-0 flex justify-between items-center"
                   >
-                    <div class="flex-1 min-w-0">
-                      <p
-                        class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate"
+                    <div class="flex items-center gap-2">
+                      <h4
+                        class="text-xs font-bold text-slate-400 uppercase tracking-widest"
                       >
-                        {{ pendingDocuments.nib.file.name }}
-                      </p>
-                      <p class="text-xs text-slate-500">
-                        {{ formatFileSize(pendingDocuments.nib.file.size) }}
-                      </p>
+                        Kualifikasi KBLI
+                      </h4>
+                      <span
+                        v-if="subModules.kbli?.length"
+                        class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-full"
+                      >
+                        {{ subModules.kbli.length }} ITEMS
+                      </span>
                     </div>
-                    <div class="flex gap-2 ml-4">
-                      <button
-                        @click="cancelDocumentUpload('nib')"
-                        :disabled="pendingDocuments.nib.uploading"
-                        class="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all"
+
+                    <button
+                      v-if="!isEditing"
+                      @click.stop="
+                        nibTab && subModules.nib
+                          ? nibTab.startEditing(subModules.nib)
+                          : null
+                      "
+                      class="text-[10px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-100 dark:border-blue-800 px-2 py-1 rounded transition-colors"
+                    >
+                      <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+                  </div>
+
+                  <!-- Content (Scrollable) -->
+                  <div class="flex-1 overflow-y-auto p-4">
+                    <div
+                      v-if="subModules.kbli?.length > 0"
+                      class="grid grid-cols-1 md:grid-cols-2 gap-3 auto-rows-fr"
+                    >
+                      <div
+                        v-for="kbli in subModules.kbli"
+                        :key="kbli.id_perusahaan_kbli"
+                        class="group relative p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-300 min-h-[60px] flex items-center"
                       >
-                        Batal
-                      </button>
-                      <button
-                        @click="saveDocument('nib')"
-                        :disabled="pendingDocuments.nib.uploading"
-                        class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        <div class="flex items-center gap-2 w-full">
+                          <div
+                            class="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded text-[10px] font-mono font-bold shrink-0 group-hover:text-blue-600 group-hover:border-blue-200 transition-colors"
+                          >
+                            {{ kbli.kode_kbli }}
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <h5
+                              class="text-xs font-bold text-slate-700 dark:text-slate-200 leading-tight transition-colors line-clamp-2"
+                              :title="kbli.judul_kbli || kbli.nama_klasifikasi"
+                            >
+                              {{
+                                kbli.judul_kbli ||
+                                kbli.nama_klasifikasi ||
+                                "Klasifikasi KBLI"
+                              }}
+                            </h5>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div
+                      v-else
+                      class="flex flex-col items-center justify-center h-full min-h-[200px] text-center"
+                    >
+                      <div
+                        class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3"
                       >
                         <i
-                          v-if="pendingDocuments.nib.uploading"
-                          class="fas fa-spinner fa-spin"
+                          class="fas fa-tags text-slate-300 dark:text-slate-500 text-2xl"
                         ></i>
-                        <i v-else class="fas fa-save"></i>
-                        {{
-                          pendingDocuments.nib.uploading
-                            ? "Menyimpan..."
-                            : "Simpan"
-                        }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Upload State (No PDF) -->
-                <div
-                  v-else
-                  class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-                  @click="$refs.nibUploadInput && $refs.nibUploadInput.click()"
-                >
-                  <input
-                    ref="nibUploadInput"
-                    type="file"
-                    accept="application/pdf"
-                    @change="handleDocumentSelect('nib', $event)"
-                    class="hidden"
-                  />
-                  <div
-                    class="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-500 mb-4"
-                  >
-                    <i class="fas fa-id-badge text-3xl"></i>
-                  </div>
-                  <p
-                    class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1"
-                  >
-                    Upload Dokumen NIB
-                  </p>
-                  <p class="text-xs text-slate-500">
-                    Klik untuk pilih file PDF (Max 50MB)
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- 6. SBU, KTA, SERTIFIKAT TABS - Redesigned with Complete Info -->
-        <!-- Note: Kontrak, Cek, and BPJS now have their own dedicated sections above -->
-        <div
-          v-if="['sbu', 'kta', 'sertifikat'].includes(activeTab)"
-          class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
-        >
-          <!-- Left: Data List (7 cols) -->
-          <div class="lg:col-span-7 space-y-4">
-            <!-- Data Cards -->
-            <div v-if="subModules[activeTab]?.length > 0" class="space-y-3">
-              <div
-                v-for="(item, idx) in subModules[activeTab]"
-                :key="idx"
-                @click="
-                  activeTab === 'sertifikat'
-                    ? selectItem(activeTab, item)
-                    : null
-                "
-                class="bg-white dark:bg-slate-800 rounded-xl border-2 group hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md p-6"
-                :class="[
-                  activeTab === 'sertifikat' &&
-                  selectedItems[activeTab] === item
-                    ? 'border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20 cursor-pointer'
-                    : 'border-slate-200 dark:border-slate-700',
-                  activeTab === 'sertifikat' ? 'cursor-pointer' : '',
-                ]"
-              >
-                <div
-                  class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700"
-                >
-                  <div
-                    class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0"
-                  >
-                    <i :class="getTabIcon(activeTab)"></i>
-                  </div>
-                  <div>
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                    >
-                      {{ getTabLabel(activeTab) }}
-                    </div>
-                    <h4
-                      class="font-bold text-slate-800 dark:text-white text-lg font-mono leading-none mt-1"
-                    >
-                      {{
-                        item.nomor_registrasi_lpjk ||
-                        item.nomor_anggota ||
-                        item.nomor_sertifikat ||
-                        "-"
-                      }}
-                    </h4>
-                  </div>
-                </div>
-
-                <!-- SBU Specific Fields -->
-                <div
-                  v-if="activeTab === 'sbu'"
-                  class="flex flex-col gap-0.5 mt-2"
-                >
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      No. PB UMKU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.nomor_pb_umku"
-                    >
-                      {{ item.nomor_pb_umku || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Jenis Usaha
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.jenis_usaha"
-                    >
-                      {{ item.jenis_usaha || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Asosiasi
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.asosiasi"
-                    >
-                      {{ item.asosiasi || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      PJBU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.pjbu"
-                    >
-                      {{ item.pjbu || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      PJTBU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.pjtbu"
-                    >
-                      {{ item.pjtbu || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Reg. LPJK
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.nomor_registrasi_lpjk"
-                    >
-                      {{ item.nomor_registrasi_lpjk || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Pelaksana
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.pelaksana_sertifikasi"
-                    >
-                      {{ item.pelaksana_sertifikasi || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tgl Terbit
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_terbit || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Berlaku
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.masa_berlaku || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Kualifikasi
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.kualifikasi"
-                    >
-                      {{ item.kualifikasi || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Subklas
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.kode_subklasifikasi"
-                    >
-                      {{ item.kode_subklasifikasi || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Sifat
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.sifat || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      KBLI
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.kode_kbli"
-                    >
-                      {{ item.kode_kbli || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-50 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      PJSKBU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate"
-                      :title="item.nama_pjskbu"
-                    >
-                      {{ item.nama_pjskbu || "-" }}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- KTA Specific Fields -->
-                <!-- KTA Specific Fields -->
-                <div v-else-if="activeTab === 'kta'" class="space-y-0.5 mt-2">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      No Anggota
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nomor_anggota || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Nama Asosiasi
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nama_asosiasi || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Penanggung Jawab
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.penanggung_jawab || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Jenis Usaha
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.jenis_usaha || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Status
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.status_keanggotaan || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tgl Terbit
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.tanggal_terbit || "-" }}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- SERTIFIKAT Specific Fields -->
-                <!-- SERTIFIKAT Specific Fields -->
-                <div
-                  v-else-if="activeTab === 'sertifikat'"
-                  class="space-y-0.5 mt-2"
-                >
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      No Sertifikat
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.nomor_sertifikat || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Kode KBLI
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.kode_kbli || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Lembaga
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.lembaga_verifikasi || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Klasifikasi Risiko
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.klasifikasi_risiko || "-" }}
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Status
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                    >
-                      {{ item.status_pemenuhan || "-" }}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Selection Indicator (Only for Sertifikat) -->
-                <div
-                  v-if="
-                    activeTab === 'sertifikat' &&
-                    selectedItems[activeTab] === item
-                  "
-                  class="mt-4 pt-3 border-t border-blue-100 dark:border-blue-900/30 flex items-center gap-2 text-blue-600 dark:text-blue-400 text-xs font-bold"
-                >
-                  <i class="fas fa-check-circle"></i>
-                  <span>PREVIEWING DOCUMENT</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty State Card -->
-            <div
-              v-else
-              class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6"
-            >
-              <div
-                class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-700"
-              >
-                <div
-                  class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0 opacity-50"
-                >
-                  <i :class="getTabIcon(activeTab)"></i>
-                </div>
-                <div>
-                  <div
-                    class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                  >
-                    {{ getTabLabel(activeTab) }}
-                  </div>
-                  <h4
-                    class="font-bold text-slate-400 dark:text-slate-500 text-lg font-mono leading-none mt-1"
-                  >
-                    -
-                  </h4>
-                </div>
-              </div>
-
-              <div class="space-y-0.5 mt-2">
-                <template v-if="activeTab === 'sbu'">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      No. PB UMKU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Jenis Usaha
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Asosiasi
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      PJBU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      PJTBU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Reg. LPJK
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Pelaksana
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tgl Terbit
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Berlaku
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Kualifikasi
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Subklas
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Sifat
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      KBLI
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      PJSKBU
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="activeTab === 'kta'">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      No Anggota
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Nama Asosiasi
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Penanggung Jawab
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Jenis Usaha
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Status
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Tgl Terbit
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                </template>
-
-                <template v-else-if="activeTab === 'sertifikat'">
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      No Sertifikat
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Kode KBLI
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Lembaga
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Klasifikasi Risiko
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                  <div
-                    class="grid grid-cols-[110px_1fr] gap-2 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                  >
-                    <div
-                      class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                    >
-                      Status
-                    </div>
-                    <div
-                      class="text-xs font-medium text-slate-400 dark:text-slate-500"
-                    >
-                      -
-                    </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <div
-              class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[520px] sticky top-24"
-            >
-              <div
-                class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0"
-              >
-                <div>
-                  <h3
-                    class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm"
-                  >
-                    <i class="fas fa-file-pdf text-red-500"></i>
-                    Dokumen {{ getTabLabel(activeTab) }}
-                  </h3>
-                  <p
-                    v-if="selectedItems[activeTab]"
-                    class="text-xs text-slate-500 mt-1"
-                  >
-                    {{
-                      selectedItems[activeTab].nomor_nib ||
-                      selectedItems[activeTab].nomor_registrasi_lpjk ||
-                      selectedItems[activeTab].nomor_anggota ||
-                      selectedItems[activeTab].nomor_sertifikat
-                    }}
-                  </p>
-                </div>
-                <div class="flex gap-2">
-                  <button
-                    v-if="
-                      getDocumentUrl(activeTab) &&
-                      !pendingDocuments[activeTab]?.file
-                    "
-                    @click="
-                      $refs[`${activeTab}UpdateInput`] &&
-                        $refs[`${activeTab}UpdateInput`].click()
-                    "
-                    class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex items-center gap-1"
-                  >
-                    <i class="fas fa-sync-alt"></i>
-                    <span>Perbarui</span>
-                  </button>
-                  <input
-                    :ref="`${activeTab}UpdateInput`"
-                    type="file"
-                    accept="application/pdf"
-                    @change="handleDocumentSelect(activeTab, $event)"
-                    class="hidden"
-                  />
-                  <a
-                    v-if="
-                      getDocumentUrl(activeTab) &&
-                      !pendingDocuments[activeTab]?.file
-                    "
-                    :href="getDocumentUrl(activeTab)"
-                    target="_blank"
-                    class="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:border-blue-400 transition-colors"
-                  >
-                    <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                  </a>
-                </div>
-              </div>
-
-              <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
-                <!-- Existing PDF -->
-                <iframe
-                  v-if="
-                    getDocumentUrl(activeTab) &&
-                    !pendingDocuments[activeTab]?.file
-                  "
-                  :key="`${activeTab}-doc`"
-                  :src="getPreviewUrl(getDocumentUrl(activeTab))"
-                  class="w-full h-full absolute inset-0 border-none"
-                ></iframe>
-
-                <!-- Pending Upload Preview -->
-                <div
-                  v-else-if="
-                    pendingDocuments[activeTab]?.file &&
-                    pendingDocuments[activeTab]?.preview
-                  "
-                  class="w-full h-full flex flex-col"
-                >
-                  <iframe
-                    :src="pendingDocuments[activeTab].preview"
-                    class="flex-1 w-full border-none"
-                  ></iframe>
-                  <div
-                    class="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between"
-                  >
-                    <div class="flex-1 min-w-0">
+                      </div>
                       <p
-                        class="text-xs font-bold text-slate-700 dark:text-slate-300 truncate"
+                        class="text-slate-500 dark:text-slate-400 text-sm font-medium"
                       >
-                        {{ pendingDocuments[activeTab].file.name }}
+                        Belum ada data KBLI terdaftar.
                       </p>
-                      <p class="text-xs text-slate-500">
-                        {{
-                          formatFileSize(pendingDocuments[activeTab].file.size)
-                        }}
-                      </p>
-                    </div>
-                    <div class="flex gap-2 ml-4">
-                      <button
-                        @click="cancelDocumentUpload(activeTab)"
-                        :disabled="pendingDocuments[activeTab].uploading"
-                        class="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all"
-                      >
-                        Batal
-                      </button>
-                      <button
-                        @click="saveDocument(activeTab)"
-                        :disabled="pendingDocuments[activeTab].uploading"
-                        class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        <i
-                          v-if="pendingDocuments[activeTab].uploading"
-                          class="fas fa-spinner fa-spin"
-                        ></i>
-                        <i v-else class="fas fa-save"></i>
-                        {{
-                          pendingDocuments[activeTab].uploading
-                            ? "Menyimpan..."
-                            : "Simpan"
-                        }}
-                      </button>
                     </div>
                   </div>
                 </div>
 
-                <!-- Upload State (No PDF) -->
+                <!-- EDIT MODE -->
                 <div
                   v-else
-                  class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-                  @click="
-                    $refs[`${activeTab}UploadInput`] &&
-                      $refs[`${activeTab}UploadInput`].click()
-                  "
+                  class="bg-white dark:bg-slate-800 rounded-xl border-2 border-blue-200 dark:border-blue-700 p-4 space-y-3"
                 >
-                  <input
-                    :ref="`${activeTab}UploadInput`"
-                    type="file"
-                    accept="application/pdf"
-                    @change="handleDocumentSelect(activeTab, $event)"
-                    class="hidden"
-                  />
-                  <div
-                    class="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-500 mb-4"
-                  >
-                    <i :class="getTabIcon(activeTab)" class="text-3xl"></i>
+                  <div class="flex justify-between items-center">
+                    <label
+                      class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase"
+                    >
+                      Edit Kode KBLI
+                    </label>
+                    <span
+                      class="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded"
+                    >
+                      Mode Edit
+                    </span>
                   </div>
-                  <p
-                    class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1"
+
+                  <!-- KBLI Tags Input -->
+                  <div
+                    class="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700"
                   >
-                    Upload Dokumen {{ getTabLabel(activeTab) }}
-                  </p>
-                  <p class="text-xs text-slate-500">
-                    Klik untuk pilih file PDF (Max 50MB)
-                  </p>
+                    <div class="flex flex-wrap gap-2 mb-2 min-h-[30px]">
+                      <div
+                        v-for="(code, idx) in editKbliList"
+                        :key="code"
+                        class="bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-md flex items-center gap-1.5 text-xs font-mono font-bold shadow-sm animate-fadeIn"
+                      >
+                        {{ code }}
+                        <button
+                          @click="removeKbli(code)"
+                          class="text-slate-400 hover:text-red-500 transition-colors w-4 h-4 flex items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-900/30"
+                        >
+                          <i class="fas fa-times text-[10px]"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      v-model="newKbliInput"
+                      @keydown.enter.prevent="addKbli"
+                      @keydown.comma.prevent="addKbli"
+                      @blur="addKbli"
+                      type="text"
+                      class="w-full text-sm bg-transparent border-none focus:ring-0 p-0 placeholder:text-slate-400 text-slate-700 dark:text-slate-200"
+                      placeholder="Ketik kode KBLI (misal: 71102) lalu tekan Enter..."
+                    />
+                  </div>
+
+                  <div
+                    class="mt-4 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-700 pt-3"
+                  >
+                    <div class="mr-auto flex items-center gap-2">
+                      <button
+                        @click.stop="handleAiScan('nib', subModules.nib?.[0])"
+                        class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1"
+                        title="Scan KBLI dari dokumen NIB"
+                      >
+                        <i class="fas fa-magic"></i> Scan AI
+                      </button>
+                      <span class="text-[10px] text-slate-500 hidden sm:inline">
+                        {{ editKbliList.length }} Kode
+                      </span>
+                    </div>
+
+                    <button
+                      @click.stop="nibTab?.cancelEditing()"
+                      class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      @click.stop="nibTab?.saveEditing()"
+                      class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors flex items-center gap-1"
+                    >
+                      <i class="fas fa-save"></i> Simpan
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </template>
+            </CompanyDocumentTab>
+            <!-- SBU TAB -->
+            <CompanyDocumentTab
+              ref="sbuTab"
+              v-if="activeTab === 'sbu'"
+              :items="subModules.sbu"
+              document-type="sbu"
+              label="SBU"
+              icon="fas fa-certificate"
+              color="purple"
+              id-key="nomor_sbu"
+              title-key="nomor_sbu"
+              title-label="Nomor SBU"
+              :fields="[
+                { label: 'Nomor SBU', key: 'nomor_sbu', type: 'text' },
+                { label: 'No. PB UMKU', key: 'nomor_pb_umku', type: 'text' },
+                { label: 'Jenis Usaha', key: 'jenis_usaha', type: 'text' },
+                { label: 'Asosiasi', key: 'asosiasi', type: 'text' },
+                { label: 'PJBU', key: 'pjbu', type: 'text' },
+                { label: 'PJTBU', key: 'pjtbu', type: 'text' },
+                {
+                  label: 'Reg. LPJK',
+                  key: 'nomor_registrasi_lpjk',
+                  type: 'text',
+                },
+                {
+                  label: 'Pelaksana',
+                  key: 'pelaksana_sertifikasi',
+                  type: 'text',
+                },
+                {
+                  label: 'Tgl Terbit',
+                  key: 'tanggal_terbit',
+                  type: 'date',
+                  format: formatDate,
+                },
+                {
+                  label: 'Berlaku',
+                  key: 'masa_berlaku',
+                  type: 'date',
+                  format: formatDate,
+                },
+                { label: 'Kualifikasi', key: 'kualifikasi', type: 'text' },
+                { label: 'Subklas', key: 'kode_subklasifikasi', type: 'text' },
+                { label: 'Sifat', key: 'sifat', type: 'text' },
+                { label: 'KBLI', key: 'kode_kbli', type: 'text' },
+                { label: 'PJSKBU', key: 'nama_pjskbu', type: 'text' },
+              ]"
+              :selected-item="selectedItems.sbu"
+              :selected-url="getSelectedDocUrl('sbu')"
+              :pending-file="pendingUploads.sbu?.file"
+              :pending-preview="pendingUploads.sbu?.preview"
+              :is-uploading="uploadingState.sbu"
+              single-mode
+              @select-item="(item) => selectItem('sbu', item)"
+              @upload-select="(file) => handleFileSelect('sbu', file)"
+              @upload-save="() => handleUploadSave('sbu')"
+              @upload-cancel="() => handleUploadCancel('sbu')"
+              @update-item="(data) => handleUpdateItem('sbu', data)"
+              @ai-scan="(data) => handleAiScan('sbu', data)"
+            />
+
+            <!-- KTA TAB -->
+            <CompanyDocumentTab
+              ref="ktaTab"
+              v-if="activeTab === 'kta'"
+              :single-mode="true"
+              label="KTA"
+              document-type="kta"
+              :items="subModules.kta"
+              id-key="id_kta"
+              title-key="nomor_anggota"
+              title-label="KTA"
+              :fields="[
+                { label: 'No Anggota', key: 'nomor_anggota', type: 'text' },
+                { label: 'Nama Asosiasi', key: 'nama_asosiasi', type: 'text' },
+                {
+                  label: 'Penanggung Jawab',
+                  key: 'penanggung_jawab',
+                  type: 'text',
+                },
+                { label: 'Jenis Usaha', key: 'jenis_usaha', type: 'text' },
+                { label: 'Status', key: 'status_keanggotaan', type: 'text' },
+                {
+                  label: 'Tgl Terbit',
+                  key: 'tanggal_terbit',
+                  type: 'date',
+                  format: formatDate,
+                },
+              ]"
+              icon="fas fa-id-card-alt"
+              color="teal"
+              :selected-item="selectedItems.kta"
+              :selected-url="getSelectedDocUrl('kta')"
+              :pending-file="pendingUploads.kta?.file"
+              :pending-preview="pendingUploads.kta?.preview"
+              :is-uploading="uploadingState.kta"
+              @select-item="(item) => selectItem('kta', item)"
+              @upload-select="(file) => handleFileSelect('kta', file)"
+              @upload-save="() => handleUploadSave('kta')"
+              @upload-cancel="() => handleUploadCancel('kta')"
+              @update-item="(data) => handleUpdateItem('kta', data)"
+              @ai-scan="(data) => handleAiScan('kta', data)"
+            />
+
+            <!-- SERTIFIKAT TAB -->
+            <CompanyDocumentTab
+              v-if="activeTab === 'sertifikat'"
+              :items="subModules.sertifikat"
+              document-type="sertifikat"
+              label="Sertifikat Standar"
+              icon="fas fa-award"
+              color="indigo"
+              id-key="id_sertifikat_standar"
+              title-key="nomor_sertifikat"
+              title-label="Nomor Sertifikat"
+              :fields="[
+                {
+                  label: 'Nomor Sertifikat',
+                  key: 'nomor_sertifikat',
+                  type: 'text',
+                },
+                { label: 'Kode KBLI', key: 'kode_kbli', type: 'text' },
+                { label: 'Lembaga', key: 'lembaga_verifikasi', type: 'text' },
+                {
+                  label: 'Klasifikasi Risiko',
+                  key: 'klasifikasi_risiko',
+                  type: 'text',
+                },
+                { label: 'Status', key: 'status_pemenuhan', type: 'text' },
+                {
+                  label: 'Tanggal Terbit',
+                  key: 'tanggal_terbit',
+                  type: 'date',
+                  format: formatDate,
+                },
+              ]"
+              :selected-item="selectedItems.sertifikat"
+              :selected-url="getSelectedDocUrl('sertifikat')"
+              :pending-file="pendingUploads.sertifikat?.file"
+              :pending-preview="pendingUploads.sertifikat?.preview"
+              :is-uploading="uploadingState.sertifikat"
+              @select-item="(item) => selectItem('sertifikat', item)"
+              @upload-select="(file) => handleFileSelect('sertifikat', file)"
+              @upload-save="() => handleUploadSave('sertifikat')"
+              @upload-cancel="() => handleUploadCancel('sertifikat')"
+              @update-item="(data) => handleUpdateItem('sertifikat', data)"
+            />
           </div>
-        </div>
+        </Transition>
       </div>
     </main>
 
@@ -4947,6 +2016,10 @@ import ToastNotification from "~/components/ToastNotification.vue";
 import FormInput from "~/components/FormInput.vue";
 import DocumentPdfPreview from "~/components/DocumentPdfPreview.vue";
 import CompanyTaxDocumentModal from "~/components/CompanyTaxDocumentModal.vue";
+import CompanyTaxTab from "~/components/companies/tabs/CompanyTaxTab.vue";
+import CompanyOverviewTab from "~/components/companies/tabs/CompanyOverviewTab.vue";
+import CompanyDocumentTab from "~/components/companies/tabs/CompanyDocumentTab.vue";
+import CompanyDetailHeader from "~/components/CompanyDetailHeader.vue";
 
 definePageMeta({ layout: "dashboard" });
 
@@ -5019,6 +2092,30 @@ const selectedItems = ref({
   bpjs: null,
 });
 
+// Pending uploads for CompanyDocumentTab
+const pendingUploads = ref({
+  akta: null,
+  nib: null,
+  sbu: null,
+  kta: null,
+  sertifikat: null,
+  kontrak: null,
+  cek: null,
+  bpjs: null,
+});
+
+// Uploading state for CompanyDocumentTab
+const uploadingState = ref({
+  akta: false,
+  nib: false,
+  sbu: false,
+  kta: false,
+  sertifikat: false,
+  kontrak: false,
+  cek: false,
+  bpjs: false,
+});
+
 // Tax Document Upload Modals
 const showNpwpUploadModal = ref(false);
 const showSptUploadModal = ref(false);
@@ -5086,6 +2183,21 @@ const getInitials = (name) => {
     .filter((w) => w.length > 0);
   if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
   return name.slice(0, 2).toUpperCase();
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "-";
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(date);
+  } catch (e) {
+    console.error("Error formatting date:", dateString, e);
+    return dateString; // Return original if invalid
+  }
 };
 
 // === LOGO HANDLER (Complete Logic) ===
@@ -5203,7 +2315,295 @@ const selectItem = (tabId, item) => {
   selectedItems.value[tabId] = item;
 };
 
+// Handle file selection for upload
+const handleFileSelect = (tabId, payload) => {
+  const file = payload?.target?.files ? payload.target.files[0] : payload;
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      pendingUploads.value[tabId] = {
+        file: file,
+        preview: e.target.result,
+      };
+    };
+    reader.readAsDataURL(file);
+  } else {
+    pendingUploads.value[tabId] = null;
+  }
+};
+
+// Handle upload save (Actual API Call)
+const handleUploadSave = async (tabId) => {
+  console.log(`Saving upload for ${tabId}`);
+  uploadingState.value[tabId] = true;
+
+  try {
+    const file = pendingUploads.value[tabId]?.file;
+    if (!file) {
+      throw new Error("Tidak ada file yang dipilih");
+    }
+
+    const formData = new FormData();
+    formData.append(tabId, file);
+    // Append minimal required fields if needed, though updateCompany usually handles partial updates.
+    // Adding updated_at or similar explicitly might be good practice but likely handled by backend.
+
+    const res = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText || "Gagal mengunggah dokumen");
+    }
+
+    const result = await res.json();
+    toast.success(`Dokumen ${tabId.toUpperCase()} berhasil diunggah.`);
+
+    // Clear pending upload
+    pendingUploads.value[tabId] = null;
+
+    // Refresh data for the specific tab
+    switch (tabId) {
+      case "akta":
+        await fetchAkta();
+        break;
+      case "nib":
+        await fetchNIB();
+        break;
+      case "sbu":
+        await fetchSBU();
+        break;
+      case "kta":
+        await fetchKTA();
+        break;
+      case "sertifikat":
+        await fetchSertifikat();
+        break;
+      case "kontrak":
+        await fetchPengalaman();
+        break;
+      case "cek":
+        await fetchCek();
+        break;
+      case "bpjs":
+        await fetchBPJS();
+        break;
+      case "pejabat":
+        await fetchPejabat();
+        break;
+      // Add other cases as needed
+    }
+  } catch (error) {
+    console.error("Upload failed:", error);
+    toast.error(`Gagal upload: ${error.message}`);
+  } finally {
+    uploadingState.value[tabId] = false;
+  }
+};
+
+const handleUploadCancel = (tabId) => {
+  pendingUploads.value[tabId] = null;
+};
+
 // Fetch Logic
+const handleUpdateItem = async (module, data) => {
+  try {
+    const idKeyMap = {
+      akta: "id_akta",
+      nib: "id_nib",
+      pejabat: "id_pejabat",
+      sbu: "id_sbu",
+      kta: "id_kta",
+      sertifikat: "id_sertifikat_standar",
+      kontrak: "id_kontrak",
+      cek: "id_cek",
+      bpjs: "id_bpjs",
+    };
+
+    const idKey = idKeyMap[module];
+    let itemId = data[idKey];
+
+    // Fallback if id is missing
+    if (!itemId) {
+      if (module === "akta") itemId = data.nomor_akta;
+      else if (module === "nib") itemId = data.nomor_nib;
+      else if (module === "pejabat") itemId = data.nik;
+      else if (module === "kontrak") itemId = data.nomor_kontrak;
+    }
+
+    if (!itemId) {
+      throw new Error(`ID tidak ditemukan untuk update ${module}`);
+    }
+
+    const res = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/${module}/${itemId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }
+    );
+
+    const result = await res.json();
+    if (!res.ok) {
+      throw new Error(result.message || "Gagal menyimpan perubahan");
+    }
+
+    toast.success("Data berhasil diperbarui!");
+
+    if (module === "nib") {
+      try {
+        const kbliCodes = [...editKbliList.value];
+
+        await fetch(`${apiBaseUrl}/companies/${companyId}/kbli/batch`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ kbliCodes }),
+        });
+
+        // Refresh KBLI list in UI (assuming fetchSubModules or fetchNIB handles it)
+        // We will call fetchSubModules inside switch if needed
+      } catch (e) {
+        console.error("Failed to save KBLI:", e);
+        toast.error("Gagal menyimpan KBLI: " + e.message);
+      }
+    }
+
+    // Refresh
+    switch (module) {
+      case "akta":
+        await fetchAkta();
+        break;
+      case "nib":
+        await fetchNIB();
+        break;
+      case "pejabat":
+        await fetchPejabat();
+        break;
+      case "sbu":
+        await fetchSBU();
+        break;
+      case "kta":
+        await fetchKTA();
+        break;
+      case "sertifikat":
+        await fetchSertifikat();
+        break;
+      case "kontrak":
+        await fetchPengalaman();
+        break;
+      case "cek":
+        await fetchCek();
+        break;
+      case "bpjs":
+        await fetchBPJS();
+        break;
+    }
+  } catch (e) {
+    console.error("Update Error:", e);
+    toast.error(e.message);
+  }
+};
+
+const aktaTab = ref(null);
+const nibTab = ref(null);
+const sbuTab = ref(null);
+const ktaTab = ref(null);
+
+// KBLI Edit Logic
+const editKbliList = ref([]);
+const newKbliInput = ref("");
+
+const addKbli = () => {
+  const val = newKbliInput.value.trim().replace(/[^0-9]/g, ""); // Digits only
+  if (val && val.length >= 2 && !editKbliList.value.includes(val)) {
+    editKbliList.value.push(val);
+  }
+  newKbliInput.value = "";
+};
+
+const removeKbli = (code) => {
+  editKbliList.value = editKbliList.value.filter((c) => c !== code);
+};
+
+watch(
+  () => subModules.value.kbli,
+  (newVal) => {
+    if (newVal && Array.isArray(newVal)) {
+      editKbliList.value = newVal.map((k) => k.kode_kbli).filter(Boolean);
+    }
+  },
+  { immediate: true }
+);
+
+const handleAiScan = async (module, data) => {
+  if (!data) {
+    toast.error("Data dokumen tidak ditemukan via Scan.");
+    return;
+  }
+  try {
+    let url = "";
+
+    if (module === "akta") {
+      url = data.akta_perusahaan_url;
+    } else if (module === "nib") {
+      url = data.nib_url;
+    } else if (module === "sbu") {
+      url = data.sbu_url;
+    } else if (module === "kta") {
+      url = data.kta_url;
+    }
+    // Add other modules if needed
+
+    if (!url) {
+      toast.error("Tidak ada URL dokumen untuk di-scan.");
+      return;
+    }
+
+    toast.info("Sedang melakukan scan AI...");
+
+    const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileUrl: url,
+        documentType: module,
+        category: "company",
+      }),
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      toast.success("AI Scan Berhasil!");
+      // Update the tab
+      if (module === "akta" && aktaTab.value) {
+        aktaTab.value.updateEditData(result.data);
+      }
+      if (module === "nib" && nibTab.value) {
+        nibTab.value.updateEditData(result.data);
+        if (result.data.kbli && Array.isArray(result.data.kbli)) {
+          editKbliList.value = result.data.kbli;
+          toast.info(`Ditemukan ${result.data.kbli.length} kode KBLI`);
+        }
+      }
+      if (module === "sbu" && sbuTab.value) {
+        sbuTab.value.updateEditData(result.data);
+      }
+      if (module === "kta" && ktaTab.value) {
+        ktaTab.value.updateEditData(result.data);
+      }
+    } else {
+      throw new Error(result.message);
+    }
+  } catch (e) {
+    console.error("AI Scan Error:", e);
+    toast.error("Gagal melakukan scan AI: " + e.message);
+  }
+};
+
 const fetchCompanyDetail = async () => {
   loadingTab.value = true;
   try {
@@ -5530,6 +2930,66 @@ const openPkpModal = (item) => {
 const openKswpModal = (item) => {
   selectedKswp.value = item;
   showKswpModal.value = true;
+};
+
+// Unified Handler for CompanyTaxTab
+const handleOpenTaxModal = (type, item) => {
+  console.log("Opening Tax Modal:", type, item);
+
+  if (item) {
+    // VIEW Mode (Existing data)
+    switch (type) {
+      case "npwp":
+        openNpwpModal(item);
+        break;
+      case "pkp":
+        openPkpModal(item);
+        break;
+      case "spt":
+        openSptModal(item);
+        break;
+      case "kswp":
+        openKswpModal(item);
+        break;
+    }
+  } else {
+    // UPLOAD/ADD Mode (New data)
+    switch (type) {
+      case "npwp":
+        showNpwpUploadModal.value = true;
+        break;
+      case "pkp":
+        showPkpUploadModal.value = true;
+        break;
+      case "spt":
+        showSptUploadModal.value = true;
+        break;
+      case "kswp":
+        showKswpUploadModal.value = true;
+        break;
+    }
+  }
+};
+
+const deleteSptEntry = async (id) => {
+  if (!confirm("Apakah Anda yakin ingin menghapus data SPT ini?")) return;
+
+  try {
+    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/spt/${id}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      toast.success("Data SPT berhasil dihapus");
+      await fetchPajak();
+    } else {
+      const err = await res.json();
+      toast.error(err.message || "Gagal menghapus data SPT");
+    }
+  } catch (e) {
+    console.error("Error deleting SPT:", e);
+    toast.error("Terjadi kesalahan saat menghapus data");
+  }
 };
 
 // === CONTACT DATA MODAL (Email, Telp, Alamat, Kop only) ===
@@ -6337,43 +3797,6 @@ const saveKswpDocument = async (file) => {
   }
 };
 
-// Delete SPT Entry
-const deleteSptEntry = async (sptId) => {
-  if (!sptId) {
-    toast.error("ID SPT tidak valid");
-    return;
-  }
-
-  // Confirm deletion
-  if (!confirm("Apakah Anda yakin ingin menghapus data SPT ini?")) {
-    return;
-  }
-
-  try {
-    console.log(`🗑️ Deleting SPT with ID:`, sptId);
-
-    const response = await fetch(
-      `${apiBaseUrl}/companies/${companyId}/spt/${sptId}`,
-      {
-        method: "DELETE",
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Gagal menghapus SPT");
-    }
-
-    toast.success("Data SPT berhasil dihapus!");
-
-    // Refresh data
-    await fetchPajak();
-  } catch (error) {
-    console.error("❌ Error deleting SPT:", error);
-    toast.error("Gagal menghapus SPT: " + error.message);
-  }
-};
-
 // Navigate to personnel detail
 const navigateToPersonnel = (id) => {
   if (!id) return;
@@ -6416,5 +3839,21 @@ onMounted(() => {
     black 90%,
     transparent
   );
+}
+
+/* Tab Transitions */
+.tab-fade-enter-active,
+.tab-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tab-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.tab-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>
