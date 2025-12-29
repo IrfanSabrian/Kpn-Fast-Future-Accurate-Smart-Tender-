@@ -1,753 +1,166 @@
-```html
 <template>
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans">
-    <!-- Technical Header (Full Width & Sticky) -->
-    <header
-      class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-200"
+    <!-- Uniform Header Component (Matches Company Header) -->
+    <PersonnelDetailHeader
+      :person="person"
+      :active-tab="selectedDocument"
+      :tabs="documentTabs"
+      :initials="person ? getInitials(person.nama_lengkap) : '?'"
+      @back="router.push('/database/personel')"
+      @tab-change="selectedDocument = $event"
     >
-      <div
-        class="max-w-[1800px] mx-auto px-4 md:px-6 h-16 md:h-24 flex items-center justify-between"
-      >
-        <div class="flex items-center gap-4 md:gap-6 w-full">
-          <!-- Back Button -->
-          <button
-            @click="router.push('/database/personel')"
-            class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-blue-600 transition-colors border border-slate-100 dark:border-slate-700"
-          >
-            <i class="fas fa-arrow-left"></i>
-          </button>
+      <template #actions>
+        <button
+          @click="openEditContactInfo"
+          class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 flex items-center gap-2"
+        >
+          <i class="fas fa-pen"></i> Edit Kontak
+        </button>
+        <button
+          @click="openDeleteContactConfirm"
+          class="w-9 h-9 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/10 dark:text-red-400 dark:hover:bg-red-900/20 transition-all border border-red-100 dark:border-red-900/30"
+          title="Hapus Kontak"
+        >
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </template>
+    </PersonnelDetailHeader>
 
-          <div class="flex items-center gap-5 flex-1 min-w-0">
-            <!-- Avatar Container -->
-            <div
-              class="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center p-1.5 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden text-2xl font-bold text-slate-400"
-            >
-              {{ person ? getInitials(person.nama_lengkap) : "?" }}
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-3 mb-1">
-                <h1
-                  class="text-lg md:text-2xl font-black text-slate-900 dark:text-white leading-tight truncate"
-                >
-                  {{ person?.nama_lengkap || "Loading Personel..." }}
-                </h1>
-              </div>
-
-              <div
-                class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium"
-              >
-                <div class="flex items-center gap-2 font-mono">
-                  <span class="text-slate-300">ID:</span>
-                  <span
-                    class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300"
-                    >{{ person?.id_personel || "..." }}</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Main Content Area -->
+    <!-- Main Content (Standard Container Matching Company Page) -->
     <main class="max-w-[1800px] mx-auto px-4 md:px-6 py-6 min-h-[60vh]">
       <!-- Loading State -->
-      <div
-        v-if="loading"
-        class="flex flex-col items-center justify-center py-20"
-      >
-        <div
-          class="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"
-        ></div>
-        <p class="mt-4 text-slate-400 text-xs font-mono animate-pulse">
-          LOADING PROFILE...
-        </p>
-      </div>
-
-      <div v-else-if="person" class="space-y-6">
-        <!-- Contact Info Card (Mirip Company Overview) -->
-        <div
-          class="relative overflow-hidden bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm group"
-        >
-          <!-- Edit/Delete Buttons (Top Right) -->
-          <div class="absolute top-4 right-4 flex items-center gap-2 z-20">
-            <button
-              @click="openEditContactInfo"
-              class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center border border-blue-100 dark:border-blue-800"
-              title="Edit Kontak"
-            >
-              <i class="fas fa-edit text-xs"></i>
-            </button>
-            <button
-              @click="openDeleteContactConfirm"
-              class="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center justify-center border border-red-100 dark:border-red-800"
-              title="Hapus Kontak"
-            >
-              <i class="fas fa-trash text-xs"></i>
-            </button>
+      <div v-if="loading">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="space-y-4">
+            <BaseSkeleton width="100%" height="5rem" />
+            <BaseSkeleton width="100%" height="3rem" />
+            <BaseSkeleton width="100%" height="12rem" />
           </div>
-
-          <div
-            class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"
-          >
-            <i class="fas fa-user-circle text-9xl"></i>
-          </div>
-
-          <div class="grid grid-cols-1 gap-6 relative z-10">
-            <!-- Phone -->
-            <div class="flex items-start gap-4">
-              <div
-                class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-100 dark:border-emerald-900/50"
-              >
-                <i class="fas fa-phone"></i>
-              </div>
-              <div>
-                <p
-                  class="text-[10px] uppercase font-bold text-slate-400 tracking-wider"
-                >
-                  No. Telepon
-                </p>
-                <p
-                  class="text-sm font-medium text-slate-700 dark:text-slate-200"
-                >
-                  {{ person.no_hp || "-" }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Address -->
-            <div class="flex items-start gap-4">
-              <div
-                class="w-10 h-10 rounded-full bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0 border border-violet-100 dark:border-violet-900/50"
-              >
-                <i class="fas fa-map-marker-alt"></i>
-              </div>
-              <div>
-                <p
-                  class="text-[10px] uppercase font-bold text-slate-400 tracking-wider"
-                >
-                  Alamat Domisili
-                </p>
-                <p
-                  class="text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed"
-                >
-                  {{ person.alamat_domisili || "-" }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Documents Section: 2-Column Layout (7:5 ratio) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Left Column: Document Selector & Details (7 cols) -->
-          <div class="lg:col-span-7 space-y-4">
-            <!-- Document Tabs -->
-            <div
-              class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden p-2"
-            >
-              <div
-                class="relative flex items-center gap-0.5 md:gap-1"
-                role="tablist"
-              >
-                <!-- Glider -->
-                <div
-                  class="absolute rounded-xl transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-0 pointer-events-none"
-                  :class="activeTabGradient"
-                  :style="gliderStyle"
-                ></div>
-
-                <button
-                  v-for="(tab, index) in documentTabs"
-                  :key="tab.id"
-                  :ref="(el) => (tabRefs[index] = el)"
-                  @click="
-                    selectedDocument = tab.id;
-                    updateGlider();
-                  "
-                  class="group relative z-10 px-2.5 md:px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap bg-transparent"
-                  :class="
-                    selectedDocument === tab.id
-                      ? 'text-white'
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 ' +
-                        tab.hoverText
-                  "
-                >
-                  <i :class="[tab.icon, 'text-base opacity-75']"></i>
-                  <span>{{ tab.label }}</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Document Details Card - Using PersonnelDocumentManager -->
-            <PersonnelDocumentManager
-              :document-type="selectedDocument"
-              :has-document="hasDocument(selectedDocument)"
-              @add="openAddModal(selectedDocument)"
-              @edit="openEditModal(selectedDocument)"
-              @delete="openDeleteConfirm(selectedDocument)"
-            >
-              <template #content>
-                <Transition name="tab-fade" mode="out-in">
-                  <!-- KTP Details -->
-                  <div v-if="selectedDocument === 'ktp'" class="space-y-2">
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-blue-50 dark:bg-blue-900/20 px-4 rounded-lg mb-3 border border-blue-100 dark:border-blue-800"
-                    >
-                      <div
-                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                      >
-                        NIK
-                      </div>
-                      <div
-                        class="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wide"
-                      >
-                        {{ ktp.nik || "-" }}
-                      </div>
-                    </div>
-
-                    <div class="space-y-1">
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Nama Lengkap</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.nama_ktp || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Tempat Lahir</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.tempat_lahir_ktp || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Tanggal Lahir</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.tanggal_lahir_ktp || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Jenis Kelamin</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.jenis_kelamin || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Golongan Darah</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.golongan_darah || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Alamat</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug"
-                          >{{ ktp.alamat_ktp || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >RT/RW</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.rt_rw || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Kelurahan/Desa</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.kelurahan_desa || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Kecamatan</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.kecamatan || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Kota/Kabupaten</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.kota_kabupaten || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Provinsi</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.provinsi || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Agama</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.agama || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Status Perkawinan</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.status_perkawinan || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Pekerjaan</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.pekerjaan || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Kewarganegaraan</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.kewarganegaraan || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-1 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Berlaku Hingga</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.berlaku_hingga || "-" }}</span
-                        >
-                      </div>
-                      <div class="grid grid-cols-[120px_1fr] gap-3 py-1">
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Tanggal Terbit</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ktp.tanggal_terbit_ktp || "-" }}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- NPWP Details -->
-                  <div
-                    v-else-if="selectedDocument === 'npwp'"
-                    class="space-y-2"
-                  >
-                    <div
-                      class="grid grid-cols-[120px_1fr] gap-4 py-2.5 items-center bg-orange-50 dark:bg-orange-900/20 px-4 rounded-lg mb-3 border border-orange-100 dark:border-orange-800"
-                    >
-                      <div
-                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                      >
-                        NO. NPWP
-                      </div>
-                      <div
-                        class="text-sm font-mono font-bold text-orange-600 dark:text-orange-400 tracking-wide"
-                      >
-                        {{ npwp.nomor_npwp_personel || "-" }}
-                      </div>
-                    </div>
-
-                    <div class="space-y-1">
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >NIK NPWP</span
-                        >
-                        <span
-                          class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
-                          >{{ npwp.nik_npwp_personel || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Nama WP</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ npwp.nama_npwp_personel || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Alamat NPWP</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-snug"
-                          >{{ npwp.alamat_npwp_personel || "-" }}</span
-                        >
-                      </div>
-                      <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >KPP</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ npwp.kpp_npwp_personel || "-" }}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Ijazah Details -->
-                  <div
-                    v-else-if="selectedDocument === 'ijazah'"
-                    class="space-y-2"
-                  >
-                    <div class="space-y-1">
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Jenjang</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ijazah.jenjang_pendidikan || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Institusi</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ijazah.nama_institusi_pendidikan || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Fakultas</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ijazah.fakultas || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Program Studi</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ijazah.program_studi || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >No. Ijazah</span
-                        >
-                        <span
-                          class="text-xs font-mono font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ijazah.nomor_ijazah || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Tahun</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ijazah.tahun_masuk || "-" }} -
-                          {{ ijazah.tahun_lulus || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Gelar</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ijazah.gelar_akademik || "-" }}</span
-                        >
-                      </div>
-                      <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >IPK</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ ijazah.ipk || "-" }}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- CV Details -->
-                  <div v-else-if="selectedDocument === 'cv'" class="space-y-2">
-                    <div class="space-y-1">
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Nama Lengkap</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ cv.nama_lengkap_cv || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Ringkasan Profil</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed"
-                          >{{ cv.ringkasan_profil || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Keahlian Utama</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ cv.keahlian_utama || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Pengalaman</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ cv.total_pengalaman_tahun || "-" }} Tahun</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Posisi Terakhir</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ cv.pengalaman_kerja_terakhir || "-" }}</span
-                        >
-                      </div>
-                      <div
-                        class="grid grid-cols-[120px_1fr] gap-3 py-0.5 border-b border-dashed border-slate-100 dark:border-slate-700"
-                      >
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Sertifikasi</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200 leading-relaxed"
-                          >{{ cv.sertifikasi_profesional || "-" }}</span
-                        >
-                      </div>
-                      <div class="grid grid-cols-[120px_1fr] gap-3 py-0.5">
-                        <span
-                          class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                          >Bahasa</span
-                        >
-                        <span
-                          class="text-xs font-medium text-slate-700 dark:text-slate-200"
-                          >{{ cv.bahasa_dikuasai || "-" }}</span
-                        >
-                      </div>
-                    </div>
-                  </div>
-                </Transition>
-              </template>
-            </PersonnelDocumentManager>
-          </div>
-
-          <!-- Right Column: PDF Preview (5 cols) -->
-          <div class="lg:col-span-5">
-            <div
-              class="sticky top-24 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-[55vh]"
-            >
-              <div
-                class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between"
-              >
-                <div
-                  class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider"
-                >
-                  Preview {{ getDocumentLabel(selectedDocument) }}
-                </div>
-                <a
-                  v-if="getDocumentUrl(selectedDocument)"
-                  :href="getDocumentUrl(selectedDocument)"
-                  target="_blank"
-                  class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors"
-                >
-                  <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-                </a>
-              </div>
-
-              <div class="flex-1 relative bg-slate-50 dark:bg-slate-900">
-                <iframe
-                  v-if="getDocumentUrl(selectedDocument)"
-                  :key="selectedDocument"
-                  :src="getPreviewUrl(getDocumentUrl(selectedDocument))"
-                  class="w-full h-full absolute inset-0 border-none"
-                ></iframe>
-                <div
-                  v-else
-                  class="w-full h-full flex flex-col items-center justify-center text-slate-400"
-                >
-                  <i
-                    :class="`${getDocumentIcon(
-                      selectedDocument
-                    )} text-5xl mb-4 opacity-20`"
-                  ></i>
-                  <p class="text-sm">
-                    Tidak ada file {{ getDocumentLabel(selectedDocument) }}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div class="hidden lg:block">
+            <BaseSkeleton
+              width="100%"
+              height="20rem"
+              class-name="rounded-2xl"
+            />
           </div>
         </div>
       </div>
 
-      <!-- Error State -->
-      <div v-else class="max-w-sm mx-auto mt-20 text-center">
-        <i class="fas fa-exclamation-triangle text-5xl text-slate-300 mb-4"></i>
-        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
-          Data Tidak Ditemukan
-        </h3>
-        <p class="text-slate-500 mb-6">
-          Personel dengan ID tersebut tidak ditemukan dalam sistem.
-        </p>
-        <button
-          @click="router.push('/database/personel')"
-          class="mt-4 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-colors"
-        >
-          Kembali ke Database
-        </button>
+      <!-- Content -->
+      <div v-else class="animate-fade-in-up">
+        <Transition name="fade" mode="out-in">
+          <div :key="selectedDocument">
+            <!-- Using Dedicated PersonnelDocumentTab for specific scrolling needs -->
+            <PersonnelDocumentTab
+              ref="activeTabComponent"
+              v-if="selectedDocument === 'ktp'"
+              :items="ktp ? [ktp] : []"
+              :fields="ktpFields"
+              id-key="id_ktp"
+              title-key="nik"
+              title-label="NIK"
+              icon="far fa-id-card"
+              color="blue"
+              :single-mode="true"
+              :pending-file="pendingUploads.ktp.file"
+              :pending-preview="pendingUploads.ktp.preview"
+              :is-uploading="uploadingState.ktp"
+              :selected-url="ktp?.file_ktp_url"
+              @upload-select="(f) => handleUploadSelect(f)"
+              @upload-save="handleUploadSave"
+              @upload-cancel="
+                () => {
+                  pendingUploads.ktp.file = null;
+                  pendingUploads.ktp.preview = null;
+                }
+              "
+              @update-item="handleUpdateItem"
+              @ai-scan="(data) => handleAiScan('ktp', data)"
+            />
+            <PersonnelDocumentTab
+              ref="activeTabComponent"
+              v-if="selectedDocument === 'npwp'"
+              :items="npwp ? [npwp] : []"
+              :fields="npwpFields"
+              id-key="id_npwp"
+              title-key="nomor_npwp_personel"
+              title-label="Nomor NPWP"
+              icon="fas fa-credit-card"
+              color="orange"
+              :single-mode="true"
+              :pending-file="pendingUploads.npwp.file"
+              :pending-preview="pendingUploads.npwp.preview"
+              :is-uploading="uploadingState.npwp"
+              :selected-url="npwp?.npwp_personel_url"
+              @upload-select="(f) => handleUploadSelect(f)"
+              @upload-save="handleUploadSave"
+              @upload-cancel="
+                () => {
+                  pendingUploads.npwp.file = null;
+                  pendingUploads.npwp.preview = null;
+                }
+              "
+              @update-item="handleUpdateItem"
+              @ai-scan="(data) => handleAiScan('npwp', data)"
+            />
+            <PersonnelDocumentTab
+              ref="activeTabComponent"
+              v-if="selectedDocument === 'ijazah'"
+              :items="ijazah ? [ijazah] : []"
+              :fields="ijazahFields"
+              id-key="id_ijazah"
+              title-key="nomor_ijazah"
+              title-label="No. Ijazah"
+              icon="fas fa-graduation-cap"
+              color="purple"
+              :single-mode="true"
+              :pending-file="pendingUploads.ijazah.file"
+              :pending-preview="pendingUploads.ijazah.preview"
+              :is-uploading="uploadingState.ijazah"
+              :selected-url="ijazah?.file_ijazah_url"
+              @upload-select="(f) => handleUploadSelect(f)"
+              @upload-save="handleUploadSave"
+              @upload-cancel="
+                () => {
+                  pendingUploads.ijazah.file = null;
+                  pendingUploads.ijazah.preview = null;
+                }
+              "
+              @update-item="handleUpdateItem"
+              @ai-scan="(data) => handleAiScan('ijazah', data)"
+            />
+            <PersonnelDocumentTab
+              ref="activeTabComponent"
+              v-if="selectedDocument === 'cv'"
+              :items="cv ? [cv] : []"
+              :fields="cvFields"
+              id-key="id_cv"
+              title-key="nama_lengkap_cv"
+              title-label="Nama Lengkap"
+              icon="fas fa-file-alt"
+              color="emerald"
+              :single-mode="true"
+              :pending-file="pendingUploads.cv.file"
+              :pending-preview="pendingUploads.cv.preview"
+              :is-uploading="uploadingState.cv"
+              :selected-url="cv?.file_cv_url"
+              @upload-select="(f) => handleUploadSelect(f)"
+              @upload-save="handleUploadSave"
+              @upload-cancel="
+                () => {
+                  pendingUploads.cv.file = null;
+                  pendingUploads.cv.preview = null;
+                }
+              "
+              @update-item="handleUpdateItem"
+              @ai-scan="(data) => handleAiScan('cv', data)"
+            />
+          </div>
+        </Transition>
       </div>
     </main>
 
-    <!-- Modal place needs to be preserved -->
+    <!-- Toast & Modals -->
     <BaseToast
       :show="toast.show"
       :type="toast.type"
@@ -757,761 +170,7 @@
       @close="hideToast"
     />
 
-    <!-- MODALS -->
-
-    <!-- KTP Modal -->
-    <BaseModal
-      :show="showKtpModal"
-      @close="showKtpModal = false"
-      maxWidth="5xl"
-    >
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"
-          >
-            <i class="far fa-id-card"></i>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-              Dokumen KTP
-            </h3>
-            <p v-if="ktp" class="text-xs text-slate-500 mt-0.5">
-              {{ ktp.nik }} - {{ ktp.nama_ktp }}
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <div v-if="ktp" class="w-full h-[60vh]">
-        <div
-          class="bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full"
-        >
-          <div
-            class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center"
-          >
-            <div class="text-xs font-bold text-slate-700 dark:text-slate-200">
-              Preview Dokumen KTP
-            </div>
-            <a
-              v-if="ktp.file_ktp_url"
-              :href="ktp.file_ktp_url"
-              target="_blank"
-              class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors"
-            >
-              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-            </a>
-          </div>
-          <div class="flex-1 relative">
-            <iframe
-              v-if="ktp.file_ktp_url"
-              :src="getPreviewUrl(ktp.file_ktp_url)"
-              class="w-full h-full absolute inset-0 border-none"
-            ></iframe>
-            <div
-              v-else
-              class="w-full h-full flex flex-col items-center justify-center text-slate-400"
-            >
-              <i class="fas fa-file-pdf text-4xl mb-4 opacity-20"></i>
-              <p class="text-sm">Dokumen tidak tersedia</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </BaseModal>
-
-    <!-- NPWP Modal -->
-    <BaseModal
-      :show="showNpwpModal"
-      @close="showNpwpModal = false"
-      maxWidth="5xl"
-    >
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center"
-          >
-            <i class="fas fa-credit-card"></i>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-              Dokumen NPWP
-            </h3>
-            <p v-if="npwp" class="text-xs text-slate-500 mt-0.5">
-              {{ npwp.nomor_npwp_personel }}
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <div v-if="npwp" class="w-full h-[60vh]">
-        <div
-          class="bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full"
-        >
-          <div
-            class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center"
-          >
-            <div class="text-xs font-bold text-slate-700 dark:text-slate-200">
-              Preview Dokumen NPWP
-            </div>
-            <a
-              v-if="npwp.file_npwp_personel_url"
-              :href="npwp.file_npwp_personel_url"
-              target="_blank"
-              class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 hover:bg-orange-100 transition-colors"
-            >
-              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-            </a>
-          </div>
-          <div class="flex-1 relative">
-            <iframe
-              v-if="npwp.file_npwp_personel_url"
-              :src="getPreviewUrl(npwp.file_npwp_personel_url)"
-              class="w-full h-full absolute inset-0 border-none"
-            ></iframe>
-            <div
-              v-else
-              class="w-full h-full flex flex-col items-center justify-center text-slate-400"
-            >
-              <i class="fas fa-file-pdf text-4xl mb-4 opacity-20"></i>
-              <p class="text-sm">Dokumen tidak tersedia</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </BaseModal>
-
-    <!-- KTP Upload Modal -->
-    <PersonnelDocumentUploadModal
-      :show="showKtpUploadModal"
-      document-type="ktp"
-      :person-name="person?.nama_lengkap"
-      :is-edit-mode="isEditingKtp"
-      :existing-file-url="ktp?.file_ktp_url"
-      @close="showKtpUploadModal = false"
-      @save="saveKtp"
-      @aiScanComplete="handleKtpAIScan"
-    >
-      <template #form-fields="{ disabled }">
-        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >NIK <span class="text-red-500">*</span></label
-            >
-            <input
-              v-model="ktpFormData.nik"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="16 digit NIK"
-              maxlength="16"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Nama Lengkap (Sesuai KTP)</label
-            >
-            <input
-              v-model="ktpFormData.nama_ktp"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Tempat Lahir</label
-            >
-            <input
-              v-model="ktpFormData.tempat_lahir_ktp"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Tanggal Lahir</label
-            >
-            <input
-              v-model="ktpFormData.tanggal_lahir_ktp"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="DD-MM-YYYY"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Jenis Kelamin</label
-            >
-            <select
-              v-model="ktpFormData.jenis_kelamin"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            >
-              <option value="LAKI-LAKI">Laki-laki</option>
-              <option value="PEREMPUAN">Perempuan</option>
-            </select>
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Golongan Darah</label
-            >
-            <select
-              v-model="ktpFormData.golongan_darah"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            >
-              <option value="A">A</option>
-              <option value="B">B</option>
-              <option value="AB">AB</option>
-              <option value="O">O</option>
-            </select>
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Alamat</label
-            >
-            <textarea
-              v-model="ktpFormData.alamat_ktp"
-              rows="2"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="Alamat lengkap sesuai KTP"
-            ></textarea>
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >RT/RW</label
-            >
-            <input
-              v-model="ktpFormData.rt_rw"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="000/000"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Kelurahan/Desa</label
-            >
-            <input
-              v-model="ktpFormData.kelurahan_desa"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Kecamatan</label
-            >
-            <input
-              v-model="ktpFormData.kecamatan"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Kota/Kabupaten</label
-            >
-            <input
-              v-model="ktpFormData.kota_kabupaten"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Provinsi</label
-            >
-            <input
-              v-model="ktpFormData.provinsi"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Agama</label
-            >
-            <select
-              v-model="ktpFormData.agama"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            >
-              <option value="ISLAM">Islam</option>
-              <option value="KRISTEN">Kristen</option>
-              <option value="KATOLIK">Katolik</option>
-              <option value="HINDU">Hindu</option>
-              <option value="BUDDHA">Buddha</option>
-              <option value="KONGHUCU">Konghucu</option>
-            </select>
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Status Perkawinan</label
-            >
-            <select
-              v-model="ktpFormData.status_perkawinan"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            >
-              <option value="BELUM KAWIN">Belum Kawin</option>
-              <option value="KAWIN">Kawin</option>
-              <option value="CERAI HIDUP">Cerai Hidup</option>
-              <option value="CERAI MATI">Cerai Mati</option>
-            </select>
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Pekerjaan</label
-            >
-            <input
-              v-model="ktpFormData.pekerjaan"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="Contoh: PELAJAR/MAHASISWA"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Kewarganegaraan</label
-            >
-            <input
-              v-model="ktpFormData.kewarganegaraan"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="WNI"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Berlaku Hingga</label
-            >
-            <input
-              v-model="ktpFormData.berlaku_hingga"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="SEUMUR HIDUP"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Tanggal Terbit</label
-            >
-            <input
-              v-model="ktpFormData.tanggal_terbit_ktp"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="DD-MM-YYYY"
-            />
-          </div>
-        </div>
-      </template>
-    </PersonnelDocumentUploadModal>
-
-    <!-- NPWP Upload Modal -->
-    <PersonnelDocumentUploadModal
-      :show="showNpwpUploadModal"
-      document-type="npwp"
-      :person-name="person?.nama_lengkap"
-      :is-edit-mode="isEditingNpwp"
-      :existing-file-url="npwp?.file_npwp_personel_url"
-      @close="showNpwpUploadModal = false"
-      @save="saveNpwp"
-      @aiScanComplete="handleNpwpAIScan"
-    >
-      <template #form-fields="{ disabled }">
-        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
-          <div class="col-span-2 sm:col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Nomor NPWP <span class="text-red-500">*</span></label
-            >
-            <input
-              v-model="npwpFormData.nomor_npwp_personel"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="XX.XXX.XXX.X-XXX.XXX"
-            />
-          </div>
-
-          <div class="col-span-2 sm:col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >NIK NPWP</label
-            >
-            <input
-              v-model="npwpFormData.nik_npwp_personel"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              maxlength="16"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Nama Wajib Pajak</label
-            >
-            <input
-              v-model="npwpFormData.nama_npwp_personel"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >KPP</label
-            >
-            <input
-              v-model="npwpFormData.kpp_npwp_personel"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="Contoh: KPP Pratama Jakarta Pusat"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Alamat NPWP</label
-            >
-            <textarea
-              v-model="npwpFormData.alamat_npwp_personel"
-              rows="2"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-orange-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            ></textarea>
-          </div>
-        </div>
-      </template>
-    </PersonnelDocumentUploadModal>
-
-    <!-- Ijazah Upload Modal -->
-    <PersonnelDocumentUploadModal
-      :show="showIjazahUploadModal"
-      document-type="ijazah"
-      :person-name="person?.nama_lengkap"
-      :is-edit-mode="isEditingIjazah"
-      :existing-file-url="ijazah?.file_ijazah_url"
-      @close="showIjazahUploadModal = false"
-      @save="saveIjazah"
-      @aiScanComplete="handleIjazahAIScan"
-    >
-      <template #form-fields="{ disabled }">
-        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Jenjang <span class="text-red-500">*</span></label
-            >
-            <select
-              v-model="ijazahFormData.jenjang_pendidikan"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            >
-              <option value="">Pilih</option>
-              <option value="SMA/SMK">SMA/SMK</option>
-              <option value="D3">D3</option>
-              <option value="S1">S1</option>
-              <option value="S2">S2</option>
-              <option value="S3">S3</option>
-            </select>
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >IPK</label
-            >
-            <input
-              v-model="ijazahFormData.ipk"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="3.50"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Nama Institusi</label
-            >
-            <input
-              v-model="ijazahFormData.nama_institusi_pendidikan"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Fakultas</label
-            >
-            <input
-              v-model="ijazahFormData.fakultas"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Program Studi</label
-            >
-            <input
-              v-model="ijazahFormData.program_studi"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Nomor Ijazah</label
-            >
-            <input
-              v-model="ijazahFormData.nomor_ijazah"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Tahun Masuk</label
-            >
-            <input
-              v-model="ijazahFormData.tahun_masuk"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="2015"
-            />
-          </div>
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Tahun Lulus</label
-            >
-            <input
-              v-model="ijazahFormData.tahun_lulus"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="2019"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Gelar Akademik</label
-            >
-            <input
-              v-model="ijazahFormData.gelar_akademik"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="S.T., S.Kom., dll"
-            />
-          </div>
-        </div>
-      </template>
-    </PersonnelDocumentUploadModal>
-
-    <!-- CV Upload Modal -->
-    <PersonnelDocumentUploadModal
-      :show="showCvUploadModal"
-      document-type="cv"
-      :person-name="person?.nama_lengkap"
-      :is-edit-mode="isEditingCv"
-      :existing-file-url="cv?.file_cv_url"
-      @close="showCvUploadModal = false"
-      @save="saveCv"
-      @aiScanComplete="handleCvAIScan"
-    >
-      <template #form-fields="{ disabled }">
-        <div class="grid grid-cols-2 gap-x-4 gap-y-3">
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Nama Lengkap</label
-            >
-            <input
-              v-model="cvFormData.nama_lengkap_cv"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Ringkasan Profil</label
-            >
-            <textarea
-              v-model="cvFormData.ringkasan_profil"
-              rows="2"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="Profesional berpengalaman..."
-            ></textarea>
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Keahlian Utama</label
-            >
-            <input
-              v-model="cvFormData.keahlian_utama"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="Project Management, AutoCAD, dll"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Pengalaman (Thn)</label
-            >
-            <input
-              v-model="cvFormData.total_pengalaman_tahun"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="5"
-            />
-          </div>
-
-          <div class="col-span-1">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Bahasa</label
-            >
-            <input
-              v-model="cvFormData.bahasa_dikuasai"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="Indonesia, Inggris"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Pengalaman Terakhir</label
-            >
-            <input
-              v-model="cvFormData.pengalaman_kerja_terakhir"
-              type="text"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="Senior Engineer di PT ABC"
-            />
-          </div>
-
-          <div class="col-span-2">
-            <label
-              class="block text-[10px] font-bold text-slate-700 dark:text-slate-300 mb-1"
-              >Sertifikasi</label
-            >
-            <textarea
-              v-model="cvFormData.sertifikasi_profesional"
-              rows="2"
-              :disabled="disabled"
-              class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:ring-2 focus:ring-emerald-500 dark:bg-slate-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-800"
-              placeholder="PMP, SKA Ahli, dll"
-            ></textarea>
-          </div>
-        </div>
-      </template>
-    </PersonnelDocumentUploadModal>
-
-    <!-- Confirm Dialog for Document Deletion -->
-    <ConfirmDialog
-      :show="showDeleteConfirm"
-      title="Hapus Dokumen?"
-      :message="`Dokumen ${getDocumentLabel(
-        deleteDocumentType
-      )} akan dihapus permanen. Lanjutkan?`"
-      confirm-text="Hapus"
-      cancel-text="Batal"
-      loading-text="Menghapus..."
-      :loading="isDeletingDocument"
-      type="danger"
-      @confirm="handleDeleteDocument"
-      @cancel="showDeleteConfirm = false"
-    />
-
-    <!-- Edit Contact Info Modal -->
+    <!-- Edit Contact Modal -->
     <BaseModal
       :show="showEditContactModal"
       @close="showEditContactModal = false"
@@ -1526,53 +185,46 @@
           </div>
           <div>
             <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-              Edit Informasi Kontak
+              Edit Kontak
             </h3>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Alamat domisili dan nomor telepon
+            <p class="text-xs text-slate-500">
+              Update informasi kontak personel.
             </p>
           </div>
         </div>
       </template>
-
       <div class="space-y-4">
         <div>
           <label
             class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2"
             >No. Telepon</label
-          >
-          <input
+          ><input
             v-model="contactFormData.no_hp"
             type="text"
-            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-            placeholder="08123456789"
+            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white"
           />
         </div>
-
         <div>
           <label
             class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2"
             >Alamat Domisili</label
-          >
-          <textarea
+          ><textarea
             v-model="contactFormData.alamat_domisili"
             rows="3"
-            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-            placeholder="Alamat lengkap domisili"
+            class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white"
           ></textarea>
         </div>
-
-        <div class="flex justify-end gap-3 mt-6">
+        <div class="flex justify-end gap-3 mt-4">
           <button
             @click="showEditContactModal = false"
-            class="px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+            class="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700"
           >
             Batal
           </button>
           <button
             @click="saveContactInfo"
             :disabled="isSavingContact"
-            class="px-4 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg"
           >
             {{ isSavingContact ? "Menyimpan..." : "Simpan" }}
           </button>
@@ -1580,14 +232,13 @@
       </div>
     </BaseModal>
 
-    <!-- Confirm Dialog for Contact Deletion -->
+    <!-- Delete Contact Confirm -->
     <ConfirmDialog
       :show="showDeleteContactConfirm"
-      title="Hapus Informasi Kontak?"
-      message="Alamat domisili dan nomor telepon akan dihapus. Lanjutkan?"
+      title="Hapus Kontak?"
+      message="Hapus nomor telepon dan alamat?"
       confirm-text="Hapus"
       cancel-text="Batal"
-      loading-text="Menghapus..."
       :loading="isDeletingContact"
       type="danger"
       @confirm="handleDeleteContact"
@@ -1597,14 +248,15 @@
 </template>
 
 <script setup>
+import BaseSkeleton from "~/components/BaseSkeleton.vue";
 import BaseModal from "~/components/BaseModal.vue";
-import PersonnelDocumentUploadModal from "~/components/PersonnelDocumentUploadModal.vue";
-import ConfirmDialog from "~/components/ConfirmDialog.vue";
 import BaseToast from "~/components/BaseToast.vue";
+import ConfirmDialog from "~/components/ConfirmDialog.vue";
+import PersonnelDetailHeader from "~/components/PersonnelDetailHeader.vue";
+// Import dedicated Personnel Component
+import PersonnelDocumentTab from "~/components/personnel/tabs/PersonnelDocumentTab.vue";
 
-definePageMeta({
-  layout: "dashboard",
-});
+definePageMeta({ layout: "dashboard" });
 
 const route = useRoute();
 const router = useRouter();
@@ -1612,481 +264,284 @@ const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
 const { toast, success, error: showError, hideToast } = useToast();
 
-const personId = route.params.id;
 const loading = ref(true);
 const person = ref(null);
+
 const ktp = ref(null);
 const npwp = ref(null);
 const ijazah = ref(null);
 const cv = ref(null);
 
-// Document Selection State
+const pendingUploads = ref({
+  ktp: { file: null, preview: null },
+  npwp: { file: null, preview: null },
+  ijazah: { file: null, preview: null },
+  cv: { file: null, preview: null },
+});
+const uploadingState = ref({
+  ktp: false,
+  npwp: false,
+  ijazah: false,
+  cv: false,
+});
 const selectedDocument = ref("ktp");
 
-/* Data for Sliding Tabs */
 const documentTabs = [
-  {
-    id: "ktp",
-    label: "KTP",
-    icon: "far fa-id-card",
-    gradient: "from-blue-600 to-indigo-600",
-    shadow: "shadow-blue-500/30",
-    hoverText: "hover:text-blue-600 dark:hover:text-blue-400",
-  },
-  {
-    id: "npwp",
-    label: "NPWP",
-    icon: "fas fa-credit-card",
-    gradient: "from-orange-600 to-amber-600",
-    shadow: "shadow-orange-500/30",
-    hoverText: "hover:text-orange-600 dark:hover:text-orange-400",
-  },
-  {
-    id: "ijazah",
-    label: "Ijazah",
-    icon: "fas fa-graduation-cap",
-    gradient: "from-purple-600 to-violet-600",
-    shadow: "shadow-purple-500/30",
-    hoverText: "hover:text-purple-600 dark:hover:text-purple-400",
-  },
-  {
-    id: "cv",
-    label: "CV",
-    icon: "fas fa-file-alt",
-    gradient: "from-emerald-600 to-teal-600",
-    shadow: "shadow-emerald-500/30",
-    hoverText: "hover:text-emerald-600 dark:hover:text-emerald-400",
-  },
+  { id: "ktp", label: "KTP", icon: "far fa-id-card" },
+  { id: "npwp", label: "NPWP", icon: "fas fa-credit-card" },
+  { id: "ijazah", label: "Ijazah", icon: "fas fa-graduation-cap" },
+  { id: "cv", label: "CV", icon: "fas fa-file-alt" },
 ];
 
-const tabRefs = ref([]);
-const gliderStyle = ref({
-  width: "0px",
-  transform: "translateX(0px)",
-  opacity: 0,
-  height: "0px",
-  top: "0px",
-});
+const ktpFields = [
+  { label: "NIK", key: "nik", type: "text" },
+  { label: "Nama Lengkap", key: "nama_ktp", type: "text" },
+  { label: "Tempat Lahir", key: "tempat_lahir_ktp", type: "text" },
+  { label: "Tanggal Lahir", key: "tanggal_lahir_ktp", type: "date" },
+  {
+    label: "Jenis Kelamin",
+    key: "jenis_kelamin",
+    type: "select",
+    options: ["Laki-Laki", "Perempuan"],
+  },
+  { label: "Alamat", key: "alamat_ktp", type: "textarea" },
+  { label: "RT/RW", key: "rt_rw", type: "text" },
+  { label: "Kel/Desa", key: "kelurahan_desa", type: "text" },
+  { label: "Kecamatan", key: "kecamatan", type: "text" },
+  { label: "Kota/Kab", key: "kota_kabupaten", type: "text" },
+  { label: "Provinsi", key: "provinsi", type: "text" },
+  { label: "Agama", key: "agama", type: "text" },
+  { label: "Status Kawin", key: "status_perkawinan", type: "text" },
+  { label: "Pekerjaan", key: "pekerjaan", type: "text" },
+  { label: "Kewarganegaraan", key: "kewarganegaraan", type: "text" },
+  { label: "Berlaku Hingga", key: "berlaku_hingga", type: "text" },
+  { label: "Tgl Terbit", key: "tanggal_terbit_ktp", type: "date" },
+];
 
-const activeTabGradient = computed(() => {
-  const tab = documentTabs.find((t) => t.id === selectedDocument.value);
-  return tab
-    ? `bg-gradient-to-r ${tab.gradient} shadow-lg ${tab.shadow}`
-    : "bg-slate-500";
-});
+const npwpFields = [
+  { label: "No. NPWP", key: "nomor_npwp_personel", type: "text" },
+  { label: "NIK NPWP", key: "nik_npwp_personel", type: "text" },
+  { label: "Nama WP", key: "nama_npwp_personel", type: "text" },
+  { label: "Alamat NPWP", key: "alamat_npwp_personel", type: "textarea" },
+  { label: "KPP", key: "kpp_npwp_personel", type: "text" },
+];
 
-const updateGlider = async () => {
-  await nextTick();
-  const index = documentTabs.findIndex((t) => t.id === selectedDocument.value);
-  const el = tabRefs.value[index];
-  if (el) {
-    gliderStyle.value = {
-      width: `${el.offsetWidth}px`,
-      transform: `translateX(${el.offsetLeft}px)`,
-      opacity: 1,
-      height: `${el.offsetHeight}px`,
-      top: `${el.offsetTop}px`,
-    };
+const ijazahFields = [
+  {
+    label: "Jenjang",
+    key: "jenjang_pendidikan",
+    type: "select",
+    options: ["SMA/SMK", "D3", "S1", "S2", "S3"],
+  },
+  { label: "Nama Institusi", key: "nama_institusi_pendidikan", type: "text" },
+  { label: "Fakultas", key: "fakultas", type: "text" },
+  { label: "Prodi", key: "program_studi", type: "text" },
+  { label: "No. Ijazah", key: "nomor_ijazah", type: "text" },
+  { label: "Thn Masuk", key: "tahun_masuk", type: "text" },
+  { label: "Thn Lulus", key: "tahun_lulus", type: "text" },
+  { label: "Gelar", key: "gelar_akademik", type: "text" },
+  { label: "IPK", key: "ipk", type: "text" },
+];
+
+const cvFields = [
+  { label: "Nama Lengkap", key: "nama_lengkap_cv", type: "text" },
+  { label: "Ringkasan", key: "ringkasan_profil", type: "textarea" },
+  { label: "Keahlian", key: "keahlian_utama", type: "text" },
+  { label: "Thn Pengalaman", key: "total_pengalaman_tahun", type: "text" },
+  { label: "Posisi Terakhir", key: "pengalaman_kerja_terakhir", type: "text" },
+  { label: "Sertifikasi", key: "sertifikasi_profesional", type: "textarea" },
+  { label: "Bahasa", key: "bahasa_dikuasai", type: "text" },
+];
+
+const handleUploadSelect = (file) => {
+  const type = selectedDocument.value;
+  pendingUploads.value[type].file = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    pendingUploads.value[type].preview = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+const handleUploadSave = async () => {
+  const type = selectedDocument.value;
+  const file = pendingUploads.value[type].file;
+  if (!file) return;
+  uploadingState.value[type] = true;
+
+  // Determine if we should POST (add) or PUT (update)
+  // based on whether the document data already exists
+  let method = "POST";
+  let hasData = false;
+
+  if (type === "ktp" && ktp.value) hasData = true;
+  if (type === "npwp" && npwp.value) hasData = true;
+  if (type === "ijazah" && ijazah.value) hasData = true;
+  if (type === "cv" && cv.value) hasData = true;
+
+  if (hasData) {
+    method = "PUT";
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Add existing data fields to prevent them being wiped if backend requires them
+    // (Though usually PATCH/PUT should only update what's sent, FormData updates might be strict)
+    // For now detailed fields are not needing to be resent if backend handles it gracefully
+
+    const res = await fetch(
+      `${apiBaseUrl}/personnel-documents/${route.params.id}/${type}`,
+      { method: method, body: formData }
+    );
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || "Gagal upload dokumen");
+    }
+
+    success("Dokumen berhasil diupload");
+    pendingUploads.value[type].file = null;
+    pendingUploads.value[type].preview = null;
+    await fetchPersonilDetail();
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    uploadingState.value[type] = false;
   }
 };
 
-// Use flush: 'post' to ensure DOM is updated before callback
-watch(selectedDocument, updateGlider, { flush: "post" });
+const handleUpdateItem = async (newData) => {
+  const type = selectedDocument.value;
+  uploadingState.value[type] = true;
+  try {
+    const formData = new FormData();
+    Object.keys(newData).forEach((key) => {
+      if (newData[key] != null) formData.append(key, newData[key]);
+    });
 
-// Watch for person data to load (which renders the tabs) this fixes initial glider visibility
-watch(
-  person,
-  (val) => {
-    if (val) {
-      nextTick(() => {
-        updateGlider();
-        setTimeout(updateGlider, 200);
-      });
+    // Always use PUT for updates as data must exist to be edited
+    // But double check just in case user edits before upload?
+    // Actually the UI might allow editing "empty" forms?
+    // If so, we need to create it (POST) but POST requires a file.
+    // If we try to create (POST) without file, it fails.
+    // So we can only update (PUT) if we are sending data without file.
+    // Ensure we use PUT.
+
+    const res = await fetch(
+      `${apiBaseUrl}/personnel-documents/${route.params.id}/${type}`,
+      { method: "PUT", body: formData }
+    );
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || "Gagal update data");
     }
-  },
-  { flush: "post" }
-);
 
-onMounted(() => {
-  // Multiple attempts to stabilize the glider on initial load
-  nextTick(() => updateGlider());
-  setTimeout(updateGlider, 150);
-  setTimeout(updateGlider, 500);
-  window.addEventListener("resize", updateGlider);
-});
+    success("Data berhasil disimpan");
+    await fetchPersonilDetail();
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    uploadingState.value[type] = false;
+  }
+};
 
-// Modal States for Document Upload
-const showKtpUploadModal = ref(false);
-const showNpwpUploadModal = ref(false);
-const showIjazahUploadModal = ref(false);
-const showCvUploadModal = ref(false);
+const activeTabComponent = ref(null);
 
-// Edit Mode States
-const isEditingKtp = ref(false);
-const isEditingNpwp = ref(false);
-const isEditingIjazah = ref(false);
-const isEditingCv = ref(false);
+const handleAiScan = async (type) => {
+  // 1. Check if there is a pending file to scan
+  const pendingFile = pendingUploads.value[type].file;
 
-// Form Data States
-const ktpFormData = ref({});
-const npwpFormData = ref({});
-const ijazahFormData = ref({});
-const cvFormData = ref({});
+  // 2. Check if there is an existing file URL
+  let existingUrl = null;
+  if (type === "ktp") existingUrl = ktp.value?.file_ktp_url;
+  if (type === "npwp") existingUrl = npwp.value?.file_npwp_personel_url;
+  if (type === "ijazah") existingUrl = ijazah.value?.file_ijazah_url;
+  if (type === "cv") existingUrl = cv.value?.file_cv_url;
 
-// Confirm Dialog States
-const showDeleteConfirm = ref(false);
-const deleteDocumentType = ref("");
+  if (!pendingFile && !existingUrl) {
+    showError("Silakan upload dokumen terlebih dahulu untuk discan.");
+    return;
+  }
 
-// Old Modal States (keep for backward compatibility)
-const showKtpModal = ref(false);
-const showNpwpModal = ref(false);
+  const toastId = toast.info("Memproses dengan AI...", { timeout: false });
 
-// Contact Info Modal States
+  try {
+    let result;
+
+    if (pendingFile) {
+      // Scan pending file
+      const formData = new FormData();
+      formData.append("file", pendingFile);
+      formData.append("documentType", type);
+
+      const res = await fetch(`${apiBaseUrl}/ai/scan-document`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Gagal memindai dokumen");
+      }
+      result = await res.json();
+    } else {
+      // Scan existing file from Drive
+      const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileUrl: existingUrl,
+          documentType: type,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Gagal memindai dokumen dari Drive");
+      }
+      result = await res.json();
+    }
+
+    // Apply results
+    const data = result.data;
+    if (type === "ktp") ktp.value = { ...ktp.value, ...data };
+    if (type === "npwp") npwp.value = { ...npwp.value, ...data };
+    if (type === "ijazah") ijazah.value = { ...ijazah.value, ...data };
+    if (type === "cv") cv.value = { ...cv.value, ...data };
+
+    // Update the editing form in the child component if active
+    if (activeTabComponent.value) {
+      activeTabComponent.value.updateEditData(data);
+    }
+
+    hideToast(toastId); // Clean up loading toast
+    success("Data berhasil diekstrak oleh AI. Silakan periksa dan Simpan.");
+  } catch (e) {
+    hideToast(toastId);
+    showError(e.message);
+  }
+};
+
 const showEditContactModal = ref(false);
 const showDeleteContactConfirm = ref(false);
 const contactFormData = ref({ no_hp: "", alamat_domisili: "" });
 const isSavingContact = ref(false);
 const isDeletingContact = ref(false);
 
-// Helper
 const getInitials = (name) => {
   if (!name) return "?";
   const words = name
     .replace(/[^\w\s]/gi, "")
     .split(/\s+/)
     .filter((w) => w.length > 0);
-  if (words.length >= 2) {
-    return (words[0][0] + words[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
+  return words.length >= 2
+    ? (words[0][0] + words[1][0]).toUpperCase()
+    : name.slice(0, 2).toUpperCase();
 };
 
-// Preview URL Helper (Google Drive & Local)
-const getPreviewUrl = (url) => {
-  if (!url) return "";
-  // If local file
-  if (url.startsWith("http://localhost") || url.startsWith("/")) {
-    return url;
-  }
-  // If Google Drive view link, convert to preview
-  if (url.includes("drive.google.com") && url.includes("/view")) {
-    return url.replace("/view", "/preview");
-  }
-  return url;
-};
-
-// Document URL Getter
-const getDocumentUrl = (docType) => {
-  switch (docType) {
-    case "ktp":
-      return ktp.value?.file_ktp_url || null;
-    case "npwp":
-      return npwp.value?.file_npwp_personel_url || null;
-    case "ijazah":
-      return ijazah.value?.file_ijazah_url || null;
-    case "cv":
-      return cv.value?.file_cv_url || null;
-    default:
-      return null;
-  }
-};
-
-// Document Label Getter
-const getDocumentLabel = (docType) => {
-  const labels = {
-    ktp: "KTP",
-    npwp: "NPWP",
-    ijazah: "Ijazah",
-    cv: "CV",
-  };
-  return labels[docType] || docType.toUpperCase();
-};
-
-// Document Icon Getter
-const getDocumentIcon = (docType) => {
-  const icons = {
-    ktp: "far fa-id-card",
-    npwp: "fas fa-credit-card",
-    ijazah: "fas fa-graduation-cap",
-    cv: "fas fa-file-alt",
-  };
-  return icons[docType] || "fas fa-file";
-};
-
-// Modal Handlers
-const openKtpModal = () => {
-  showKtpModal.value = true;
-};
-
-const openNpwpModal = () => {
-  showNpwpModal.value = true;
-};
-
-// Helper Functions
-const hasDocument = (docType) => {
-  // Cek keberadaan file_url, bukan field lain
-  // Karena user mungkin tidak isi semua field, tapi file sudah diupload
-  switch (docType) {
-    case "ktp":
-      return !!ktp.value && !!ktp.value.file_ktp_url;
-    case "npwp":
-      return !!npwp.value && !!npwp.value.file_npwp_personel_url;
-    case "ijazah":
-      return !!ijazah.value && !!ijazah.value.file_ijazah_url;
-    case "cv":
-      return !!cv.value && !!cv.value.file_cv_url;
-    default:
-      return false;
-  }
-};
-
-// Modal Handlers
-const openAddModal = (docType) => {
-  switch (docType) {
-    case "ktp":
-      ktpFormData.value = {};
-      isEditingKtp.value = false;
-      showKtpUploadModal.value = true;
-      break;
-    case "npwp":
-      npwpFormData.value = {};
-      isEditingNpwp.value = false;
-      showNpwpUploadModal.value = true;
-      break;
-    case "ijazah":
-      ijazahFormData.value = {};
-      isEditingIjazah.value = false;
-      showIjazahUploadModal.value = true;
-      break;
-    case "cv":
-      cvFormData.value = {};
-      isEditingCv.value = false;
-      showCvUploadModal.value = true;
-      break;
-  }
-};
-
-const openEditModal = (docType) => {
-  switch (docType) {
-    case "ktp":
-      ktpFormData.value = { ...ktp.value };
-      isEditingKtp.value = true;
-      showKtpUploadModal.value = true;
-      break;
-    case "npwp":
-      npwpFormData.value = { ...npwp.value };
-      isEditingNpwp.value = true;
-      showNpwpUploadModal.value = true;
-      break;
-    case "ijazah":
-      ijazahFormData.value = { ...ijazah.value };
-      isEditingIjazah.value = true;
-      showIjazahUploadModal.value = true;
-      break;
-    case "cv":
-      cvFormData.value = { ...cv.value };
-      isEditingCv.value = true;
-      showCvUploadModal.value = true;
-      break;
-  }
-};
-
-const openDeleteConfirm = (docType) => {
-  deleteDocumentType.value = docType;
-  showDeleteConfirm.value = true;
-};
-
-// Use composable for document handlers (pass toast functions)
-const documentHandlers = usePersonnelDocuments(
-  personId,
-  apiBaseUrl,
-  success,
-  showError
-);
-
-// Delete Document Loading State
-const isDeletingDocument = ref(false);
-
-// Delete Document Handler
-const handleDeleteDocument = async () => {
-  if (isDeletingDocument.value) return;
-
-  try {
-    isDeletingDocument.value = true;
-    const docType = deleteDocumentType.value;
-    const docTypeLabel = getDocumentLabel(docType);
-
-    switch (docType) {
-      case "ktp":
-        await documentHandlers.handleDeleteKtp();
-        break;
-      case "npwp":
-        await documentHandlers.handleDeleteNpwp();
-        break;
-      case "ijazah":
-        await documentHandlers.handleDeleteIjazah();
-        break;
-      case "cv":
-        await documentHandlers.handleDeleteCv();
-        break;
-    }
-
-    // Close confirm dialog
-    showDeleteConfirm.value = false;
-    deleteDocumentType.value = "";
-
-    // Show toast BEFORE reload
-    success(`${docTypeLabel} berhasil dihapus`);
-
-    // Wait for toast animation then reload
-    setTimeout(async () => {
-      await fetchPersonDetail();
-    }, 500);
-  } catch (err) {
-    // Error toast already shown by composable
-    console.error("Delete document error:", err);
-  } finally {
-    isDeletingDocument.value = false;
-  }
-};
-
-// Save Handlers for Documents
-const saveKtp = async (file) => {
-  try {
-    if (isEditingKtp.value) {
-      await documentHandlers.handleUpdateKtp(ktpFormData.value, file);
-    } else {
-      await documentHandlers.handleAddKtp(ktpFormData.value, file);
-    }
-
-    // Close modal first
-    showKtpUploadModal.value = false;
-
-    // Show toast BEFORE reload
-    success(
-      isEditingKtp.value
-        ? "KTP berhasil diperbarui"
-        : "KTP berhasil ditambahkan"
-    );
-
-    // Wait for toast animation then reload
-    setTimeout(async () => {
-      await fetchPersonDetail();
-    }, 500);
-  } catch (err) {
-    // Error toast already shown by composable
-    console.error("Save KTP error:", err);
-  }
-};
-
-const saveNpwp = async (file) => {
-  try {
-    if (isEditingNpwp.value) {
-      await documentHandlers.handleUpdateNpwp(npwpFormData.value, file);
-    } else {
-      await documentHandlers.handleAddNpwp(npwpFormData.value, file);
-    }
-
-    // Close modal first
-    showNpwpUploadModal.value = false;
-
-    // Show toast BEFORE reload
-    success(
-      isEditingNpwp.value
-        ? "NPWP berhasil diperbarui"
-        : "NPWP berhasil ditambahkan"
-    );
-
-    // Wait for toast animation then reload
-    setTimeout(async () => {
-      await fetchPersonDetail();
-    }, 500);
-  } catch (err) {
-    // Error toast already shown by composable
-    console.error("Save NPWP error:", err);
-  }
-};
-
-const saveIjazah = async (file) => {
-  try {
-    if (isEditingIjazah.value) {
-      await documentHandlers.handleUpdateIjazah(ijazahFormData.value, file);
-    } else {
-      await documentHandlers.handleAddIjazah(ijazahFormData.value, file);
-    }
-
-    // Close modal first
-    showIjazahUploadModal.value = false;
-
-    // Show toast BEFORE reload
-    success(
-      isEditingIjazah.value
-        ? "Ijazah berhasil diperbarui"
-        : "Ijazah berhasil ditambahkan"
-    );
-
-    // Wait for toast animation then reload
-    setTimeout(async () => {
-      await fetchPersonDetail();
-    }, 500);
-  } catch (err) {
-    // Error toast already shown by composable
-    console.error("Save Ijazah error:", err);
-  }
-};
-
-const saveCv = async (file) => {
-  try {
-    if (isEditingCv.value) {
-      await documentHandlers.handleUpdateCv(cvFormData.value, file);
-    } else {
-      await documentHandlers.handleAddCv(cvFormData.value, file);
-    }
-
-    // Close modal first
-    showCvUploadModal.value = false;
-
-    // Show toast BEFORE reload
-    success(
-      isEditingCv.value ? "CV berhasil diperbarui" : "CV berhasil ditambahkan"
-    );
-
-    // Wait for toast animation then reload
-    setTimeout(async () => {
-      await fetchPersonDetail();
-    }, 500);
-  } catch (err) {
-    // Error toast already shown by composable
-    console.error("Save CV error:", err);
-  }
-};
-
-// AI Scan Completion Handlers
-const handleKtpAIScan = (data) => {
-  console.log("[AI SCAN] Auto-filling KTP form:", data);
-  ktpFormData.value = { ...ktpFormData.value, ...data };
-  success("KTP data berhasil di-scan! Silakan periksa dan edit jika perlu.");
-};
-
-const handleNpwpAIScan = (data) => {
-  console.log("[AI SCAN] Auto-filling NPWP form:", data);
-  npwpFormData.value = { ...npwpFormData.value, ...data };
-  success("NPWP data berhasil di-scan! Silakan periksa dan edit jika perlu.");
-};
-
-const handleIjazahAIScan = (data) => {
-  console.log("[AI SCAN] Auto-filling Ijazah form:", data);
-  ijazahFormData.value = { ...ijazahFormData.value, ...data };
-  success("Ijazah data berhasil di-scan! Silakan periksa dan edit jika perlu.");
-};
-
-const handleCvAIScan = (data) => {
-  console.log("[AI SCAN] Auto-filling CV form:", data);
-  cvFormData.value = { ...cvFormData.value, ...data };
-  success("CV data berhasil di-scan! Silakan periksa dan edit jika perlu.");
-};
-
-// Contact Info Handlers
 const openEditContactInfo = () => {
   contactFormData.value = {
     no_hp: person.value?.no_hp || "",
@@ -2096,142 +551,73 @@ const openEditContactInfo = () => {
 };
 
 const saveContactInfo = async () => {
-  if (isSavingContact.value) return;
-
-  let saveSuccessful = false;
-
+  isSavingContact.value = true;
   try {
-    isSavingContact.value = true;
-
-    // Update personel data (only alamat_domisili and no_hp)
-    const response = await fetch(`${apiBaseUrl}/personnel/${personId}`, {
+    const res = await fetch(`${apiBaseUrl}/personnel/${route.params.id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        alamat_domisili: contactFormData.value.alamat_domisili,
-        no_hp: contactFormData.value.no_hp,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(contactFormData.value),
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to update contact info");
-    }
-
-    // Show success toast
-    success("Informasi kontak berhasil diperbarui");
-    saveSuccessful = true;
-
-    // Reload data
-    setTimeout(async () => {
-      await fetchPersonDetail();
-    }, 500);
-  } catch (err) {
-    console.error("Save contact error:", err);
-    showError("Gagal menyimpan informasi kontak: " + err.message);
+    if (!res.ok) throw new Error("Gagal update kontak");
+    success("Kontak diperbarui");
+    showEditContactModal.value = false;
+    fetchPersonilDetail();
+  } catch (e) {
+    showError(e.message);
   } finally {
     isSavingContact.value = false;
-
-    // Close modal only if save was successful
-    if (saveSuccessful) {
-      showEditContactModal.value = false;
-    }
   }
 };
 
-const openDeleteContactConfirm = () => {
-  showDeleteContactConfirm.value = true;
-};
-
 const handleDeleteContact = async () => {
-  if (isDeletingContact.value) return;
-
+  isDeletingContact.value = true;
   try {
-    isDeletingContact.value = true;
-
-    // Delete contact info by setting empty values
-    const response = await fetch(`${apiBaseUrl}/personnel/${personId}`, {
+    const res = await fetch(`${apiBaseUrl}/personnel/${route.params.id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        alamat_domisili: "",
-        no_hp: "",
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ no_hp: "", alamat_domisili: "" }),
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to delete contact info");
-    }
-
-    // Close confirm dialog
+    if (!res.ok) throw new Error("Gagal hapus kontak");
+    success("Kontak dihapus");
     showDeleteContactConfirm.value = false;
-
-    // Show success toast
-    success("Informasi kontak berhasil dihapus");
-
-    // Reload data
-    setTimeout(async () => {
-      await fetchPersonDetail();
-    }, 500);
-  } catch (err) {
-    console.error("Delete contact error:", err);
-    showError("Gagal menghapus informasi kontak: " + err.message);
+    fetchPersonilDetail();
+  } catch (e) {
+    showError(e.message);
   } finally {
     isDeletingContact.value = false;
   }
 };
 
-// Fetch Data
-const fetchPersonDetail = async () => {
+const openDeleteContactConfirm = () => (showDeleteContactConfirm.value = true);
+
+const fetchPersonilDetail = async () => {
+  loading.value = true;
   try {
-    loading.value = true;
-
-    // Fetch person data
-    const response = await fetch(`${apiBaseUrl}/personnel/${personId}`);
-    if (!response.ok) throw new Error("Personnel not found");
-
-    const result = await response.json();
+    const res = await fetch(`${apiBaseUrl}/personnel/${route.params.id}`);
+    if (!res.ok) throw new Error("Error fetching data");
+    const result = await res.json();
     person.value = result.data || result;
-
-    // Set documents from joined data
     ktp.value = person.value.ktp || null;
     npwp.value = person.value.npwp || null;
     ijazah.value = person.value.ijazah || null;
     cv.value = person.value.cv || null;
-
-    console.log("📊 Person Detail:", person.value);
-  } catch (err) {
-    console.error("Fetch error:", err);
-    showError("Gagal memuat data personel: " + err.message);
+  } catch (e) {
+    showError(e.message);
   } finally {
     loading.value = false;
   }
 };
 
-onMounted(() => {
-  fetchPersonDetail();
-});
+onMounted(() => fetchPersonilDetail());
 </script>
 
 <style scoped>
-/* Tab Transitions */
-.tab-fade-enter-active,
-.tab-fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
 }
-
-.tab-fade-enter-from {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
-  transform: translateY(10px);
-}
-
-.tab-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-    <!-- Left Column: Data List -->
-    <div class="lg:col-span-7 space-y-4">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start h-full">
+    <!-- Left Column: Data List (Constrained Height) -->
+    <div class="lg:col-span-7 space-y-4 h-full flex flex-col">
       <!-- Empty State -->
       <div
         v-if="!items || items.length === 0"
@@ -52,25 +52,17 @@
         </div>
       </div>
 
-      <!-- Item List -->
-      <div v-else class="space-y-3">
+      <!-- Item List (Single Item typically) -->
+      <div v-else class="space-y-3 flex-1 flex flex-col min-h-0">
         <div
           v-for="item in items"
           :key="item[idKey]"
           @click="$emit('select-item', item)"
-          class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 transition-all group"
-          :class="[
-            selectedId === item[idKey] && !singleMode
-              ? 'border-blue-500 ring-2 ring-blue-500/20'
-              : 'border-slate-200 dark:border-slate-700',
-            !singleMode
-              ? 'hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md cursor-pointer'
-              : 'cursor-default',
-          ]"
+          class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 transition-all group flex flex-col max-h-full border-slate-200 dark:border-slate-700"
         >
-          <!-- Header -->
+          <!-- Header (Always visible) -->
           <div
-            class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
+            class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3 shrink-0"
           >
             <div class="flex items-center gap-3">
               <div
@@ -95,7 +87,7 @@
 
             <!-- Edit Button -->
             <button
-              v-if="!isEditing && (singleMode || selectedId === item[idKey])"
+              v-if="!isEditing"
               @click.stop="startEditing(item)"
               class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1.5 rounded-lg transition-colors border border-blue-100 dark:border-blue-800"
             >
@@ -103,13 +95,10 @@
             </button>
           </div>
 
-          <!-- Fields Container (Standard Behavior - Scroll only on Edit) -->
+          <!-- Fields Container (Always Scrollable for Personnel) -->
           <div
-            class="mt-4 space-y-0.5"
-            :class="{
-              'max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar':
-                isEditing && editingId === item[idKey],
-            }"
+            class="mt-0 space-y-0.5 overflow-y-auto pr-2 custom-scrollbar flex-1"
+            style="max-height: calc(100vh - 350px)"
           >
             <div
               v-for="(field, index) in fields"
@@ -125,7 +114,7 @@
               <!-- View Mode -->
               <div
                 v-if="!isEditing || editingId !== item[idKey]"
-                class="text-xs font-medium text-slate-700 dark:text-slate-200 break-all"
+                class="text-xs font-medium text-slate-700 dark:text-slate-200 break-all leading-relaxed"
               >
                 {{
                   field.format
@@ -167,10 +156,11 @@
                 </select>
               </div>
             </div>
+
             <!-- Edit Footer Actions -->
             <div
               v-if="isEditing && editingId === item[idKey]"
-              class="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 py-3 mt-2 flex justify-end gap-2"
+              class="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 py-3 mt-2 flex justify-end gap-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"
             >
               <button
                 @click.stop="triggerAiScan"
@@ -195,16 +185,9 @@
           </div>
         </div>
       </div>
-
-      <!-- Extra Content Slot (e.g. KBLI) -->
-      <slot
-        name="sidebar-extra"
-        :is-editing="isEditing"
-        :local-data="editFormData"
-      />
     </div>
 
-    <!-- Right Column: Document Preview -->
+    <!-- Right Column: Document Preview (Full Height) -->
     <div class="lg:col-span-5 flex flex-col h-full">
       <DocumentPdfPreview
         :document-type="documentType"
@@ -234,7 +217,7 @@ const props = defineProps({
   idKey: { type: String, default: "id" },
   titleKey: String,
   titleLabel: String,
-  fields: Array, // [{ label: 'Nomor', key: 'nomor_akta' }]
+  fields: Array,
   icon: String,
   color: { type: String, default: "orange" },
   selectedItem: Object,
@@ -242,7 +225,7 @@ const props = defineProps({
   pendingFile: Object,
   pendingPreview: String,
   isUploading: Boolean,
-  singleMode: Boolean,
+  singleMode: Boolean, // Kept for prop compatibility
 });
 
 const emit = defineEmits([
@@ -261,7 +244,6 @@ const editFormData = ref({});
 const startEditing = (item) => {
   isEditing.value = true;
   editingId.value = item[props.idKey];
-  // Clone data for editing
   editFormData.value = { ...item };
 };
 
@@ -272,7 +254,7 @@ const cancelEditing = () => {
 };
 
 const saveEditing = () => {
-  emit("update-item", { ...editFormData.value }); // Send clean object
+  emit("update-item", { ...editFormData.value });
   cancelEditing();
 };
 

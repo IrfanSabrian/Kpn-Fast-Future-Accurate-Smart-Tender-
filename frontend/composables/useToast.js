@@ -46,43 +46,43 @@ export const useToast = () => {
 
   const success = (...args) => {
     if (args.length === 1) {
-      addToast("success", "Berhasil", args[0], 5000);
+      return addToast("success", "Berhasil", args[0], 5000);
     } else if (args.length === 2 && typeof args[1] === "number") {
       // (message, duration)
-      addToast("success", "Berhasil", args[0], args[1]);
+      return addToast("success", "Berhasil", args[0], args[1]);
     } else {
       // (title, message, duration?)
-      addToast("success", args[0], args[1], args[2] || 5000);
+      return addToast("success", args[0], args[1], args[2] || 5000);
     }
   };
 
   const error = (...args) => {
     if (args.length === 1) {
-      addToast("error", "Gagal", args[0], 8000);
+      return addToast("error", "Gagal", args[0], 8000);
     } else if (args.length === 2 && typeof args[1] === "number") {
-      addToast("error", "Gagal", args[0], args[1]);
+      return addToast("error", "Gagal", args[0], args[1]);
     } else {
-      addToast("error", args[0], args[1], args[2] || 8000);
+      return addToast("error", args[0], args[1], args[2] || 8000);
     }
   };
 
   const warning = (...args) => {
     if (args.length === 1) {
-      addToast("warning", "Peringatan", args[0], 6000);
+      return addToast("warning", "Peringatan", args[0], 6000);
     } else if (args.length === 2 && typeof args[1] === "number") {
-      addToast("warning", "Peringatan", args[0], args[1]);
+      return addToast("warning", "Peringatan", args[0], args[1]);
     } else {
-      addToast("warning", args[0], args[1], args[2] || 6000);
+      return addToast("warning", args[0], args[1], args[2] || 6000);
     }
   };
 
   const info = (...args) => {
     if (args.length === 1) {
-      addToast("info", "Informasi", args[0], 5000);
+      return addToast("info", "Informasi", args[0], 5000);
     } else if (args.length === 2 && typeof args[1] === "number") {
-      addToast("info", "Informasi", args[0], args[1]);
+      return addToast("info", "Informasi", args[0], args[1]);
     } else {
-      addToast("info", args[0], args[1], args[2] || 5000);
+      return addToast("info", args[0], args[1], args[2] || 5000);
     }
   };
 

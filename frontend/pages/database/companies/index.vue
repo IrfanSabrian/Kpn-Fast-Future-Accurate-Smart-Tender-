@@ -62,16 +62,29 @@
     </div>
 
     <!-- Loading State -->
+    <!-- Loading State Skeleton -->
     <div
       v-if="loading"
-      class="flex flex-col items-center justify-center py-20 relative z-10"
+      class="relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
     >
       <div
-        class="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"
-      ></div>
-      <p class="mt-4 text-slate-400 text-xs font-mono animate-pulse">
-        SYNCING DATABASE...
-      </p>
+        v-for="i in 8"
+        :key="i"
+        class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 space-y-4"
+      >
+        <div class="flex items-center gap-4">
+          <BaseSkeleton width="3rem" height="3rem" class-name="rounded-md" />
+          <div class="space-y-2 flex-1">
+            <BaseSkeleton width="20%" height="0.8rem" />
+            <BaseSkeleton width="80%" height="1rem" />
+          </div>
+        </div>
+        <div class="space-y-3 pt-2">
+          <BaseSkeleton width="100%" height="0.8rem" />
+          <BaseSkeleton width="70%" height="0.8rem" />
+          <BaseSkeleton width="50%" height="0.8rem" />
+        </div>
+      </div>
     </div>
 
     <!-- Companies Grid (Compact Mode) -->
@@ -803,6 +816,7 @@
 
 <script setup>
 import BaseToast from "~/components/BaseToast.vue";
+import BaseSkeleton from "~/components/BaseSkeleton.vue";
 import BaseModal from "~/components/BaseModal.vue";
 import ConfirmDialog from "~/components/ConfirmDialog.vue";
 

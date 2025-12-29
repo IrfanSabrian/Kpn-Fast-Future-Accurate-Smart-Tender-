@@ -726,7 +726,6 @@ class GoogleSheetsService {
 
       // List of all related tables to clean up
       const relatedTables = [
-        "db_perusahaan_kbli",
         "db_akta",
         "db_pejabat",
         "db_sbu",
@@ -1621,8 +1620,9 @@ class GoogleSheetsService {
 
   /**
    * Generic function to add data to a sheet
+   * Dynmically fetches headers to ensure correct column mapping
    * @param {string} sheetName - Name of the sheet
-   * @param {Array} headers - Array of column headers
+   * @param {Array} headers - [OPTIONAL] Array of column headers (Legacy, now fetches from sheet)
    * @param {Object} data - Data object to add
    * @returns {Object} Result object
    */
@@ -1631,24 +1631,48 @@ class GoogleSheetsService {
 
     try {
       const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
+
+      // 1. Fetch current headers from the sheet to ensure correct mapping
+      const headerResponse = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${sheetName}!A1:Z1`,
+      });
+      const sheetHeaders = headerResponse.data.values?.[0];
+
+      if (!sheetHeaders || sheetHeaders.length === 0) {
+        throw new Error(`No headers found in ${sheetName}`);
+      }
+
+      console.log(`📋 Headers for ${sheetName}:`, sheetHeaders);
+
+      // 2. Get next row index
       const currentData = await this.getSheetData(sheetName);
       const nextRow = currentData.length + 2;
 
-      // Auto-fill author from OAuth2 user (if header includes 'author')
-      if (headers.includes("author") && !data.author) {
+      // 3. Auto-fill author
+      if (
+        (sheetHeaders.includes("author") || sheetHeaders.includes("Author")) &&
+        !data.author
+      ) {
         try {
           const userInfo = await oauth2GoogleService.getUserInfo();
-          data.author = userInfo.name || userInfo.username; // Gunakan nama lengkap
+          data.author = userInfo.name || userInfo.username;
         } catch (error) {
-          console.warn(
-            'Could not get user info for author, using "system":',
-            error.message
-          );
           data.author = "system";
         }
       }
 
-      const values = headers.map((header) => data[header] || "");
+      // 4. Map data to ACTUAL sheet headers
+      const values = sheetHeaders.map((header) => {
+        // Try exact match first
+        if (data[header] !== undefined) return data[header];
+
+        // Try loose match (lowercase)
+        const key = Object.keys(data).find(
+          (k) => k.toLowerCase() === header.toLowerCase()
+        );
+        return key ? data[key] : "";
+      });
 
       await this.sheets.spreadsheets.values.append({
         spreadsheetId,
@@ -1668,8 +1692,9 @@ class GoogleSheetsService {
 
   /**
    * Generic function to update data in a sheet by ID
+   * Dynmically fetches headers to ensure correct column mapping
    * @param {string} sheetName - Name of the sheet
-   * @param {Array} headers - Array of column headers
+   * @param {Array} headers - [OPTIONAL] Array of column headers (Legacy)
    * @param {string} idField - Name of the ID field
    * @param {string} id - ID value to find
    * @param {Object} data - Updated data
@@ -1678,21 +1703,67 @@ class GoogleSheetsService {
   async updateSheetData(sheetName, headers, idField, id, data) {
     await this.initialize();
 
+    console.log(`📝 updateSheetData called for ${sheetName}`);
+    console.log(`   idField: ${idField}, id: ${id}`);
+    console.log(`   Data keys:`, Object.keys(data));
+
     try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
+
+      // 1. Fetch current headers from the sheet
+      const headerResponse = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${sheetName}!A1:Z1`,
+      });
+      const sheetHeaders = headerResponse.data.values?.[0];
+
+      if (!sheetHeaders || sheetHeaders.length === 0) {
+        throw new Error(`No headers found in ${sheetName}`);
+      }
+      console.log(`   Sheet Headers:`, sheetHeaders);
+
+      // 2. Find the row index
       const allData = await this.getSheetData(sheetName);
-      const index = allData.findIndex((item) => item[idField] === id);
+      const index = allData.findIndex((item) => {
+        // Compare loosely (string trim)
+        const val = item[idField] ? String(item[idField]).trim() : "";
+        const target = String(id).trim();
+        return val === target;
+      });
+
+      console.log(`   Search Result Index:`, index);
 
       if (index === -1) {
+        console.error(`   ❌ ID ${id} not found in column ${idField}`);
+        // Log some sample values from that column to help debug
+        if (allData.length > 0) {
+          console.log(
+            `   Sample values in ${idField}:`,
+            allData.slice(0, 3).map((i) => i[idField])
+          );
+        }
         throw new Error(
           `Data with ${idField} = ${id} not found in ${sheetName}`
         );
       }
 
-      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       const rowNumber = index + 2;
 
-      const updatedData = { ...allData[index], ...data };
-      const values = headers.map((header) => updatedData[header] || "");
+      // 3. Merge with existing data
+      const existingRow = allData[index];
+      const updatedData = { ...existingRow, ...data };
+
+      // 4. Map to ACTUAL sheet headers
+      const values = sheetHeaders.map((header) => {
+        // Try exact match first
+        if (updatedData[header] !== undefined) return updatedData[header];
+
+        // Try loose match
+        const key = Object.keys(updatedData).find(
+          (k) => k.toLowerCase() === header.toLowerCase()
+        );
+        return key ? updatedData[key] : "";
+      });
 
       await this.sheets.spreadsheets.values.update({
         spreadsheetId,
@@ -1701,11 +1772,14 @@ class GoogleSheetsService {
         resource: { values: [values] },
       });
 
+      console.log(`   ✅ Update successful at row ${rowNumber}`);
+
       return {
         success: true,
         message: `Data in ${sheetName} updated successfully`,
       };
     } catch (error) {
+      console.error(`   ❌ Failed to update data in ${sheetName}:`, error);
       throw new Error(
         `Failed to update data in ${sheetName}: ${error.message}`
       );
@@ -2151,13 +2225,20 @@ class GoogleSheetsService {
       "tanggal_terbit",
       "status_penanaman_modal",
       "skala_usaha",
+      "kbli", // Added kbli
       "nib_url",
       "tanggal_input",
       "author",
     ];
     // Map mismatch
     if (data.tanggal_nib) data.tanggal_terbit = data.tanggal_nib;
-    if (data.bidang_nib) data.status_penanaman_modal = data.bidang_nib; // Guessing mapping?
+    if (data.bidang_nib) data.status_penanaman_modal = data.bidang_nib;
+    if (data.kode_kbli) data.kbli = data.kode_kbli; // Map kode_kbli to kbli
+
+    // Ensure kbli is a string if it's an array
+    if (Array.isArray(data.kbli)) {
+      data.kbli = data.kbli.join(", ");
+    }
 
     if (!data.id_nib) {
       const allData = await this.getSheetData("db_nib");
@@ -2175,9 +2256,16 @@ class GoogleSheetsService {
       "tanggal_terbit",
       "status_penanaman_modal",
       "skala_usaha",
+      "kbli", // Added kbli
       "nib_url",
     ];
     if (data.tanggal_nib) data.tanggal_terbit = data.tanggal_nib;
+    if (data.kode_kbli) data.kbli = data.kode_kbli; // Map kode_kbli to kbli
+
+    // Ensure kbli is a string if it's an array
+    if (Array.isArray(data.kbli)) {
+      data.kbli = data.kbli.join(", ");
+    }
 
     let idField = "id_nib";
     if (!String(id).startsWith("NIB")) idField = "nomor_nib";
@@ -3129,7 +3217,6 @@ class GoogleSheetsService {
     const headers = [
       "id_sbu",
       "id_perusahaan",
-      "id_nib",
       "nomor_pb_umku",
       "jenis_usaha",
       "asosiasi",
@@ -3159,7 +3246,6 @@ class GoogleSheetsService {
     const headers = [
       "id_sbu",
       "id_perusahaan",
-      "id_nib",
       "nomor_pb_umku",
       "jenis_usaha",
       "asosiasi",
@@ -3535,59 +3621,84 @@ class GoogleSheetsService {
   async batchUpdateKBLI(companyId, kbliCodes, author = "system") {
     await this.initialize();
     try {
-      const sheetName = "db_perusahaan_kbli";
-      const rows = await this.getSheetData(sheetName);
+      console.log(`📝 Batch updating KBLI for company ${companyId}`);
+      console.log(`   Codes:`, kbliCodes);
 
-      // 1. Delete existing rows for this company
-      const existing = rows.filter((r) => r.id_perusahaan === companyId);
-      for (const item of existing) {
-        await this.deleteSheetData(
-          sheetName,
-          "id_perusahaan_kbli",
-          item.id_perusahaan_kbli
-        );
-      }
+      // Join codes into string
+      const kbliString = Array.isArray(kbliCodes)
+        ? kbliCodes.join(", ")
+        : kbliCodes;
 
-      // 2. Add new rows
-      // We use currentData to track generated IDs locally to avoid re-fetching
-      let currentData = await this.getSheetData(sheetName);
+      // Get NIB data
+      const allNib = await this.getSheetData("db_nib");
+      const companyNib = allNib.filter((n) => n.id_perusahaan === companyId);
 
-      // Note: Include 'author' if supported by potential future schema updates,
-      // but based on setup-spreadsheet.js, generic addSheetData handles mapping.
-      const headers = [
-        "id_perusahaan_kbli",
-        "id_perusahaan",
-        "kode_kbli",
-        "tanggal_input",
-        "author",
-      ];
       const tanggalInput = new Date()
         .toISOString()
         .replace("T", " ")
         .substring(0, 19);
 
-      for (const code of kbliCodes) {
-        // Generate ID
-        const newId = this.generateNewId(
-          currentData,
-          "id_perusahaan_kbli",
-          "PK"
-        );
+      if (companyNib.length === 0) {
+        console.log("   No NIB found. Creating new NIB record for KBLI...");
+        // Create new NIB
+        const newId = this.generateNewId(allNib, "id_nib", "NIB");
 
-        await this.addSheetData(sheetName, headers, {
-          id_perusahaan_kbli: newId,
+        const headers = [
+          "id_nib",
+          "id_perusahaan",
+          "nomor_nib",
+          "tanggal_terbit",
+          "status_penanaman_modal",
+          "skala_usaha",
+          "kbli",
+          "nib_url",
+          "tanggal_input",
+          "author",
+        ];
+
+        await this.addSheetData("db_nib", headers, {
+          id_nib: newId,
           id_perusahaan: companyId,
-          kode_kbli: code,
+          nomor_nib: "",
+          tanggal_terbit: "",
+          status_penanaman_modal: "",
+          skala_usaha: "",
+          kbli: kbliString,
+          nib_url: "",
           tanggal_input: tanggalInput,
           author: author,
         });
+      } else {
+        console.log("   Updating existing NIB record with new KBLI...");
+        // Update first NIB found
+        const targetNib = companyNib[0];
 
-        // Update local list for next ID generation
-        currentData.push({ id_perusahaan_kbli: newId });
+        const headers = [
+          "id_nib",
+          "id_perusahaan",
+          "nomor_nib",
+          "tanggal_terbit",
+          "status_penanaman_modal",
+          "skala_usaha",
+          "kbli",
+          "nib_url",
+        ];
+
+        await this.updateSheetData(
+          "db_nib",
+          headers,
+          "id_nib",
+          targetNib.id_nib,
+          {
+            kbli: kbliString,
+            // author: author // Optional: update author? Maybe keep original creator.
+          }
+        );
       }
 
       return { success: true, message: "KBLI updated successfully" };
     } catch (e) {
+      console.error("❌ Batch Update KBLI failed:", e);
       throw new Error("Failed to batch update KBLI: " + e.message);
     }
   }

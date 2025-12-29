@@ -121,24 +121,44 @@ export const getCompanyNib = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch NIB and KBLI data in parallel
-    const [nibData, kbliRelData, masterKbliData] = await Promise.all([
+    // Fetch NIB and KBLI Master data (Logic Updated: Get KBLI from db_nib)
+    const [nibData, masterKbliData] = await Promise.all([
       googleSheetsService.getSheetData("db_nib"),
-      googleSheetsService.getSheetData("db_perusahaan_kbli"),
       googleSheetsService.getKbliMasterData(),
     ]);
 
     // Filter NIB for this company
     const filteredNib = nibData.filter((item) => item.id_perusahaan === id);
 
-    // Filter and enrich KBLI data
-    const companyKbli = kbliRelData.filter((item) => item.id_perusahaan === id);
-    const enrichedKbli = companyKbli.map((item) => {
-      const master = masterKbliData.find((m) => m.kode_kbli === item.kode_kbli);
+    // Extract KBLI codes from NIB data (string comma separated)
+    let enrichedKbli = [];
+    const kbliCodesSet = new Set();
+
+    filteredNib.forEach((nib) => {
+      // Robust key checking
+      const rawCodes =
+        nib.kode_kbli || nib["Kode KBLI"] || nib["KBLI"] || nib["kbli"];
+
+      if (rawCodes) {
+        // Split by comma and trim
+        const codes = rawCodes
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c); // Remove empty strings
+        codes.forEach((code) => kbliCodesSet.add(code));
+      }
+    });
+
+    // Enrich KBLI data with Master Data
+    enrichedKbli = Array.from(kbliCodesSet).map((code) => {
+      const master = masterKbliData.find((m) => m.kode_kbli === code);
       return {
-        ...item,
+        id_perusahaan: id,
+        kode_kbli: code,
         judul_kbli: master ? master.nama_klasifikasi : "Unknown KBLI",
-        id_kbli: item.id || item.kode_kbli, // Ensure unique ID
+        nama_klasifikasi: master ? master.nama_klasifikasi : "Unknown KBLI",
+        id_kbli: code, // Use code as ID
+        id_perusahaan_kbli: code, // Backward compatibility
       };
     });
 
@@ -236,17 +256,41 @@ export const getCompanyPengalaman = async (req, res) => {
 export const getCompanyKbli = async (req, res) => {
   try {
     const { id } = req.params;
-    const [kbliRelData, masterKbliData] = await Promise.all([
-      googleSheetsService.getSheetData("db_perusahaan_kbli"),
+
+    // Logic Updated: Get KBLI from db_nib instead of db_perusahaan_kbli
+    const [nibData, masterKbliData] = await Promise.all([
+      googleSheetsService.getSheetData("db_nib"),
       googleSheetsService.getKbliMasterData(),
     ]);
 
-    const companyKbli = kbliRelData.filter((item) => item.id_perusahaan === id);
-    const enrichedKbli = companyKbli.map((item) => {
-      const master = masterKbliData.find((m) => m.kode_kbli === item.kode_kbli);
+    const companyNib = nibData.filter((item) => item.id_perusahaan === id);
+
+    // Extract unique codes
+    const kbliCodesSet = new Set();
+    companyNib.forEach((nib) => {
+      // Robust key checking
+      const rawCodes =
+        nib.kode_kbli || nib["Kode KBLI"] || nib["KBLI"] || nib["kbli"];
+
+      if (rawCodes) {
+        const codes = rawCodes
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c);
+        codes.forEach((code) => kbliCodesSet.add(code));
+      }
+    });
+
+    // Enrich
+    const enrichedKbli = Array.from(kbliCodesSet).map((code) => {
+      const master = masterKbliData.find((m) => m.kode_kbli === code);
       return {
-        ...item,
+        id_perusahaan: id,
+        kode_kbli: code,
+        judul_kbli: master ? master.nama_klasifikasi : "Unknown KBLI",
         nama_klasifikasi: master ? master.nama_klasifikasi : "Unknown KBLI",
+        id_kbli: code,
+        id_perusahaan_kbli: code, // Backward compatibility
       };
     });
 
@@ -1024,14 +1068,15 @@ export const updateCompany = async (req, res) => {
                 );
 
                 // TEMPORARY: Use simplified headers - we'll adjust based on actual spreadsheet
-                // Common NIB columns (adjust order based on your spreadsheet!)
+                // Common NIB columns (Updated with status_penanaman_modal and kbli)
                 const nibHeaders = [
                   "id_nib",
                   "id_perusahaan",
                   "nomor_nib",
                   "tanggal_terbit",
-                  "status",
+                  "status_penanaman_modal", // Updated
                   "skala_usaha",
+                  "kbli", // Updated
                   "nib_url",
                   "tanggal_input",
                   "author",
@@ -1054,8 +1099,9 @@ export const updateCompany = async (req, res) => {
                     id_perusahaan: id,
                     nomor_nib: "",
                     tanggal_terbit: "",
-                    status: "",
+                    status_penanaman_modal: "", // Updated
                     skala_usaha: "",
+                    kbli: "", // Updated
                     nib_url: pdfUrl,
                     tanggal_input: tanggalInput,
                     author: author,
@@ -1115,7 +1161,6 @@ export const updateCompany = async (req, res) => {
                 const sbuHeaders = [
                   "id_sbu",
                   "id_perusahaan",
-                  "id_nib",
                   "nomor_pb_umku",
                   "jenis_usaha",
                   "asosiasi",
@@ -1150,7 +1195,6 @@ export const updateCompany = async (req, res) => {
                   await googleSheetsService.addSheetData("db_sbu", sbuHeaders, {
                     id_sbu: newSbuId,
                     id_perusahaan: id,
-                    id_nib: "",
                     nomor_pb_umku: "",
                     jenis_usaha: "",
                     asosiasi: "",

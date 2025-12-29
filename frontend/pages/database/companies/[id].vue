@@ -20,14 +20,38 @@
     <!-- Main Content Area (Full Width) -->
     <main class="max-w-[1800px] mx-auto px-4 md:px-6 py-6 min-h-[60vh]">
       <!-- Loading State -->
-      <div
-        v-if="loadingTab"
-        class="py-20 flex flex-col items-center justify-center text-slate-400"
-      >
+      <!-- Loading State Skeleton -->
+      <div v-if="loadingTab" class="w-full">
         <div
-          class="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4"
-        ></div>
-        <span class="text-xs font-mono animate-pulse">Syncing Database...</span>
+          class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 relative overflow-hidden"
+        >
+          <!-- Header Area -->
+          <div class="flex justify-between items-center mb-8">
+            <div class="space-y-3">
+              <BaseSkeleton width="200px" height="1.5rem" />
+              <BaseSkeleton width="300px" height="1rem" />
+            </div>
+            <BaseSkeleton width="120px" height="40px" class-name="rounded-lg" />
+          </div>
+
+          <!-- Content Area (Split or Grid) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+            <div class="space-y-3">
+              <BaseSkeleton width="100%" height="2rem" />
+              <BaseSkeleton width="100%" height="2rem" />
+              <BaseSkeleton width="100%" height="2rem" />
+              <BaseSkeleton width="100%" height="4rem" />
+              <BaseSkeleton width="100%" height="2rem" />
+            </div>
+            <div class="hidden md:block h-full">
+              <BaseSkeleton
+                width="100%"
+                height="200px"
+                class-name="rounded-lg"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Content Views -->
@@ -792,7 +816,7 @@
                 <!-- VIEW MODE -->
                 <div
                   v-if="!isEditing"
-                  class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden max-h-[300px]"
+                  class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden max-h-[275px]"
                 >
                   <!-- Header -->
                   <div
@@ -861,7 +885,7 @@
                     <!-- Empty State -->
                     <div
                       v-else
-                      class="flex flex-col items-center justify-center h-full min-h-[200px] text-center"
+                      class="flex flex-col items-center justify-center h-full min-h-[50px] text-center"
                     >
                       <div
                         class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-3"
@@ -968,11 +992,10 @@
               label="SBU"
               icon="fas fa-certificate"
               color="purple"
-              id-key="nomor_sbu"
-              title-key="nomor_sbu"
-              title-label="Nomor SBU"
+              id-key="id_sbu"
+              title-key="nomor_pb_umku"
+              title-label="Nomor PB-UMKU"
               :fields="[
-                { label: 'Nomor SBU', key: 'nomor_sbu', type: 'text' },
                 { label: 'No. PB UMKU', key: 'nomor_pb_umku', type: 'text' },
                 { label: 'Jenis Usaha', key: 'jenis_usaha', type: 'text' },
                 { label: 'Asosiasi', key: 'asosiasi', type: 'text' },
@@ -2012,6 +2035,7 @@
 
 <script setup>
 import BaseModal from "~/components/BaseModal.vue";
+import BaseSkeleton from "~/components/BaseSkeleton.vue";
 import ToastNotification from "~/components/ToastNotification.vue";
 import FormInput from "~/components/FormInput.vue";
 import DocumentPdfPreview from "~/components/DocumentPdfPreview.vue";
@@ -2563,7 +2587,8 @@ const handleAiScan = async (module, data) => {
       return;
     }
 
-    toast.info("Sedang melakukan scan AI...");
+    // Show persistent loading toast
+    const loadingToastId = toast.info("Sedang melakukan scan AI...", 0);
 
     const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
       method: "POST",
@@ -2576,6 +2601,10 @@ const handleAiScan = async (module, data) => {
     });
 
     const result = await res.json();
+
+    // Remove loading toast
+    toast.removeToast(loadingToastId);
+
     if (result.success) {
       toast.success("AI Scan Berhasil!");
       // Update the tab
