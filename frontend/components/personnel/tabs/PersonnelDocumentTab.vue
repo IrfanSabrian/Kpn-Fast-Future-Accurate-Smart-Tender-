@@ -67,7 +67,7 @@
             <div class="flex items-center gap-3">
               <div
                 class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                :class="iconBgClass"
+                :class="[iconBgClass, !selectedUrl ? 'opacity-50' : '']"
               >
                 <i :class="icon"></i>
               </div>
@@ -85,9 +85,9 @@
               </div>
             </div>
 
-            <!-- Edit Button -->
+            <!-- Edit Button (Show if PDF exists OR pending file exists) -->
             <button
-              v-if="!isEditing"
+              v-if="!isEditing && (selectedUrl || pendingFile)"
               @click.stop="startEditing(item)"
               class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1.5 rounded-lg transition-colors border border-blue-100 dark:border-blue-800"
             >

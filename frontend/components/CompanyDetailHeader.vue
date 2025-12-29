@@ -107,11 +107,13 @@
           role="tab"
           :aria-selected="activeTab === tab.id"
           class="group relative z-10 px-2.5 md:px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap bg-transparent"
-          :class="
+          :class="[
             activeTab === tab.id
               ? 'text-white'
-              : 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50'
-          "
+              : tab.hasData === false
+              ? 'text-red-500/70 hover:text-red-600 dark:text-red-400/70 bg-red-50/50 dark:bg-red-900/10'
+              : 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100/50 dark:hover:bg-slate-800/50',
+          ]"
         >
           <i :class="tab.icon" class="text-base opacity-75"></i>
           {{ tab.label }}

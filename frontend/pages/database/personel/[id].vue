@@ -91,7 +91,7 @@
               :pending-file="pendingUploads.npwp.file"
               :pending-preview="pendingUploads.npwp.preview"
               :is-uploading="uploadingState.npwp"
-              :selected-url="npwp?.npwp_personel_url"
+              :selected-url="npwp?.file_npwp_personel_url"
               @upload-select="(f) => handleUploadSelect(f)"
               @upload-save="handleUploadSave"
               @upload-cancel="
@@ -154,6 +154,62 @@
               "
               @update-item="handleUpdateItem"
               @ai-scan="(data) => handleAiScan('cv', data)"
+            />
+            <PersonnelDocumentTab
+              ref="activeTabComponent"
+              v-if="selectedDocument === 'referensi'"
+              :items="referensi"
+              :fields="referensiFields"
+              id-key="id_referensi"
+              title-key="pengalaman"
+              title-label="Pengalaman"
+              icon="fas fa-briefcase"
+              color="cyan"
+              :single-mode="false"
+              :pending-file="pendingUploads.referensi.file"
+              :pending-preview="pendingUploads.referensi.preview"
+              :is-uploading="uploadingState.referensi"
+              :selected-item="selectedReferensiItem"
+              :selected-url="selectedReferensiItem?.url_referensi"
+              @select-item="(item) => (selectedReferensiId = item.id_referensi)"
+              @upload-select="(f) => handleUploadSelect(f)"
+              @upload-save="handleUploadSave"
+              @upload-cancel="
+                () => {
+                  pendingUploads.referensi.file = null;
+                  pendingUploads.referensi.preview = null;
+                }
+              "
+              @update-item="handleUpdateItem"
+              @ai-scan="(data) => handleAiScan('referensi', data)"
+            />
+            <PersonnelDocumentTab
+              ref="activeTabComponent"
+              v-if="selectedDocument === 'stnk'"
+              :items="stnk"
+              :fields="stnkFields"
+              id-key="id_stnk"
+              title-key="no_polisi"
+              title-label="No. Polisi"
+              icon="fas fa-car"
+              color="teal"
+              :single-mode="false"
+              :pending-file="pendingUploads.stnk.file"
+              :pending-preview="pendingUploads.stnk.preview"
+              :is-uploading="uploadingState.stnk"
+              :selected-item="selectedStnkItem"
+              :selected-url="selectedStnkItem?.url_stnk"
+              @select-item="(item) => (selectedStnkId = item.id_stnk)"
+              @upload-select="(f) => handleUploadSelect(f)"
+              @upload-save="handleUploadSave"
+              @upload-cancel="
+                () => {
+                  pendingUploads.stnk.file = null;
+                  pendingUploads.stnk.preview = null;
+                }
+              "
+              @update-item="handleUpdateItem"
+              @ai-scan="(data) => handleAiScan('stnk', data)"
             />
           </div>
         </Transition>
@@ -271,27 +327,81 @@ const ktp = ref(null);
 const npwp = ref(null);
 const ijazah = ref(null);
 const cv = ref(null);
+const referensi = ref([]);
+const stnk = ref([]);
+
+const selectedReferensiId = ref(null);
+const selectedStnkId = ref(null);
+
+const selectedReferensiItem = computed(() =>
+  referensi.value.find((r) => r.id_referensi === selectedReferensiId.value)
+);
+const selectedStnkItem = computed(() =>
+  stnk.value.find((s) => s.id_stnk === selectedStnkId.value)
+);
 
 const pendingUploads = ref({
   ktp: { file: null, preview: null },
   npwp: { file: null, preview: null },
   ijazah: { file: null, preview: null },
   cv: { file: null, preview: null },
+  referensi: { file: null, preview: null },
+  stnk: { file: null, preview: null },
 });
 const uploadingState = ref({
   ktp: false,
   npwp: false,
   ijazah: false,
   cv: false,
+  referensi: false,
+  stnk: false,
 });
 const selectedDocument = ref("ktp");
 
-const documentTabs = [
-  { id: "ktp", label: "KTP", icon: "far fa-id-card" },
-  { id: "npwp", label: "NPWP", icon: "fas fa-credit-card" },
-  { id: "ijazah", label: "Ijazah", icon: "fas fa-graduation-cap" },
-  { id: "cv", label: "CV", icon: "fas fa-file-alt" },
-];
+const documentTabs = computed(() => [
+  {
+    id: "ktp",
+    label: "KTP",
+    icon: "far fa-id-card",
+    hasData: !!(ktp.value && (ktp.value.id_ktp || ktp.value.file_ktp_url)),
+  },
+  {
+    id: "npwp",
+    label: "NPWP",
+    icon: "fas fa-credit-card",
+    hasData: !!(
+      npwp.value &&
+      (npwp.value.id_npwp || npwp.value.file_npwp_personel_url)
+    ),
+  },
+  {
+    id: "ijazah",
+    label: "Ijazah",
+    icon: "fas fa-graduation-cap",
+    hasData: !!(
+      ijazah.value &&
+      (ijazah.value.id_ijazah || ijazah.value.file_ijazah_url)
+    ),
+  },
+  {
+    id: "cv",
+    label: "CV",
+    icon: "fas fa-file-alt",
+    hasData: !!(cv.value && (cv.value.id_cv || cv.value.file_cv_url)),
+  },
+  {
+    id: "referensi",
+    label: "Referensi",
+    icon: "fas fa-briefcase",
+    hasData: referensi.value && referensi.value.length > 0,
+  },
+  {
+    id: "stnk",
+    label: "STNK",
+    icon: "fas fa-car",
+    hasData: stnk.value && stnk.value.length > 0,
+  },
+]);
 
 const ktpFields = [
   { label: "NIK", key: "nik", type: "text" },
@@ -353,8 +463,29 @@ const cvFields = [
   { label: "Bahasa", key: "bahasa_dikuasai", type: "text" },
 ];
 
-const handleUploadSelect = (file) => {
+const referensiFields = [
+  { label: "Pengalaman", key: "pengalaman", type: "textarea" },
+  { label: "Tgl Input", key: "tanggal_input", type: "text" },
+];
+
+const stnkFields = [
+  { label: "No. Polisi", key: "no_polisi", type: "text" },
+  { label: "Merek", key: "merek", type: "text" },
+  { label: "Warna", key: "warna", type: "text" },
+  { label: "Tgl Input", key: "tanggal_input", type: "text" },
+];
+
+const handleUploadSelect = (eventOrFile) => {
   const type = selectedDocument.value;
+
+  // Handle both event object and direct file
+  const file = eventOrFile?.target?.files?.[0] || eventOrFile;
+
+  if (!file) {
+    console.error("No file selected");
+    return;
+  }
+
   pendingUploads.value[type].file = file;
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -378,6 +509,12 @@ const handleUploadSave = async () => {
   if (type === "npwp" && npwp.value) hasData = true;
   if (type === "ijazah" && ijazah.value) hasData = true;
   if (type === "cv" && cv.value) hasData = true;
+  // For List Data (Referensi/STNK), upload without ID means CREATE (POST)
+  // If editing ID, it's PUT. But current logic assumes 'upload' in sidebar is for NEW or REPLACE current context.
+  // We'll assume upload means ADD NEW for list types for now unless we implement 'replace file' specific UI.
+  if (type === "referensi" || type === "stnk") {
+    hasData = false; // Always POST for new item
+  }
 
   if (hasData) {
     method = "PUT";
@@ -511,6 +648,11 @@ const handleAiScan = async (type) => {
     if (type === "npwp") npwp.value = { ...npwp.value, ...data };
     if (type === "ijazah") ijazah.value = { ...ijazah.value, ...data };
     if (type === "cv") cv.value = { ...cv.value, ...data };
+    // AI Scan for lists not fully supported in this snippet yet without item context
+    if (type === "referensi" || type === "stnk") {
+      success("Scan berhasil (tapi belum auto-fill ke list item)");
+      // Logic to add to list or update selected item would go here
+    }
 
     // Update the editing form in the child component if active
     if (activeTabComponent.value) {
@@ -601,6 +743,13 @@ const fetchPersonilDetail = async () => {
     npwp.value = person.value.npwp || null;
     ijazah.value = person.value.ijazah || null;
     cv.value = person.value.cv || null;
+    referensi.value = person.value.referensi || [];
+    stnk.value = person.value.stnk || [];
+
+    // Auto select first item if available
+    if (referensi.value.length > 0)
+      selectedReferensiId.value = referensi.value[0].id_referensi;
+    if (stnk.value.length > 0) selectedStnkId.value = stnk.value[0].id_stnk;
   } catch (e) {
     showError(e.message);
   } finally {

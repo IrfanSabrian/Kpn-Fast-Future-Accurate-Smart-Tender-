@@ -88,133 +88,73 @@
     <!-- Personel Grid (Consistent Style with Companies) -->
     <div
       v-else-if="filteredPersonel.length > 0"
-      class="relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+      class="relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
     >
       <div
         v-for="person in filteredPersonel"
         :key="person.id_personel"
-        class="group relative bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
+        class="group relative bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col hover:border-blue-400 dark:hover:border-blue-500 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden"
         @click="viewDetail(person)"
       >
-        <!-- Top Accent Line -->
-        <div
-          class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-200 to-slate-100 dark:from-slate-700 dark:to-slate-800 group-hover:from-blue-500 group-hover:to-cyan-400 transition-all duration-300"
-        ></div>
-
-        <!-- Action Buttons (Top Right - Always Visible on Hover) -->
-        <div
-          class="absolute top-3 right-3 z-20 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0"
-        >
-          <button
-            @click.stop="openEditModal(person)"
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-700/90 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-600 shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-600 hover:scale-105 transition-all duration-200"
-            title="Edit Personel"
+        <!-- Main Info Section -->
+        <div class="p-5 flex items-center gap-4">
+          <!-- Avatar Icon -->
+          <div
+            class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300 border border-blue-100 dark:border-blue-800"
           >
-            <i class="fas fa-pen text-xs"></i>
-          </button>
-          <button
-            @click.stop="openDeleteConfirm(person)"
-            class="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-700/90 text-red-500 hover:bg-red-50 dark:hover:bg-slate-600 shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-600 hover:scale-105 transition-all duration-200"
-            title="Hapus Personel"
-          >
-            <i class="fas fa-trash-alt text-xs"></i>
-          </button>
-        </div>
-
-        <div class="p-6 flex flex-col h-full relative">
-          <!-- Card Header layout -->
-          <div class="flex items-center gap-4 mb-5">
-            <!-- Avatar with Ring -->
-            <div class="relative">
-              <div
-                class="w-16 h-16 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 border-2 border-white dark:border-slate-600 shadow-md flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform duration-300"
-              >
-                <span
-                  class="text-xl font-bold text-slate-500 dark:text-slate-300 tracking-tighter"
-                  >{{ getInitials(person.nama_lengkap) }}</span
-                >
-              </div>
-            </div>
-
-            <div class="flex-grow min-w-0">
-              <h3
-                class="text-lg font-bold text-slate-800 dark:text-gray-100 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors mb-1"
-                :title="person.nama_lengkap"
-              >
-                {{ person.nama_lengkap }}
-              </h3>
-              <p
-                class="text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-2 py-0.5 rounded w-fit"
-              >
-                {{ person.id_personel }}
-              </p>
-            </div>
+            <i class="fas fa-user text-lg"></i>
           </div>
 
-          <!-- Divider -->
-          <div class="w-full h-px bg-slate-100 dark:bg-slate-700/50 mb-4"></div>
-
-          <!-- Compact Details -->
-          <div class="space-y-3 flex-grow">
-            <!-- NIK -->
-            <div
-              class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 group/item hover:bg-slate-50 dark:hover:bg-slate-700/30 p-1.5 -mx-1.5 rounded-lg transition-colors"
+          <!-- Info Text -->
+          <div class="flex-1 min-w-0">
+            <h3
+              class="text-sm font-bold text-slate-800 dark:text-white truncate group-hover:text-blue-600 transition-colors mb-0.5"
+              :title="person.nama_lengkap"
             >
-              <div
-                class="w-8 flex justify-center text-slate-400 group-hover/item:text-blue-500 transition-colors"
-              >
-                <i class="far fa-id-card"></i>
-              </div>
-              <div class="flex flex-col min-w-0">
-                <span
-                  class="text-[10px] font-bold text-slate-400 uppercase leading-none mb-0.5"
-                  >NIK (KTP)</span
-                >
-                <span class="font-medium truncate">{{
-                  getKtp(person) || "-"
-                }}</span>
-              </div>
-            </div>
-
-            <!-- NPWP -->
-            <div
-              class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 group/item hover:bg-slate-50 dark:hover:bg-slate-700/30 p-1.5 -mx-1.5 rounded-lg transition-colors"
+              {{ person.nama_lengkap }}
+            </h3>
+            <p
+              class="text-[11px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1.5"
             >
-              <div
-                class="w-8 flex justify-center text-slate-400 group-hover/item:text-orange-500 transition-colors"
-              >
-                <i class="fas fa-credit-card"></i>
-              </div>
-              <div class="flex flex-col min-w-0">
-                <span
-                  class="text-[10px] font-bold text-slate-400 uppercase leading-none mb-0.5"
-                  >NPWP</span
-                >
-                <span class="font-medium truncate">{{
-                  getNpwp(person) || "-"
-                }}</span>
-              </div>
-            </div>
+              <i class="fas fa-briefcase text-[10px] opacity-70"></i>
+              {{ person.keahlian || "Belum ada keahlian" }}
+            </p>
+          </div>
 
-            <!-- Alamat Domisili -->
-            <div
-              class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400 group/item hover:bg-slate-50 dark:hover:bg-slate-700/30 p-1.5 -mx-1.5 rounded-lg transition-colors"
+          <!-- Action Buttons (Hover Only) -->
+          <div
+            class="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          >
+            <button
+              @click.stop="openEditModal(person)"
+              class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all"
+              title="Edit"
             >
-              <div
-                class="w-8 flex justify-center mt-0.5 text-slate-400 group-hover/item:text-red-500 transition-colors"
-              >
-                <i class="fas fa-map-marker-alt"></i>
-              </div>
-              <div class="flex flex-col min-w-0">
-                <span
-                  class="text-[10px] font-bold text-slate-400 uppercase leading-none mb-0.5"
-                  >Domisili</span
-                >
-                <span class="line-clamp-2 leading-snug">{{
-                  person.alamat_domisili || "-"
-                }}</span>
-              </div>
-            </div>
+              <i class="fas fa-pen text-xs"></i>
+            </button>
+            <button
+              @click.stop="openDeleteConfirm(person)"
+              class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+              title="Hapus"
+            >
+              <i class="fas fa-trash-alt text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Document Badges Row (If Available) -->
+        <div
+          v-if="getDocumentIcons(person).length > 0"
+          class="px-5 pb-4 pt-0 flex flex-wrap gap-2"
+        >
+          <div
+            v-for="doc in getDocumentIcons(person)"
+            :key="doc.type"
+            class="px-2 py-1 rounded text-[10px] uppercase tracking-wider font-bold flex items-center gap-1.5 border transition-transform hover:scale-105"
+            :class="doc.class"
+            :title="doc.type + ' tersedia'"
+          >
+            <i :class="doc.icon"></i> {{ doc.type }}
           </div>
         </div>
       </div>
@@ -300,6 +240,30 @@
               <span>Gunakan gelar lengkap jika diperlukan.</span>
             </p>
           </div>
+
+          <!-- Input Keahlian -->
+          <div class="group">
+            <label
+              class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600"
+            >
+              Keahlian / Jabatan
+            </label>
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"
+              >
+                <i
+                  class="fas fa-briefcase text-slate-400 group-focus-within:text-blue-500 transition-colors"
+                ></i>
+              </div>
+              <input
+                v-model="newPersonelKeahlian"
+                type="text"
+                placeholder="Contoh: Ahli Tehnik Sipil, Drafter, dll"
+                class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+              />
+            </div>
+          </div>
         </div>
       </template>
 
@@ -379,6 +343,30 @@
               />
             </div>
           </div>
+
+          <!-- Input Keahlian -->
+          <div class="group">
+            <label
+              class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 transition-colors group-focus-within:text-blue-600"
+            >
+              Keahlian / Jabatan
+            </label>
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none"
+              >
+                <i
+                  class="fas fa-briefcase text-slate-400 group-focus-within:text-blue-500 transition-colors"
+                ></i>
+              </div>
+              <input
+                v-model="editPersonelKeahlian"
+                type="text"
+                placeholder="Contoh: Ahli Tehnik Sipil, Drafter, dll"
+                class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm"
+              />
+            </div>
+          </div>
         </div>
       </template>
 
@@ -450,14 +438,15 @@ const personel = ref([]);
 const searchQuery = ref("");
 
 // Add Personel Modal State
-
 const showAddModal = ref(false);
 const newPersonelName = ref("");
+const newPersonelKeahlian = ref("");
 const saving = ref(false);
 
 // Edit Personel Modal State
 const showEditModal = ref(false);
 const editPersonelName = ref("");
+const editPersonelKeahlian = ref("");
 const editPersonelData = ref(null);
 
 // Delete Confirmation State
@@ -473,12 +462,14 @@ const filteredPersonel = computed(() => {
     const name = person.nama_lengkap?.toLowerCase() || "";
     const nik = getKtp(person)?.toLowerCase() || "";
     const npwp = getNpwp(person)?.toLowerCase() || "";
+    const keahlian = person.keahlian?.toLowerCase() || ""; // Search by keahlian
     const id = person.id_personel?.toLowerCase() || "";
 
     return (
       name.includes(query) ||
       nik.includes(query) ||
       npwp.includes(query) ||
+      keahlian.includes(query) || // Include keahlian in search
       id.includes(query)
     );
   });
@@ -536,6 +527,7 @@ const fetchPersonil = async () => {
 const closeAddModal = () => {
   showAddModal.value = false;
   newPersonelName.value = "";
+  newPersonelKeahlian.value = "";
 };
 
 const saveNewPersonel = async () => {
@@ -552,6 +544,7 @@ const saveNewPersonel = async () => {
       },
       body: JSON.stringify({
         nama_lengkap: newPersonelName.value.trim(),
+        keahlian: newPersonelKeahlian.value.trim(),
       }),
     });
 
@@ -590,12 +583,14 @@ const saveNewPersonel = async () => {
 const openEditModal = (person) => {
   editPersonelData.value = person;
   editPersonelName.value = person.nama_lengkap;
+  editPersonelKeahlian.value = person.keahlian || "";
   showEditModal.value = true;
 };
 
 const closeEditModal = () => {
   showEditModal.value = false;
   editPersonelName.value = "";
+  editPersonelKeahlian.value = "";
   editPersonelData.value = null;
 };
 
@@ -615,6 +610,7 @@ const saveEditPersonel = async () => {
         },
         body: JSON.stringify({
           nama_lengkap: editPersonelName.value.trim(),
+          keahlian: editPersonelKeahlian.value.trim(),
         }),
       }
     );
@@ -689,6 +685,61 @@ const confirmDelete = async () => {
 const viewDetail = (person) => {
   console.log("Navigating to detail for:", person);
   router.push(`/database/personel/${person.id_personel}`);
+};
+
+// Helper for Document Icons
+const getDocumentIcons = (person) => {
+  const docs = [
+    {
+      type: "KTP",
+      icon: "far fa-id-card",
+      exists: !!(person.ktp && (person.ktp.id_ktp || person.ktp.file_ktp_url)),
+      class:
+        "text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+    },
+    {
+      type: "NPWP",
+      icon: "fas fa-credit-card",
+      exists: !!(
+        person.npwp &&
+        (person.npwp.id_npwp || person.npwp.file_npwp_personel_url)
+      ),
+      class:
+        "text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
+    },
+    {
+      type: "Ijazah",
+      icon: "fas fa-graduation-cap",
+      exists: !!(
+        person.ijazah &&
+        (person.ijazah.id_ijazah || person.ijazah.file_ijazah_url)
+      ),
+      class:
+        "text-purple-600 bg-purple-50 border-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
+    },
+    {
+      type: "CV",
+      icon: "fas fa-file-alt",
+      exists: !!(person.cv && (person.cv.id_cv || person.cv.file_cv_url)),
+      class:
+        "text-orange-600 bg-orange-50 border-orange-100 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
+    },
+    {
+      type: "Ref",
+      icon: "fas fa-briefcase",
+      exists: person.referensi && person.referensi.length > 0,
+      class:
+        "text-indigo-600 bg-indigo-50 border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800",
+    },
+    {
+      type: "STNK",
+      icon: "fas fa-car",
+      exists: person.stnk && person.stnk.length > 0,
+      class:
+        "text-pink-600 bg-pink-50 border-pink-100 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-800",
+    },
+  ];
+  return docs.filter((d) => d.exists);
 };
 
 onMounted(() => {

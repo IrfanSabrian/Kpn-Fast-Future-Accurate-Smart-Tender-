@@ -53,8 +53,13 @@ export const getCompanyById = async (req, res) => {
       });
     }
 
-    // Return only main company profile (overview data)
-    res.json(company);
+    // Get document status/counts for UI indicators
+    const documentCounts = await googleSheetsService.getCompanyDocumentCounts(
+      id
+    );
+
+    // Return main company profile with document status
+    res.json({ ...company, documentCounts });
   } catch (error) {
     console.error("Error in getCompanyById:", error);
     res.status(500).json({
@@ -121,11 +126,17 @@ export const getCompanyNib = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch NIB and KBLI Master data (Logic Updated: Get KBLI from db_nib)
-    const [nibData, masterKbliData] = await Promise.all([
-      googleSheetsService.getSheetData("db_nib"),
-      googleSheetsService.getKbliMasterData(),
-    ]);
+    // Fetch NIB data
+    const nibData = await googleSheetsService.getSheetData("db_nib");
+
+    // Try to fetch KBLI Master data (graceful fallback if not available)
+    let masterKbliData = [];
+    try {
+      masterKbliData = await googleSheetsService.getAllKBLI();
+    } catch (kbliError) {
+      console.warn("⚠️ KBLI master data not available:", kbliError.message);
+      console.warn("   Continuing without KBLI classifications...");
+    }
 
     // Filter NIB for this company
     const filteredNib = nibData.filter((item) => item.id_perusahaan === id);
@@ -149,14 +160,17 @@ export const getCompanyNib = async (req, res) => {
       }
     });
 
-    // Enrich KBLI data with Master Data
+    // Enrich KBLI data with Master Data (if available)
     enrichedKbli = Array.from(kbliCodesSet).map((code) => {
-      const master = masterKbliData.find((m) => m.kode_kbli === code);
+      // Note: KBLI master data uses 'kode_kbli' field (not 'kode_klbi')
+      const master = masterKbliData.find(
+        (m) => m.kode_kbli === code || m.kode_klbi === code
+      );
       return {
         id_perusahaan: id,
         kode_kbli: code,
-        judul_kbli: master ? master.nama_klasifikasi : "Unknown KBLI",
-        nama_klasifikasi: master ? master.nama_klasifikasi : "Unknown KBLI",
+        judul_kbli: master ? master.nama_klasifikasi : `KBLI ${code}`,
+        nama_klasifikasi: master ? master.nama_klasifikasi : `KBLI ${code}`,
         id_kbli: code, // Use code as ID
         id_perusahaan_kbli: code, // Backward compatibility
       };
@@ -257,11 +271,17 @@ export const getCompanyKbli = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Logic Updated: Get KBLI from db_nib instead of db_perusahaan_kbli
-    const [nibData, masterKbliData] = await Promise.all([
-      googleSheetsService.getSheetData("db_nib"),
-      googleSheetsService.getKbliMasterData(),
-    ]);
+    // Fetch NIB data
+    const nibData = await googleSheetsService.getSheetData("db_nib");
+
+    // Try to fetch KBLI Master data (graceful fallback if not available)
+    let masterKbliData = [];
+    try {
+      masterKbliData = await googleSheetsService.getAllKBLI();
+    } catch (kbliError) {
+      console.warn("⚠️ KBLI master data not available:", kbliError.message);
+      console.warn("   Continuing without KBLI classifications...");
+    }
 
     const companyNib = nibData.filter((item) => item.id_perusahaan === id);
 
@@ -283,12 +303,15 @@ export const getCompanyKbli = async (req, res) => {
 
     // Enrich
     const enrichedKbli = Array.from(kbliCodesSet).map((code) => {
-      const master = masterKbliData.find((m) => m.kode_kbli === code);
+      // Note: KBLI master data uses 'kode_kbli' field (not 'kode_klbi')
+      const master = masterKbliData.find(
+        (m) => m.kode_kbli === code || m.kode_klbi === code
+      );
       return {
         id_perusahaan: id,
         kode_kbli: code,
-        judul_kbli: master ? master.nama_klasifikasi : "Unknown KBLI",
-        nama_klasifikasi: master ? master.nama_klasifikasi : "Unknown KBLI",
+        judul_kbli: master ? master.nama_klasifikasi : `KBLI ${code}`,
+        nama_klasifikasi: master ? master.nama_klasifikasi : `KBLI ${code}`,
         id_kbli: code,
         id_perusahaan_kbli: code, // Backward compatibility
       };

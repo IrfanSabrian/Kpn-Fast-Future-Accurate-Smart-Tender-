@@ -1674,7 +1674,7 @@
     >
       <template #default>
         <div class="space-y-6">
-          <!-- Select Personil -->
+          <!-- Select Personil (Custom Dropdown) -->
           <div class="group">
             <label
               class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2"
@@ -1682,24 +1682,87 @@
               <i class="fas fa-user text-slate-400 mr-2"></i>
               Pilih Personil <span class="text-red-500">*</span>
             </label>
-            <select
-              v-model="pejabatFormData.id_personel"
-              class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all"
-              :class="
-                pejabatFormData.id_personel
-                  ? 'text-slate-900 dark:text-white'
-                  : 'text-slate-400'
-              "
+
+            <!-- If no available personnel -->
+            <div
+              v-if="availablePersonilList.length === 0"
+              class="w-full px-4 py-8 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-center"
             >
-              <option value="" disabled>-- Pilih Personil --</option>
-              <option
-                v-for="person in personilList"
+              <i
+                class="fas fa-users-slash text-3xl text-slate-300 dark:text-slate-600 mb-2"
+              ></i>
+              <p class="text-sm text-slate-500 dark:text-slate-400">
+                Semua personel sudah menjadi pejabat
+              </p>
+            </div>
+
+            <!-- Custom Dropdown with Cards -->
+            <div
+              v-else
+              class="w-full max-h-[300px] overflow-y-auto border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700"
+            >
+              <label
+                v-for="person in availablePersonilList"
                 :key="person.id_personel"
-                :value="person.id_personel"
+                class="flex items-center gap-3 p-3 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 cursor-pointer transition-all group/item"
+                :class="
+                  pejabatFormData.id_personel === person.id_personel
+                    ? 'bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-cyan-500'
+                    : ''
+                "
               >
-                {{ person.nama_lengkap }}
-              </option>
-            </select>
+                <input
+                  type="radio"
+                  v-model="pejabatFormData.id_personel"
+                  :value="person.id_personel"
+                  class="sr-only"
+                />
+
+                <!-- Avatar/Initial -->
+                <div
+                  class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+                  :class="
+                    pejabatFormData.id_personel === person.id_personel
+                      ? 'bg-cyan-600'
+                      : 'bg-gradient-to-br from-slate-400 to-slate-600'
+                  "
+                >
+                  {{ getInitials(person.nama_lengkap) }}
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <p
+                    class="font-bold text-sm text-slate-800 dark:text-white truncate"
+                  >
+                    {{ person.nama_lengkap }}
+                  </p>
+                  <p
+                    class="text-xs text-slate-500 dark:text-slate-400 truncate"
+                  >
+                    {{ person.nik || person.id_personel || "Tidak ada NIK" }}
+                  </p>
+                </div>
+
+                <!-- Check Icon (when selected) -->
+                <div
+                  v-if="pejabatFormData.id_personel === person.id_personel"
+                  class="shrink-0"
+                >
+                  <i
+                    class="fas fa-check-circle text-cyan-600 dark:text-cyan-400 text-lg"
+                  ></i>
+                </div>
+                <div
+                  v-else
+                  class="shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                >
+                  <i
+                    class="fas fa-circle text-slate-300 dark:text-slate-600 text-lg"
+                  ></i>
+                </div>
+              </label>
+            </div>
           </div>
 
           <!-- Jenis Jabatan (Radio Button) -->
@@ -2185,18 +2248,97 @@ const kswpUploadFormData = ref({
 });
 
 // Tabs Configuration (Re-ordered & Renamed) - Pejabat removed, moved to Overview
-const tabs = [
-  { id: "overview", label: "Overview", icon: "fas fa-th-large", count: null },
-  { id: "akta", label: "Akta", icon: "fas fa-file-contract", count: 0 },
-  { id: "nib", label: "NIB", icon: "fas fa-id-badge", count: 0 },
-  { id: "sbu", label: "SBU", icon: "fas fa-certificate", count: 0 },
-  { id: "kta", label: "KTA", icon: "fas fa-id-card-alt", count: 0 },
-  { id: "sertifikat", label: "Sertifikat", icon: "fas fa-award", count: 0 },
-  { id: "pajak", label: "Data Pajak", icon: "fas fa-wallet", count: 0 }, // Grouped
-  { id: "kontrak", label: "Pengalaman", icon: "fas fa-briefcase", count: 0 },
-  { id: "cek", label: "Cek", icon: "fas fa-money-check", count: 0 }, // Bank checks
-  { id: "bpjs", label: "BPJS", icon: "fas fa-hospital", count: 0 }, // BPJS
-];
+// Tabs Configuration (Computed to track data availability)
+const tabs = computed(() => [
+  { id: "overview", label: "Overview", icon: "fas fa-th-large", hasData: true },
+  {
+    id: "akta",
+    label: "Akta",
+    icon: "fas fa-file-contract",
+    hasData:
+      company.value?.documentCounts?.akta > 0 ||
+      (subModules.value.akta && subModules.value.akta.length > 0) ||
+      !!selectedItems.value.akta,
+  },
+  {
+    id: "nib",
+    label: "NIB",
+    icon: "fas fa-id-badge",
+    hasData:
+      company.value?.documentCounts?.nib > 0 ||
+      (subModules.value.nib && subModules.value.nib.length > 0) ||
+      !!selectedItems.value.nib,
+  },
+  {
+    id: "sbu",
+    label: "SBU",
+    icon: "fas fa-certificate",
+    hasData:
+      company.value?.documentCounts?.sbu > 0 ||
+      (subModules.value.sbu && subModules.value.sbu.length > 0) ||
+      !!selectedItems.value.sbu,
+  },
+  {
+    id: "kta",
+    label: "KTA",
+    icon: "fas fa-id-card-alt",
+    hasData:
+      company.value?.documentCounts?.kta > 0 ||
+      (subModules.value.kta && subModules.value.kta.length > 0) ||
+      !!selectedItems.value.kta,
+  },
+  {
+    id: "sertifikat",
+    label: "Sertifikat",
+    icon: "fas fa-award",
+    hasData:
+      company.value?.documentCounts?.sertifikat > 0 ||
+      (subModules.value.sertifikat && subModules.value.sertifikat.length > 0) ||
+      !!selectedItems.value.sertifikat,
+  },
+  {
+    id: "pajak",
+    label: "Data Pajak",
+    icon: "fas fa-wallet",
+    hasData:
+      company.value?.documentCounts?.pajak > 0 ||
+      (subModules.value.npwp && subModules.value.npwp.length > 0) ||
+      !!selectedItems.value.npwp ||
+      (subModules.value.spt && subModules.value.spt.length > 0) ||
+      !!selectedItems.value.spt ||
+      (subModules.value.pkp && subModules.value.pkp.length > 0) ||
+      !!selectedItems.value.pkp ||
+      (subModules.value.kswp && subModules.value.kswp.length > 0) ||
+      !!selectedItems.value.kswp,
+  },
+  {
+    id: "kontrak",
+    label: "Pengalaman",
+    icon: "fas fa-briefcase",
+    hasData:
+      company.value?.documentCounts?.kontrak > 0 ||
+      (subModules.value.kontrak && subModules.value.kontrak.length > 0) ||
+      !!selectedItems.value.kontrak,
+  },
+  {
+    id: "cek",
+    label: "Cek",
+    icon: "fas fa-money-check",
+    hasData:
+      company.value?.documentCounts?.cek > 0 ||
+      (subModules.value.cek && subModules.value.cek.length > 0) ||
+      !!selectedItems.value.cek,
+  },
+  {
+    id: "bpjs",
+    label: "BPJS",
+    icon: "fas fa-hospital",
+    hasData:
+      company.value?.documentCounts?.bpjs > 0 ||
+      (subModules.value.bpjs && subModules.value.bpjs.length > 0) ||
+      !!selectedItems.value.bpjs,
+  },
+]);
 
 // Helper Functions
 const getInitials = (name) => {
@@ -2295,8 +2437,8 @@ const handleKopImageError = (e, c) => {
 const getPreviewUrl = (url) => {
   if (!url) return "";
   if (url.includes("drive.google.com")) {
-    // Convert view/edit link to preview link for iframe
-    return url.replace(/\/view.*$/, "/preview");
+    // Convert view/edit/open link to preview link for iframe
+    return url.replace(/\/(view|open|edit).*$/, "/preview");
   }
   return url;
 };
@@ -2318,6 +2460,12 @@ const getTabData = (tabId) => subModules.value[tabId] || [];
 // Get document URL from item (handles different field names per module)
 const getSelectedDocUrl = (tabId) => {
   const item = selectedItems.value[tabId];
+  console.log(`🔍 getSelectedDocUrl('${tabId}'):`, {
+    hasItem: !!item,
+    item: item,
+    itemKeys: item ? Object.keys(item) : [],
+  });
+
   if (!item) return "";
 
   const urlMap = {
@@ -2331,7 +2479,11 @@ const getSelectedDocUrl = (tabId) => {
     cek: item.url_cek,
     bpjs: item.url_bpjs,
   };
-  return urlMap[tabId] || item.url_dokumen || item.kontrak_url || "";
+
+  const url = urlMap[tabId] || item.url_dokumen || item.kontrak_url || "";
+  console.log(`📄 PDF URL for ${tabId}:`, url);
+
+  return url;
 };
 
 // Select item for PDF preview
@@ -2684,7 +2836,6 @@ const fetchAkta = async () => {
     const res = await fetch(`${apiBaseUrl}/companies/${companyId}/akta`);
     if (res.ok) {
       subModules.value.akta = await res.json();
-      tabs.find((t) => t.id === "akta").count = subModules.value.akta.length;
       if (subModules.value.akta.length)
         selectedItems.value.akta = subModules.value.akta[0];
       console.log(
@@ -2724,15 +2875,30 @@ const fetchNIB = async () => {
       // The response now includes both nib and kbli data
       subModules.value.nib = data.nib || [];
       subModules.value.kbli = data.kbli || [];
-      tabs.find((t) => t.id === "nib").count = subModules.value.nib.length;
-      if (subModules.value.nib.length)
+
+      if (subModules.value.nib.length) {
         selectedItems.value.nib = subModules.value.nib[0];
-      console.log("✅ NIB Data loaded:", subModules.value.nib.length, "items");
+        console.log(
+          "✅ NIB Data loaded:",
+          subModules.value.nib.length,
+          "items"
+        );
+        console.log("📋 First NIB item:", subModules.value.nib[0]);
+        console.log(
+          "🔗 NIB URL from first item:",
+          subModules.value.nib[0]?.nib_url
+        );
+      } else {
+        console.warn("⚠️ NIB Data loaded but EMPTY");
+      }
+
       console.log(
         "✅ KBLI Data loaded from NIB:",
         subModules.value.kbli.length,
         "items"
       );
+    } else {
+      console.error("❌ Failed to fetch NIB data:", res.status, res.statusText);
     }
   } catch (e) {
     console.error("Error fetching NIB:", e);
@@ -2745,7 +2911,6 @@ const fetchSBU = async () => {
     const res = await fetch(`${apiBaseUrl}/companies/${companyId}/sbu`);
     if (res.ok) {
       subModules.value.sbu = await res.json();
-      tabs.find((t) => t.id === "sbu").count = subModules.value.sbu.length;
       if (subModules.value.sbu.length)
         selectedItems.value.sbu = subModules.value.sbu[0];
       console.log("✅ SBU Data loaded:", subModules.value.sbu.length, "items");
@@ -2761,7 +2926,6 @@ const fetchKTA = async () => {
     const res = await fetch(`${apiBaseUrl}/companies/${companyId}/kta`);
     if (res.ok) {
       subModules.value.kta = await res.json();
-      tabs.find((t) => t.id === "kta").count = subModules.value.kta.length;
       if (subModules.value.kta.length)
         selectedItems.value.kta = subModules.value.kta[0];
       console.log("✅ KTA Data loaded:", subModules.value.kta.length, "items");
@@ -2777,8 +2941,6 @@ const fetchSertifikat = async () => {
     const res = await fetch(`${apiBaseUrl}/companies/${companyId}/sertifikat`);
     if (res.ok) {
       subModules.value.sertifikat = await res.json();
-      tabs.find((t) => t.id === "sertifikat").count =
-        subModules.value.sertifikat.length;
       if (subModules.value.sertifikat.length)
         selectedItems.value.sertifikat = subModules.value.sertifikat[0];
       console.log(
@@ -2834,8 +2996,6 @@ const fetchPengalaman = async () => {
     const res = await fetch(`${apiBaseUrl}/companies/${companyId}/pengalaman`);
     if (res.ok) {
       subModules.value.kontrak = await res.json();
-      tabs.find((t) => t.id === "kontrak").count =
-        subModules.value.kontrak.length;
       if (subModules.value.kontrak.length)
         selectedItems.value.kontrak = subModules.value.kontrak[0];
       console.log(
@@ -2855,7 +3015,6 @@ const fetchCek = async () => {
     const res = await fetch(`${apiBaseUrl}/companies/${companyId}/cek`);
     if (res.ok) {
       subModules.value.cek = await res.json();
-      tabs.find((t) => t.id === "cek").count = subModules.value.cek.length;
       if (subModules.value.cek.length)
         selectedItems.value.cek = subModules.value.cek[0];
       console.log("✅ Cek Data loaded:", subModules.value.cek.length, "items");
@@ -2871,7 +3030,6 @@ const fetchBPJS = async () => {
     const res = await fetch(`${apiBaseUrl}/companies/${companyId}/bpjs`);
     if (res.ok) {
       subModules.value.bpjs = await res.json();
-      tabs.find((t) => t.id === "bpjs").count = subModules.value.bpjs.length;
       if (subModules.value.bpjs.length)
         selectedItems.value.bpjs = subModules.value.bpjs[0];
       console.log(
@@ -2888,49 +3046,79 @@ const fetchBPJS = async () => {
 // Lazy load data when tab changes
 const loadedTabs = ref(["overview"]); // Track which tabs have been loaded
 
-watch(activeTab, async (newTab) => {
-  // Skip if already loaded
-  if (loadedTabs.value.includes(newTab)) return;
+watch(
+  activeTab,
+  async (newTab) => {
+    // Basic check
+    if (!newTab || newTab === "overview") return;
 
-  loadingTab.value = true;
+    // Check if data is essentially empty
+    const data = subModules.value[newTab];
+    const hasData = Array.isArray(data) ? data.length > 0 : !!data;
 
-  try {
-    switch (newTab) {
-      case "akta":
-        await fetchAkta();
-        break;
-      case "nib":
-        await fetchNIB();
-        break;
-      case "sbu":
-        await fetchSBU();
-        break;
-      case "kta":
-        await fetchKTA();
-        break;
-      case "sertifikat":
-        await fetchSertifikat();
-        break;
-      case "pajak":
-        await fetchPajak();
-        break;
-      case "kontrak":
-        await fetchPengalaman();
-        break;
-      case "cek":
-        await fetchCek();
-        break;
-      case "bpjs":
-        await fetchBPJS();
-        break;
+    // Skip only if loaded AND has data (prevent infinite retry on truly empty data? NO, loadedTabs handles that)
+    // Retry logic: If loaded but empty, maybe we should try again?
+    // Let's stick to loadedTabs flag, but push to loadedTabs only on SUCCESS.
+    // The previous code pushed to loadedTabs in finally block, which marks failed attempts as loaded.
+
+    if (loadedTabs.value.includes(newTab) && hasData) return;
+
+    // Force fetch if not loaded OR (loaded but empty - optional, maybe user wants refresh)
+    // For now, respect loadedTabs but ensure we only add to it on success
+    if (loadedTabs.value.includes(newTab)) {
+      // If it's empty, we might want to retry silently?
+      // Let's trust the flag. If user wants refresh, they usually reload page.
+      // But invalidating cache on error is better.
+      return;
     }
 
-    // Mark tab as loaded
-    loadedTabs.value.push(newTab);
-  } finally {
-    loadingTab.value = false;
-  }
-});
+    console.log(`🔄 Fetching data for tab: ${newTab}`);
+    loadingTab.value = true;
+
+    try {
+      switch (newTab) {
+        case "akta":
+          await fetchAkta();
+          break;
+        case "nib":
+          await fetchNIB();
+          break;
+        case "sbu":
+          await fetchSBU();
+          break;
+        case "kta":
+          await fetchKTA();
+          break;
+        case "sertifikat":
+          await fetchSertifikat();
+          break;
+        case "pajak":
+          await fetchPajak();
+          break;
+        case "kontrak":
+          await fetchPengalaman();
+          break;
+        case "cek":
+          await fetchCek();
+          break;
+        case "bpjs":
+          await fetchBPJS();
+          break;
+      }
+
+      // Mark tab as loaded ONLY if successful
+      if (!loadedTabs.value.includes(newTab)) {
+        loadedTabs.value.push(newTab);
+      }
+    } catch (e) {
+      console.error(`❌ Error loading tab ${newTab}:`, e);
+      // Do NOT mark as loaded, so next click tries again
+    } finally {
+      loadingTab.value = false;
+    }
+  },
+  { immediate: true }
+);
 
 // Placeholder Actions
 const openAddModal = (tab) => {
@@ -3209,7 +3397,9 @@ const fetchPersonilList = async () => {
   try {
     const res = await fetch(`${apiBaseUrl}/personnel`);
     if (res.ok) {
-      personilList.value = await res.json();
+      const response = await res.json();
+      // Extract data from response object
+      personilList.value = response.data || response || [];
       console.log(
         "✅ Personil list loaded:",
         personilList.value.length,
@@ -3253,6 +3443,19 @@ const closeAddPejabatModal = () => {
     };
   }
 };
+
+// Computed: Filter personel yang belum menjadi pejabat
+const availablePersonilList = computed(() => {
+  // Get list of id_personel yang sudah menjadi pejabat
+  const existingPejabatIds = (subModules.value.pejabat || []).map(
+    (p) => p.id_personel
+  );
+
+  // Filter personil yang belum ada di daftar pejabat
+  return personilList.value.filter(
+    (person) => !existingPejabatIds.includes(person.id_personel)
+  );
+});
 
 // Validation computed property
 const canSavePejabat = computed(() => {

@@ -821,14 +821,23 @@ class GoogleSheetsService {
       }
 
       // Fetch all required tables in parallel
-      const [personelData, ktpData, npwpData, ijazahData, cvData] =
-        await Promise.all([
-          this.readSheet(spreadsheetId, "db_personel"),
-          this.readSheet(spreadsheetId, "db_ktp"),
-          this.readSheet(spreadsheetId, "db_npwp_personel"),
-          this.readSheet(spreadsheetId, "db_ijazah"),
-          this.readSheet(spreadsheetId, "db_cv"),
-        ]);
+      const [
+        personelData,
+        ktpData,
+        npwpData,
+        ijazahData,
+        cvData,
+        referensiData,
+        stnkData,
+      ] = await Promise.all([
+        this.readSheet(spreadsheetId, "db_personel"),
+        this.readSheet(spreadsheetId, "db_ktp"),
+        this.readSheet(spreadsheetId, "db_npwp_personel"),
+        this.readSheet(spreadsheetId, "db_ijazah"),
+        this.readSheet(spreadsheetId, "db_cv"),
+        this.readSheet(spreadsheetId, "db_referensi"),
+        this.readSheet(spreadsheetId, "db_stnk"),
+      ]);
 
       // Join data based on id_personel
       return personelData.map((p) => {
@@ -838,6 +847,12 @@ class GoogleSheetsService {
         const ijazah =
           ijazahData.find((i) => i.id_personel === p.id_personel) || {};
         const cv = cvData.find((c) => c.id_personel === p.id_personel) || {};
+
+        // One-to-Many relationships
+        const referensi = referensiData.filter(
+          (r) => r.id_personel === p.id_personel
+        );
+        const stnk = stnkData.filter((s) => s.id_personel === p.id_personel);
 
         return {
           ...p,
@@ -850,6 +865,8 @@ class GoogleSheetsService {
           npwp,
           ijazah,
           cv,
+          referensi, // Array of referensi
+          stnk, // Array of stnk
         };
       });
     } catch (error) {
@@ -925,12 +942,11 @@ class GoogleSheetsService {
       // Only insert into main table for now (Simplified)
       const nextRow = currentData.length + 2;
 
-      // Expected headers - db_personel
+      // Expected headers - db_personel (UPDATED)
       const headers = [
         "id_personel",
         "nama_lengkap",
-        "alamat_domisili",
-        "no_hp",
+        "keahlian",
         "tanggal_input",
         "author",
       ];
@@ -970,6 +986,7 @@ class GoogleSheetsService {
       // Prepare values
       const values = headers.map((header) => {
         if (header === "nama_lengkap") return namaLengkap || "";
+        if (header === "keahlian") return data.keahlian || "";
         return data[header] || "";
       });
 
@@ -1112,15 +1129,21 @@ class GoogleSheetsService {
       const headers = [
         "id_personel",
         "nama_lengkap",
-        "alamat_domisili",
-        "no_hp",
+        "keahlian",
         "tanggal_input",
+        "author",
       ];
 
       // Merge data (this update is imperfect as it only updates db_personel, not joined tables)
       const updatedData = { ...oldData, ...data };
       if (newNamaLengkap) updatedData.nama_lengkap = newNamaLengkap;
-      const values = headers.map((header) => updatedData[header] || "");
+      const values = headers.map((header) => {
+        if (header === "keahlian")
+          return data.keahlian || updatedData.keahlian || "";
+        // Keep author from old data if not provided
+        if (header === "author") return updatedData.author || "system";
+        return updatedData[header] || "";
+      });
 
       await this.sheets.spreadsheets.values.update({
         spreadsheetId,
@@ -2420,7 +2443,42 @@ class GoogleSheetsService {
 
   // --- 7. DB KLBI (KBLI CLASSIFICATION) ---
   async getAllKBLI() {
-    return this.getSheetData("db_klbi");
+    await this.initialize();
+
+    try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_KBLI;
+
+      if (!spreadsheetId) {
+        console.warn("⚠️ GOOGLE_SHEET_ID_KBLI not configured");
+        return [];
+      }
+
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `db_kbli!A1:Z2000`, // Updated to use db_kbli tab name
+      });
+
+      const rows = response.data.values;
+      if (!rows || rows.length < 2) {
+        return [];
+      }
+
+      const headers = rows[0];
+      const dataRows = rows
+        .slice(1)
+        .filter((row) => row && row.length > 0 && row[0]);
+
+      return dataRows.map((row) => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || "";
+        });
+        return obj;
+      });
+    } catch (error) {
+      console.warn("⚠️ Failed to get KBLI master data:", error.message);
+      return []; // Return empty array instead of throwing to prevent 500 error
+    }
   }
 
   async getKBLIByKode(kode) {
@@ -2440,18 +2498,36 @@ class GoogleSheetsService {
     );
   }
 
+  async batchUpdateKBLI(idPerusahaan, kbliCodes, author = "system") {
+    const nibList = await this.getAllNIB(idPerusahaan);
+    if (nibList.length === 0) {
+      throw new Error(
+        "NIB data not found for this company. Cannot update KBLI."
+      );
+    }
+
+    const nib = nibList[0];
+    const kbliString = Array.isArray(kbliCodes)
+      ? kbliCodes.join(", ")
+      : kbliCodes;
+
+    return this.updateNIB(nib.id_nib, {
+      kbli: kbliString,
+    });
+  }
+
   async addKBLI(data) {
     const headers = ["kode_klbi", "nama_klasifikasi"];
-    return this.addSheetData("db_klbi", headers, data);
+    return this.addSheetData("db_kbli", headers, data);
   }
 
   async updateKBLI(kode, data) {
     const headers = ["kode_klbi", "nama_klasifikasi"];
-    return this.updateSheetData("db_klbi", headers, "kode_klbi", kode, data);
+    return this.updateSheetData("db_kbli", headers, "kode_klbi", kode, data);
   }
 
   async deleteKBLI(kode) {
-    return this.deleteSheetData("db_klbi", "kode_klbi", kode);
+    return this.deleteSheetData("db_kbli", "kode_klbi", kode);
   }
 
   // --- 8. DB PROJECT (PROJECTS ONLY) ---
@@ -3700,6 +3776,162 @@ class GoogleSheetsService {
     } catch (e) {
       console.error("❌ Batch Update KBLI failed:", e);
       throw new Error("Failed to batch update KBLI: " + e.message);
+    }
+  }
+  // ==================== REFERENSI METHODS ====================
+
+  async addReferensi(data) {
+    const headers = [
+      "id_referensi",
+      "id_personel",
+      "pengalaman",
+      "url_referensi",
+      "tanggal_input",
+      "author",
+    ];
+    // Generate new ID
+    const currentData = await this.readSheet(
+      process.env.GOOGLE_SHEET_ID_PERSONEL ||
+        process.env.GOOGLE_SHEET_ID_PERSONIL,
+      "db_referensi"
+    );
+    data.id_referensi = this.generateNewId(currentData, "id_referensi", "REF");
+
+    return this.addSheetDataPersonel("db_referensi", headers, data);
+  }
+
+  async updateReferensi(id, data) {
+    const headers = [
+      "id_referensi",
+      "id_personel",
+      "pengalaman",
+      "url_referensi",
+      "tanggal_input",
+      "author",
+    ];
+    return this.updateSheetDataPersonel(
+      "db_referensi",
+      headers,
+      "id_referensi",
+      id,
+      data
+    );
+  }
+
+  async deleteReferensi(id) {
+    return this.deleteSheetDataPersonel("db_referensi", "id_referensi", id);
+  }
+
+  // ==================== STNK METHODS ====================
+
+  async addStnk(data) {
+    const headers = [
+      "id_stnk",
+      "id_personel",
+      "no_polisi",
+      "merek",
+      "warna",
+      "url_stnk",
+      "tanggal_input",
+      "author",
+    ];
+    // Generate new ID
+    const currentData = await this.readSheet(
+      process.env.GOOGLE_SHEET_ID_PERSONEL ||
+        process.env.GOOGLE_SHEET_ID_PERSONIL,
+      "db_stnk"
+    );
+    data.id_stnk = this.generateNewId(currentData, "id_stnk", "STNK");
+
+    return this.addSheetDataPersonel("db_stnk", headers, data);
+  }
+
+  async updateStnk(id, data) {
+    const headers = [
+      "id_stnk",
+      "id_personel",
+      "no_polisi",
+      "merek",
+      "warna",
+      "url_stnk",
+      "tanggal_input",
+      "author",
+    ];
+    return this.updateSheetDataPersonel(
+      "db_stnk",
+      headers,
+      "id_stnk",
+      id,
+      data
+    );
+  }
+
+  async deleteStnk(id) {
+    return this.deleteSheetDataPersonel("db_stnk", "id_stnk", id);
+  }
+
+  async getCompanyDocumentCounts(idPerusahaan) {
+    try {
+      const [
+        akta,
+        nib,
+        sbu,
+        kta,
+        sertifikat,
+        kontrak,
+        cek,
+        bpjs,
+        npwp,
+        spt,
+        pkp,
+        kswp,
+      ] = await Promise.all([
+        this.getAllAkta(idPerusahaan).catch(() => []),
+        this.getAllNIB(idPerusahaan).catch(() => []),
+        this.getSheetData("db_sbu")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+        this.getSheetData("db_kta")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+        this.getSheetData("db_sertifikat_standar")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+        this.getAllPengalaman(idPerusahaan).catch(() => []),
+        this.getSheetData("db_cek")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+        this.getSheetData("db_bpjs")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+        this.getSheetData("db_npwp")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+        this.getSheetData("db_spt")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+        this.getSheetData("db_pkp")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+        this.getSheetData("db_kswp")
+          .then((rows) => rows.filter((r) => r.id_perusahaan === idPerusahaan))
+          .catch(() => []),
+      ]);
+
+      return {
+        akta: akta.length,
+        nib: nib.length,
+        sbu: sbu.length,
+        kta: kta.length,
+        sertifikat: sertifikat.length,
+        kontrak: kontrak.length,
+        cek: cek.length,
+        bpjs: bpjs.length,
+        pajak: npwp.length + spt.length + pkp.length + kswp.length,
+      };
+    } catch (error) {
+      console.error("Error getting document counts:", error);
+      return {};
     }
   }
 }
