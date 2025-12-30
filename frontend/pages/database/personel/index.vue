@@ -145,12 +145,12 @@
         <!-- Document Badges Row (If Available) -->
         <div
           v-if="getDocumentIcons(person).length > 0"
-          class="px-4 pb-4 pt-0 flex flex-wrap gap-1"
+          class="px-4 pb-4 pt-0 flex flex-wrap gap-0.5"
         >
           <div
             v-for="doc in getDocumentIcons(person)"
             :key="doc.type"
-            class="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-1 border transition-transform hover:scale-105"
+            class="px-1 py-0.5 rounded text-[9px] uppercase font-bold flex items-center gap-0.5 border transition-transform hover:scale-105"
             :class="doc.class"
             :title="doc.type + ' tersedia'"
           >

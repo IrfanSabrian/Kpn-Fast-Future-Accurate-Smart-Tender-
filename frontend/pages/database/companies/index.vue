@@ -957,6 +957,7 @@ const handleSubmit = async () => {
   }
 
   isSubmitting.value = true;
+  info("Sedang memproses data perusahaan...", 5000);
 
   try {
     // Prepare FormData for multipart/form-data

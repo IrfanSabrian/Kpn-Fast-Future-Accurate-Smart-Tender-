@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 52428800, // 50MB default
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 104857600, // 100MB default
   },
   fileFilter: (req, file, cb) => {
     // List of document fields that accept PDF

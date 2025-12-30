@@ -2176,59 +2176,38 @@ export const uploadCompanyDocument = async (req, res) => {
         .json({ success: false, message: "Company not found" });
     }
 
-    // Determine folder number from company data or other source
-    // Ideally we assume the folder structure exists.
-    // We can try to guess folder number from existing data or just search.
-    // For now, let's assume we can get it or we might need to list folders?
-    // The previous implementation calculates folderNumber based on total companies for NEW companies.
-    // For EXISTING companies, we should probably find the folder.
-    // BUT `uploadDocumentToDrive` requires `folderNumber`.
-    // Let's IMPROVE `uploadDocumentToDrive` to FIND the folder if folderNumber is not reliable?
-    // Actually, `uploadDocumentToDrive` constructs the folder name: `${folderNumber}. ${namaPerusahaan}`
-    // We don't have folderNumber stored in DB usually.
-    // We might need to SEARCH for the folder by name.
-
-    // Simplification for now: Try to find folder by name "*{namaPerusahaan}*"
-    // But let's check how `uploadDocumentToDrive` is implemented.
-    // It takes folderNumber.
-    // We can try to "guess" it or better yet, make `uploadDocumentToDrive` search for folder.
-
-    // However, for this task, I will stick to a simpler approach:
-    // If we can't get folder number easily, we will search for the company folder by name.
-
-    // Let's refactor/use a version that searches.
-    // Since I can't easily change the helper widely used without risk, I'll add a check here.
-
-    // ... Actually, the current `uploadDocumentToDrive` is defined in this file.
-    // I will use `oauth2GoogleService` to find the folder.
-
     const namaPerusahaan = company.nama_perusahaan;
     const baseFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
 
-    // Find company folder
+    // 1. Find company folder
     const companyFolders = await oauth2GoogleService.searchFolder(
       namaPerusahaan,
       baseFolderId
     );
     let companyFolderId;
     let companyFolderName;
+    let companyIndex = "01"; // Default
 
     if (companyFolders && companyFolders.length > 0) {
       companyFolderId = companyFolders[0].id;
       companyFolderName = companyFolders[0].name;
+
+      // Extract index from folder name (e.g. "05. PT ABC" -> "05")
+      const match = companyFolderName.match(/^(\d+)\./);
+      if (match) {
+        companyIndex = match[1];
+      }
     } else {
-      // Fallback: If not found, maybe create? Or error?
-      // Let's error for now as stepped upload implies existing company
       return res.status(404).json({
         success: false,
         message: `Google Drive folder for ${namaPerusahaan} not found`,
       });
     }
 
-    // Now determine subfolder based on type
+    // 2. Determine subfolder configuration
     const docConfig = {
-      akta: { namePart: "Akta Perusahaan", index: "2" }, // 1.2
-      nib: { namePart: "Nomor Induk Berusaha", index: "3" }, // 1.3 ? No, structure is different in `uploadDocumentToDrive`
+      akta: { namePart: "Akta Perusahaan", index: "2" },
+      nib: { namePart: "Nomor Induk Berusaha", index: "3" },
       sbu: { namePart: "Sertifikat Badan Usaha", index: "4" },
       kta: { namePart: "Kartu Tanda Anggota", index: "5" },
       sertifikat: { namePart: "Sertifikat Standar", index: "6" },
@@ -2236,39 +2215,62 @@ export const uploadCompanyDocument = async (req, res) => {
       cek: { namePart: "Surat Referensi Bank", index: "9" },
       bpjs: { namePart: "BPJS", index: "10" },
       // Tax docs
-      spt: { namePart: "SPT Tahunan", index: "7" }, // Guessing index or creates new
-      npwp: { namePart: "NPWP", index: "7" },
-      pkp: { namePart: "PKP", index: "7" },
-      kswp: { namePart: "KSWP", index: "7" },
+      spt: {
+        namePart: "Data Perpajakan",
+        fileNamePart: "SPT Tahunan",
+        index: "7",
+      },
+      npwp: { namePart: "Data Perpajakan", fileNamePart: "NPWP", index: "7" },
+      pkp: { namePart: "Data Perpajakan", fileNamePart: "PKP", index: "7" },
+      kswp: { namePart: "Data Perpajakan", fileNamePart: "KSWP", index: "7" },
+      // Generic tax
+      pajak: { namePart: "Data Perpajakan", index: "7" },
     };
 
     const config = docConfig[type];
     let subFolderId;
 
     if (config) {
-      // Try to find subfolder that contains the namePart
-      // e.g. "1.2 Akta Perusahaan"
+      const parsedIndex = parseInt(companyIndex, 10);
+      const targetSubfolderName = `${parsedIndex}.${config.index} ${config.namePart}`;
+
+      // Search for EXACT subfolder first
       const subFolders = await oauth2GoogleService.listFolders(companyFolderId);
-      const targetSub = subFolders.find((f) =>
-        f.name.includes(config.namePart)
+      const existingSub = subFolders.find(
+        (f) => f.name === targetSubfolderName
       );
 
-      if (targetSub) {
-        subFolderId = targetSub.id;
+      if (existingSub) {
+        subFolderId = existingSub.id;
       } else {
-        // Create if not exists?
-        // For now, let's just upload to company root if subfolder missing, or error.
-        // Let's create it.
-        // We need an index. The folder naming convention is strict.
-        // Let's just upload to Company Root if strictly required subfolder is missing to avoid breaking naming.
-        subFolderId = companyFolderId;
+        // Fallback: Search by partial name to be safe
+        const partialSub = subFolders.find((f) =>
+          f.name.includes(config.namePart)
+        );
+
+        if (partialSub) {
+          subFolderId = partialSub.id;
+        } else {
+          // CREATE if missing
+          console.log(`📁 Creating missing subfolder: ${targetSubfolderName}`);
+          const newFolder = await oauth2GoogleService.createFolder(
+            targetSubfolderName,
+            companyFolderId
+          );
+          subFolderId = newFolder.id;
+        }
       }
     } else {
+      // Fallback to strict company root
       subFolderId = companyFolderId;
     }
 
-    // Upload File
-    const fileName = `${type.toUpperCase()} ${namaPerusahaan} - ${Date.now()}.pdf`;
+    // 3. Upload File with Standardized Name
+    // Format: [DocName] [CompanyName].pdf
+    const docName = config
+      ? config.fileNamePart || config.namePart
+      : type.toUpperCase();
+    const fileName = `${docName} ${namaPerusahaan}.pdf`;
 
     // We use a lower level upload since we resolved IDs manually
     const fs = await import("fs/promises");

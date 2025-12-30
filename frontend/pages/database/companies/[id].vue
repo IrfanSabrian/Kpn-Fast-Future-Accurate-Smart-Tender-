@@ -3409,10 +3409,10 @@ const handleCompanyProfileSelect = (event) => {
       return;
     }
 
-    // Validate file size (50MB max)
-    const maxSize = 50 * 1024 * 1024;
+    // Validate file size (100MB max)
+    const maxSize = 100 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error("Ukuran file terlalu besar. Maksimal 50MB");
+      toast.error("Ukuran file terlalu besar. Maksimal 100MB");
       event.target.value = ""; // Reset input
       return;
     }
@@ -3438,6 +3438,11 @@ const saveCompanyProfile = async () => {
 
   console.log("📤 Starting PDF upload...");
   isUploadingCompanyProfile.value = true;
+  // Show persistent toast
+  const uploadToastId = toast.info(
+    "Sedang mengupload Company Profile ke Google Drive...",
+    0
+  );
 
   try {
     const formData = new FormData();
@@ -3474,6 +3479,8 @@ const saveCompanyProfile = async () => {
     const result = await response.json();
     console.log("✅ Response data:", result);
 
+    // Hide persistent toast
+    toast.hideToast(uploadToastId);
     toast.success("Company Profile PDF berhasil disimpan!");
 
     // Clear pending state
@@ -3486,6 +3493,8 @@ const saveCompanyProfile = async () => {
     console.log("✅ Upload complete!");
   } catch (error) {
     console.error("❌ Error saving PDF:", error);
+    // Hide persistent toast on error too
+    toast.hideToast(uploadToastId);
     toast.error("Gagal menyimpan PDF: " + error.message);
   } finally {
     isUploadingCompanyProfile.value = false;
