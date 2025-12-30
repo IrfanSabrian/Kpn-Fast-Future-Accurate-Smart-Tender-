@@ -829,7 +829,7 @@ const apiBaseUrl = config.public.apiBaseUrl;
 const router = useRouter();
 
 // Use toast composable
-const { toast, success, error: showError, hideToast } = useToast();
+const { toast, success, error: showError, hideToast, info } = useToast();
 
 const loading = ref(true);
 const companies = ref([]);
@@ -1231,27 +1231,37 @@ const handleDelete = async () => {
   if (!companyToDelete.value) return;
 
   isDeleting.value = true;
+  const id = companyToDelete.value.id_perusahaan;
+  const name = companyToDelete.value.nama_perusahaan;
 
   try {
-    console.log(`🗑️  Deleting company: ${companyToDelete.value.id_perusahaan}`);
+    console.log(`🗑️  Starting deletion for: ${name} (${id})`);
 
-    const response = await fetch(
-      `${apiBaseUrl}/companies/${companyToDelete.value.id_perusahaan}`,
-      {
-        method: "DELETE",
-      }
-    );
+    // Step 1: Delete Assets (Folder & Logo)
+    info(`Menghapus folder & aset perusahaan...`, 3000);
+    const resAssets = await fetch(`${apiBaseUrl}/companies/${id}/assets`, {
+      method: "DELETE",
+    });
+    if (!resAssets.ok) throw new Error("Gagal menghapus aset folder/logo");
 
-    const result = await response.json();
+    // Step 2: Delete Related Data
+    info(`Menghapus data dokumen & relasi database...`, 3000);
+    const resData = await fetch(`${apiBaseUrl}/companies/${id}/related-data`, {
+      method: "DELETE",
+    });
+    if (!resData.ok) throw new Error("Gagal menghapus data terkait");
 
-    if (!response.ok) {
-      throw new Error(result.message || "Gagal menghapus perusahaan");
-    }
+    // Step 3: Delete Company Profile
+    info(`Menghapus profil perusahaan...`, 3000);
+    const resProfile = await fetch(`${apiBaseUrl}/companies/${id}/profile`, {
+      method: "DELETE",
+    });
+    if (!resProfile.ok) throw new Error("Gagal menghapus profil perusahaan");
 
     console.log("✅ Company deleted successfully");
-    success("Perusahaan berhasil dihapus!");
+    success(`Perusahaan ${name} berhasil dihapus permanen!`, 5000);
 
-    // Reset deleting state first to allow modal closing
+    // Reset deleting state
     isDeleting.value = false;
     closeDeleteModal();
     await fetchCompanies();

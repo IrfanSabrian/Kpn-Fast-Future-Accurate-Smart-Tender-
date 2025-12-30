@@ -98,6 +98,7 @@ export const updateKtp = async (req, res) => {
     const { personelId } = req.params;
     const data = req.body;
     const file = req.file;
+    const fileUrlFromBody = data.file_ktp_url || data.fileUrl; // Accept URL from body
 
     // Get current KTP data
     const personel = await googleSheetsService.getPersonilById(personelId);
@@ -112,7 +113,9 @@ export const updateKtp = async (req, res) => {
     if (!personel.ktp || !personel.ktp.id_personel) {
       console.log("⚠️ KTP data not found in database, creating new entry...");
 
-      if (!file) {
+      let newFileUrl = fileUrlFromBody;
+
+      if (!file && !newFileUrl) {
         return res.status(400).json({
           success: false,
           message: "File PDF KTP is required for first upload",
@@ -120,23 +123,26 @@ export const updateKtp = async (req, res) => {
       }
 
       const namaPersonel = personel.nama_lengkap;
-      const folderPath = [
-        "02. Personel",
-        namaPersonel,
-        "01. Kartu Tanda Penduduk",
-      ];
-      const fileName = `KTP ${namaPersonel}.pdf`;
 
-      const uploadResult = await oauth2GoogleService.uploadPdfFile(
-        file.buffer,
-        fileName,
-        file.mimetype,
-        folderPath
-      );
+      if (file) {
+        const folderPath = [
+          "02. Personel",
+          namaPersonel,
+          "01. Kartu Tanda Penduduk",
+        ];
+        const fileName = `KTP ${namaPersonel}.pdf`;
+        const uploadResult = await oauth2GoogleService.uploadPdfFile(
+          file.buffer,
+          fileName,
+          file.mimetype,
+          folderPath
+        );
+        newFileUrl = uploadResult.webViewLink;
+      }
 
       const ktpData = {
         id_personel: personelId,
-        file_ktp_url: uploadResult.webViewLink,
+        file_ktp_url: newFileUrl,
       };
 
       const result = await googleSheetsService.addKtp(ktpData);
@@ -146,46 +152,40 @@ export const updateKtp = async (req, res) => {
         message: "KTP added successfully",
         data: {
           ...result,
-          fileUrl: uploadResult.webViewLink,
+          fileUrl: newFileUrl,
         },
       });
     }
 
     // Update existing KTP
-
     const namaPersonel = personel.nama_lengkap;
     let fileUrl = personel.ktp.file_ktp_url;
 
-    // If new file uploaded, delete old file and upload new one
+    // 1. If physical file uploaded -> Delete old, Upload new
     if (file) {
-      // Delete old file if exists
       if (fileUrl) {
         const oldFileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
-        if (oldFileId) {
-          try {
-            await oauth2GoogleService.deleteFile(oldFileId);
-          } catch (err) {
-            console.warn("Could not delete old file:", err.message);
-          }
-        }
+        if (oldFileId)
+          await oauth2GoogleService.deleteFile(oldFileId).catch(console.warn);
       }
-
-      // Upload new file
       const folderPath = [
         "02. Personel",
         namaPersonel,
         "01. Kartu Tanda Penduduk",
       ];
       const fileName = `KTP ${namaPersonel}.pdf`;
-
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
         fileName,
         file.mimetype,
         folderPath
       );
-
       fileUrl = uploadResult.webViewLink;
+    }
+    // 2. If NO physical file but URL provided in body -> Use that URL (stepped upload)
+    else if (fileUrlFromBody) {
+      // We assume the old file is handled or this is a direct replacement
+      fileUrl = fileUrlFromBody;
     }
 
     // Update KTP data in Google Sheets
@@ -323,107 +323,74 @@ export const updateNpwp = async (req, res) => {
     const { personelId } = req.params;
     const data = req.body;
     const file = req.file;
+    const fileUrlFromBody = data.file_npwp_personel_url || data.fileUrl;
 
     const personel = await googleSheetsService.getPersonilById(personelId);
-    if (!personel) {
-      return res.status(404).json({
-        success: false,
-        message: `Personnel with ID ${personelId} not found`,
-      });
-    }
+    if (!personel)
+      return res
+        .status(404)
+        .json({ success: false, message: `Personnel not found` });
 
-    // If NPWP data doesn't exist yet OR has no id_personel, create it instead
     if (!personel.npwp || !personel.npwp.id_personel) {
-      console.log("⚠️ NPWP data not found in database, creating new entry...");
-
-      if (!file) {
-        return res.status(400).json({
-          success: false,
-          message: "File PDF NPWP is required for first upload",
-        });
-      }
+      let newFileUrl = fileUrlFromBody;
+      if (!file && !newFileUrl)
+        return res
+          .status(400)
+          .json({ success: false, message: "File is required" });
 
       const namaPersonel = personel.nama_lengkap;
-      const folderPath = ["02. Personel", namaPersonel, "02. NPWP"];
-      const fileName = `NPWP ${namaPersonel}.pdf`;
-
-      const uploadResult = await oauth2GoogleService.uploadPdfFile(
-        file.buffer,
-        fileName,
-        file.mimetype,
-        folderPath
-      );
+      if (file) {
+        const folderPath = ["02. Personel", namaPersonel, "02. NPWP"];
+        const fileName = `NPWP ${namaPersonel}.pdf`;
+        const uploadResult = await oauth2GoogleService.uploadPdfFile(
+          file.buffer,
+          fileName,
+          file.mimetype,
+          folderPath
+        );
+        newFileUrl = uploadResult.webViewLink;
+      }
 
       const npwpData = {
         id_personel: personelId,
-        nomor_npwp_personel: data.nomor_npwp_personel || "",
-        nik_npwp_personel: data.nik_npwp_personel || "",
-        nama_npwp_personel: data.nama_npwp_personel || namaPersonel,
-        alamat_npwp_personel: data.alamat_npwp_personel || "",
-        kpp_npwp_personel: data.kpp_npwp_personel || "",
-        file_npwp_personel_url: uploadResult.webViewLink || "",
+        file_npwp_personel_url: newFileUrl,
       };
-
       const result = await googleSheetsService.addNpwp(npwpData);
-
       return res.status(201).json({
         success: true,
-        message: "NPWP added successfully",
-        data: {
-          ...result,
-          fileUrl: uploadResult.webViewLink,
-        },
+        message: "NPWP added",
+        data: { ...result, fileUrl: newFileUrl },
       });
     }
-
-    // Update existing NPWP
 
     const namaPersonel = personel.nama_lengkap;
     let fileUrl = personel.npwp.file_npwp_personel_url;
 
     if (file) {
       if (fileUrl) {
-        const oldFileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
-        if (oldFileId) {
-          try {
-            await oauth2GoogleService.deleteFile(oldFileId);
-          } catch (err) {
-            console.warn("Could not delete old file:", err.message);
-          }
-        }
+        const oldId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+        if (oldId)
+          await oauth2GoogleService.deleteFile(oldId).catch(console.warn);
       }
-
       const folderPath = ["02. Personel", namaPersonel, "02. NPWP"];
       const fileName = `NPWP ${namaPersonel}.pdf`;
-
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
         fileName,
         file.mimetype,
         folderPath
       );
-
       fileUrl = uploadResult.webViewLink;
+    } else if (fileUrlFromBody) {
+      fileUrl = fileUrlFromBody;
     }
 
-    const npwpData = {
-      ...data,
-      file_npwp_personel_url: fileUrl,
-    };
-
+    const npwpData = { ...data, file_npwp_personel_url: fileUrl };
     const result = await googleSheetsService.updateNpwp(personelId, npwpData);
-
-    res.json({
-      success: true,
-      message: "NPWP updated successfully",
-      data: result,
-    });
+    res.json({ success: true, message: "NPWP updated", data: result });
   } catch (error) {
     console.error("Error in updateNpwp:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to update NPWP",
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -541,116 +508,77 @@ export const updateIjazah = async (req, res) => {
     const { personelId } = req.params;
     const data = req.body;
     const file = req.file;
+    const fileUrlFromBody = data.file_ijazah_url || data.fileUrl;
 
     const personel = await googleSheetsService.getPersonilById(personelId);
-    if (!personel) {
-      return res.status(404).json({
-        success: false,
-        message: `Personnel with ID ${personelId} not found`,
-      });
-    }
+    if (!personel)
+      return res
+        .status(404)
+        .json({ success: false, message: `Personnel not found` });
 
-    // If ijazah data doesn't exist yet OR has no id_personel, create it instead
     if (!personel.ijazah || !personel.ijazah.id_personel) {
-      console.log(
-        "⚠️ Ijazah data not found in database, creating new entry..."
-      );
+      let newFileUrl = fileUrlFromBody;
+      if (!file && !newFileUrl)
+        return res
+          .status(400)
+          .json({ success: false, message: "File required" });
 
-      if (!file) {
-        return res.status(400).json({
-          success: false,
-          message: "File PDF Ijazah is required for first upload",
-        });
-      }
-
-      // Call addIjazah logic directly
       const namaPersonel = personel.nama_lengkap;
-      const folderPath = ["02. Personel", namaPersonel, "03. Ijazah"];
-      const fileName = `Ijazah ${namaPersonel}.pdf`;
-
-      const uploadResult = await oauth2GoogleService.uploadPdfFile(
-        file.buffer,
-        fileName,
-        file.mimetype,
-        folderPath
-      );
+      if (file) {
+        const folderPath = ["02. Personel", namaPersonel, "03. Ijazah"];
+        const fileName = `Ijazah ${namaPersonel}.pdf`;
+        const uploadResult = await oauth2GoogleService.uploadPdfFile(
+          file.buffer,
+          fileName,
+          file.mimetype,
+          folderPath
+        );
+        newFileUrl = uploadResult.webViewLink;
+      }
 
       const ijazahData = {
         id_personel: personelId,
-        jenjang_pendidikan: data.jenjang_pendidikan || "",
-        nama_institusi_pendidikan: data.nama_institusi_pendidikan || "",
-        fakultas: data.fakultas || "",
-        program_studi: data.program_studi || "",
-        nomor_ijazah: data.nomor_ijazah || "",
-        tahun_masuk: data.tahun_masuk || "",
-        tahun_lulus: data.tahun_lulus || "",
-        gelar_akademik: data.gelar_akademik || "",
-        ipk: data.ipk || "",
-        file_ijazah_url: uploadResult.webViewLink || "",
+        file_ijazah_url: newFileUrl,
       };
-
       const result = await googleSheetsService.addIjazah(ijazahData);
-
       return res.status(201).json({
         success: true,
-        message: "Ijazah added successfully",
-        data: {
-          ...result,
-          fileUrl: uploadResult.webViewLink,
-        },
+        message: "Ijazah added",
+        data: { ...result, fileUrl: newFileUrl },
       });
     }
 
-    // Update existing ijazah
     const namaPersonel = personel.nama_lengkap;
     let fileUrl = personel.ijazah.file_ijazah_url;
 
     if (file) {
       if (fileUrl) {
-        const oldFileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
-        if (oldFileId) {
-          try {
-            await oauth2GoogleService.deleteFile(oldFileId);
-          } catch (err) {
-            console.warn("Could not delete old file:", err.message);
-          }
-        }
+        const oldId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+        if (oldId)
+          await oauth2GoogleService.deleteFile(oldId).catch(console.warn);
       }
-
       const folderPath = ["02. Personel", namaPersonel, "03. Ijazah"];
       const fileName = `Ijazah ${namaPersonel}.pdf`;
-
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
         fileName,
         file.mimetype,
         folderPath
       );
-
       fileUrl = uploadResult.webViewLink;
+    } else if (fileUrlFromBody) {
+      fileUrl = fileUrlFromBody;
     }
 
-    const ijazahData = {
-      ...data,
-      file_ijazah_url: fileUrl,
-    };
-
+    const ijazahData = { ...data, file_ijazah_url: fileUrl };
     const result = await googleSheetsService.updateIjazah(
       personelId,
       ijazahData
     );
-
-    res.json({
-      success: true,
-      message: "Ijazah updated successfully",
-      data: result,
-    });
+    res.json({ success: true, message: "Ijazah updated", data: result });
   } catch (error) {
     console.error("Error in updateIjazah:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to update Ijazah",
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -770,117 +698,79 @@ export const updateCv = async (req, res) => {
     const { personelId } = req.params;
     const data = req.body;
     const file = req.file;
+    const fileUrlFromBody = data.file_cv_url || data.fileUrl;
 
     const personel = await googleSheetsService.getPersonilById(personelId);
-    if (!personel) {
-      return res.status(404).json({
-        success: false,
-        message: `Personnel with ID ${personelId} not found`,
-      });
-    }
+    if (!personel)
+      return res
+        .status(404)
+        .json({ success: false, message: `Personnel not found` });
 
-    // If CV data doesn't exist yet OR has no id_personel, create it instead
     if (!personel.cv || !personel.cv.id_personel) {
-      console.log("⚠️ CV data not found in database, creating new entry...");
-
-      if (!file) {
-        return res.status(400).json({
-          success: false,
-          message: "File PDF CV is required for first upload",
-        });
-      }
+      let newFileUrl = fileUrlFromBody;
+      if (!file && !newFileUrl)
+        return res
+          .status(400)
+          .json({ success: false, message: "File required" });
 
       const namaPersonel = personel.nama_lengkap;
-      const folderPath = [
-        "02. Personel",
-        namaPersonel,
-        "04. Daftar Riwayat Hidup",
-      ];
-      const fileName = `Daftar Riwayat Hidup ${namaPersonel}.pdf`;
+      if (file) {
+        const folderPath = [
+          "02. Personel",
+          namaPersonel,
+          "04. Daftar Riwayat Hidup",
+        ];
+        const fileName = `Daftar Riwayat Hidup ${namaPersonel}.pdf`;
+        const uploadResult = await oauth2GoogleService.uploadPdfFile(
+          file.buffer,
+          fileName,
+          file.mimetype,
+          folderPath
+        );
+        newFileUrl = uploadResult.webViewLink;
+      }
 
-      const uploadResult = await oauth2GoogleService.uploadPdfFile(
-        file.buffer,
-        fileName,
-        file.mimetype,
-        folderPath
-      );
-
-      const cvData = {
-        id_personel: personelId,
-        nama_lengkap_cv: data.nama_lengkap_cv || namaPersonel,
-        ringkasan_profil: data.ringkasan_profil || "",
-        keahlian_utama: data.keahlian_utama || "",
-        total_pengalaman_tahun: data.total_pengalaman_tahun || "",
-        pengalaman_kerja_terakhir: data.pengalaman_kerja_terakhir || "",
-        sertifikasi_profesional: data.sertifikasi_profesional || "",
-        bahasa_dikuasai: data.bahasa_dikuasai || "",
-        file_cv_url: uploadResult.webViewLink || "",
-      };
-
+      const cvData = { id_personel: personelId, file_cv_url: newFileUrl };
       const result = await googleSheetsService.addCv(cvData);
-
       return res.status(201).json({
         success: true,
-        message: "CV added successfully",
-        data: {
-          ...result,
-          fileUrl: uploadResult.webViewLink,
-        },
+        message: "CV added",
+        data: { ...result, fileUrl: newFileUrl },
       });
     }
-
-    // Update existing CV
 
     const namaPersonel = personel.nama_lengkap;
     let fileUrl = personel.cv.file_cv_url;
 
     if (file) {
       if (fileUrl) {
-        const oldFileId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
-        if (oldFileId) {
-          try {
-            await oauth2GoogleService.deleteFile(oldFileId);
-          } catch (err) {
-            console.warn("Could not delete old file:", err.message);
-          }
-        }
+        const oldId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+        if (oldId)
+          await oauth2GoogleService.deleteFile(oldId).catch(console.warn);
       }
-
       const folderPath = [
         "02. Personel",
         namaPersonel,
         "04. Daftar Riwayat Hidup",
       ];
       const fileName = `Daftar Riwayat Hidup ${namaPersonel}.pdf`;
-
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
         fileName,
         file.mimetype,
         folderPath
       );
-
       fileUrl = uploadResult.webViewLink;
+    } else if (fileUrlFromBody) {
+      fileUrl = fileUrlFromBody;
     }
 
-    const cvData = {
-      ...data,
-      file_cv_url: fileUrl,
-    };
-
+    const cvData = { ...data, file_cv_url: fileUrl };
     const result = await googleSheetsService.updateCv(personelId, cvData);
-
-    res.json({
-      success: true,
-      message: "CV updated successfully",
-      data: result,
-    });
+    res.json({ success: true, message: "CV updated", data: result });
   } catch (error) {
     console.error("Error in updateCv:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to update CV",
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -944,12 +834,13 @@ export const addReferensi = async (req, res) => {
     const namaPersonel = personel.nama_lengkap;
 
     let fileUrl = "";
+    const fileUrlFromBody = data.url_referensi || data.fileUrl; // Support URL from body
+
     if (file) {
       // 05. Surat Referensi
       const folderPath = ["02. Personel", namaPersonel, "05. Surat Referensi"];
-      // Unique Name: Surat Referensi [Nama] - [Time].pdf
-      const timestamp = new Date().getTime();
-      const fileName = `Surat Referensi ${namaPersonel} - ${timestamp}.pdf`;
+      // Clean name without timestamp
+      const fileName = `Surat Referensi ${namaPersonel}.pdf`;
 
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
@@ -958,8 +849,8 @@ export const addReferensi = async (req, res) => {
         folderPath
       );
       fileUrl = uploadResult.webViewLink;
-    } else if (data.url_referensi) {
-      fileUrl = data.url_referensi;
+    } else if (fileUrlFromBody) {
+      fileUrl = fileUrlFromBody;
     }
 
     const docData = {
@@ -1025,8 +916,7 @@ export const updateReferensi = async (req, res) => {
 
       const namaPersonel = personel.nama_lengkap;
       const folderPath = ["02. Personel", namaPersonel, "05. Surat Referensi"];
-      const timestamp = new Date().getTime();
-      const fileName = `Surat Referensi ${namaPersonel} - ${timestamp}.pdf`;
+      const fileName = `Surat Referensi ${namaPersonel}.pdf`;
 
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
@@ -1102,12 +992,13 @@ export const addStnk = async (req, res) => {
     const namaPersonel = personel.nama_lengkap;
 
     let fileUrl = "";
+    const fileUrlFromBody = data.url_stnk || data.fileUrl; // Support URL from body
+
     if (file) {
       // 06. STNK
       const folderPath = ["02. Personel", namaPersonel, "06. STNK"];
-      // Unique Name
-      const timestamp = new Date().getTime();
-      const fileName = `STNK ${namaPersonel} - ${timestamp}.pdf`;
+      // Clean name
+      const fileName = `STNK ${namaPersonel}.pdf`;
 
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
@@ -1116,6 +1007,8 @@ export const addStnk = async (req, res) => {
         folderPath
       );
       fileUrl = uploadResult.webViewLink;
+    } else if (fileUrlFromBody) {
+      fileUrl = fileUrlFromBody;
     }
 
     const docData = {
@@ -1123,6 +1016,7 @@ export const addStnk = async (req, res) => {
       no_polisi: data.no_polisi || "",
       merek: data.merek || "",
       warna: data.warna || "",
+      tahun_pembuatan: data.tahun_pembuatan || "",
       url_stnk: fileUrl,
     };
 
@@ -1169,8 +1063,7 @@ export const updateStnk = async (req, res) => {
       }
       const namaPersonel = personel.nama_lengkap;
       const folderPath = ["02. Personel", namaPersonel, "06. STNK"];
-      const timestamp = new Date().getTime();
-      const fileName = `STNK ${namaPersonel} - ${timestamp}.pdf`;
+      const fileName = `STNK ${namaPersonel}.pdf`;
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
         fileName,
@@ -1215,6 +1108,85 @@ export const deleteStnk = async (req, res) => {
     res.json({ success: true, message: "STNK deleted", data: result });
   } catch (error) {
     console.error("Error deleteStnk:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+// ==================== GENERIC UPLOAD ====================
+
+/**
+ * Upload any personnel document to Drive and return URL
+ * Used for stepped upload process (Step 1)
+ */
+export const uploadPersonnelDocument = async (req, res) => {
+  try {
+    const { personelId, type } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "File is required" });
+    }
+
+    const personel = await googleSheetsService.getPersonilById(personelId);
+    if (!personel) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Personnel not found" });
+    }
+
+    const namaPersonel = personel.nama_lengkap;
+    let folderName, subFolder;
+
+    switch (type) {
+      case "ktp":
+        folderName = "01. Kartu Tanda Penduduk";
+        subFolder = `KTP ${namaPersonel}.pdf`;
+        break;
+      case "npwp":
+        folderName = "02. NPWP";
+        subFolder = `NPWP ${namaPersonel}.pdf`;
+        break;
+      case "ijazah":
+        folderName = "03. Ijazah";
+        subFolder = `Ijazah ${namaPersonel}.pdf`;
+        break;
+      case "cv":
+        folderName = "04. Daftar Riwayat Hidup";
+        subFolder = `Daftar Riwayat Hidup ${namaPersonel}.pdf`;
+        break;
+      case "referensi":
+        folderName = "05. Referensi Kerja";
+        subFolder = `Referensi ${namaPersonel}.pdf`;
+        break;
+      case "stnk":
+        folderName = "06. STNK";
+        subFolder = `STNK ${namaPersonel}.pdf`;
+        break;
+      default:
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid document type" });
+    }
+
+    const folderPath = ["02. Personel", namaPersonel, folderName];
+    const uploadResult = await oauth2GoogleService.uploadPdfFile(
+      file.buffer,
+      subFolder,
+      file.mimetype,
+      folderPath
+    );
+
+    res.json({
+      success: true,
+      message: "File uploaded to Drive successfully",
+      data: {
+        fileUrl: uploadResult.webViewLink,
+        fileId: uploadResult.fileId,
+      },
+    });
+  } catch (error) {
+    console.error("Error in uploadPersonnelDocument:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

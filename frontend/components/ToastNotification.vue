@@ -7,7 +7,7 @@
         <div
           v-for="toast in toasts"
           :key="toast.id"
-          class="pointer-events-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border overflow-hidden min-w-[320px] animate-slide-in"
+          class="pointer-events-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border overflow-hidden min-w-[320px]"
           :class="[
             toast.type === 'success'
               ? 'border-emerald-500'
@@ -102,37 +102,38 @@ const { toasts, removeToast } = useToast();
 </script>
 
 <style scoped>
-.toast-enter-active {
-  animation: slideInRight 0.3s ease-out;
-}
-
+.toast-enter-active,
 .toast-leave-active {
-  animation: slideOutRight 0.3s ease-in;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
 }
 
-@keyframes slideOutRight {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%);
-    opacity: 0;
-  }
+.toast-enter-to {
+  opacity: 1;
+  transform: translateX(0);
 }
 
-.animate-slide-in {
-  animation: slideInRight 0.3s ease-out;
+.toast-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+  max-height: 200px; /* Arbitrary large height */
 }
+
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+  max-height: 0; /* Collapse height */
+  margin-top: -12px; /* Collapse gap (gap-3 is 12px) - approximate fix */
+  padding: 0;
+}
+
+.toast-move {
+  transition: all 0.4s ease;
+}
+
+/* Removed position: absolute to preventing snapping to top in flex container */
 </style>

@@ -431,7 +431,7 @@ const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
 const route = useRoute();
 const router = useRouter();
-const { toast, success, error: showError, hideToast } = useToast();
+const { toast, success, error: showError, hideToast, info } = useToast();
 
 const loading = ref(true);
 const personel = ref([]);
@@ -652,21 +652,35 @@ const closeDeleteConfirm = () => {
 const confirmDelete = async () => {
   if (!deletePersonelData.value) return;
 
+  const id = deletePersonelData.value.id_personel;
+  const name = deletePersonelData.value.nama_lengkap;
+
   try {
     saving.value = true; // Set loading state
-    const response = await fetch(
-      `${apiBaseUrl}/personnel/${deletePersonelData.value.id_personel}`,
-      {
-        method: "DELETE",
-      }
-    );
+    console.log(`🗑️  Starting deletion for: ${name} (${id})`);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Gagal menghapus personel");
-    }
+    // Step 1: Delete Assets (Folder)
+    info(`Menghapus folder & dokumen personel...`, 3000);
+    const resAssets = await fetch(`${apiBaseUrl}/personnel/${id}/assets`, {
+      method: "DELETE",
+    });
+    if (!resAssets.ok) throw new Error("Gagal menghapus aset folder");
 
-    success("Personel berhasil dihapus");
+    // Step 2: Delete Related Data
+    info(`Menghapus data dokumen & relasi database...`, 3000);
+    const resData = await fetch(`${apiBaseUrl}/personnel/${id}/related-data`, {
+      method: "DELETE",
+    });
+    if (!resData.ok) throw new Error("Gagal menghapus data terkait");
+
+    // Step 3: Delete Profile
+    info(`Menghapus profil personel...`, 3000);
+    const resProfile = await fetch(`${apiBaseUrl}/personnel/${id}/profile`, {
+      method: "DELETE",
+    });
+    if (!resProfile.ok) throw new Error("Gagal menghapus profil personel");
+
+    success(`Personel ${name} berhasil dihapus permanen!`, 5000);
 
     // Refresh data
     await fetchPersonil();

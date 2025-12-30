@@ -608,25 +608,23 @@ class GoogleSheetsService {
    * Delete company profile by ID with CASCADE DELETE
    * @param {string} id - Company ID
    */
-  async deleteProfilPerusahaan(id) {
+  /**
+   * Delete company assets (Cloudinary logo & Google Drive folder)
+   * @param {string} id - Company ID
+   */
+  async deleteCompanyAssets(id) {
     try {
-      // Get company data first to get folder name and logo URLs
       const company = await this.getProfilPerusahaanById(id);
-
-      if (!company) {
-        throw new Error(`Company with ID ${id} not found`);
-      }
+      if (!company) throw new Error(`Company with ID ${id} not found`);
 
       console.log(
-        `🗑️  Starting deletion process for company: ${company.nama_perusahaan}`
+        `🗑️  Starting asset deletion for company: ${company.nama_perusahaan}`
       );
 
-      // 1. Delete logo from Cloudinary (if exists)
+      // 1. Delete logo from Cloudinary
       if (company.logo_cloud) {
         try {
           console.log(`☁️  Deleting logo from Cloudinary...`);
-          console.log(`   Logo URL: ${company.logo_cloud}`);
-
           // Configure Cloudinary
           const cloudinaryV2 = cloudinary.v2;
           cloudinaryV2.config({
@@ -635,65 +633,21 @@ class GoogleSheetsService {
             api_secret: process.env.CLOUDINARY_API_SECRET,
           });
 
-          // Check if configured
-          const config = cloudinaryV2.config();
-          if (!config.cloud_name || !config.api_key || !config.api_secret) {
-            console.log(
-              `ℹ️  Cloudinary not configured, skipping logo deletion`
-            );
-            console.log(
-              `   Cloud Name: ${config.cloud_name ? "Set" : "Missing"}`
-            );
-            console.log(`   API Key: ${config.api_key ? "Set" : "Missing"}`);
-            console.log(
-              `   API Secret: ${config.api_secret ? "Set" : "Missing"}`
-            );
-          } else {
-            // Extract public_id from URL
-            const publicIdMatch = company.logo_cloud.match(
-              /\/upload\/(?:v\d+\/)?(.+)\.\w+$/
-            );
-
-            if (publicIdMatch) {
-              // URL decode the public_id (to handle spaces and special characters)
-              const publicId = decodeURIComponent(publicIdMatch[1]);
-              console.log(`   Public ID to delete: ${publicId}`);
-
-              // Delete from Cloudinary
-              const result = await cloudinaryV2.uploader.destroy(publicId);
-
-              console.log(`   Cloudinary delete result:`, result);
-
-              if (result.result === "ok") {
-                console.log(`✅ Logo deleted from Cloudinary successfully`);
-              } else if (result.result === "not found") {
-                console.log(
-                  `⚠️  Logo not found in Cloudinary (may already be deleted)`
-                );
-              } else {
-                console.log(
-                  `⚠️  Unexpected Cloudinary result: ${result.result}`
-                );
-              }
-            } else {
-              console.log(
-                `⚠️  Could not extract public_id from URL: ${company.logo_cloud}`
-              );
-            }
-          }
-        } catch (cloudinaryError) {
-          console.error(
-            "❌ Failed to delete logo from Cloudinary:",
-            cloudinaryError
+          // Extract public_id
+          const publicIdMatch = company.logo_cloud.match(
+            /\/upload\/(?:v\d+\/)?(.+)\.\w+$/
           );
-          console.error("   Error details:", cloudinaryError.message);
-          // Continue with delete even if Cloudinary deletion fails
+          if (publicIdMatch) {
+            const publicId = decodeURIComponent(publicIdMatch[1]);
+            await cloudinaryV2.uploader.destroy(publicId);
+            console.log(`✅ Logo deleted from Cloudinary`);
+          }
+        } catch (error) {
+          console.error("❌ Failed to delete Cloudinary logo:", error.message);
         }
-      } else {
-        console.log(`ℹ️  No Cloudinary logo to delete (logo_cloud is empty)`);
       }
 
-      // 2. Delete Google Drive folder and all contents
+      // 2. Delete Google Drive folder
       try {
         const allCompanies = await this.getAllProfilPerusahaan();
         const companyIndex = allCompanies.findIndex(
@@ -705,67 +659,93 @@ class GoogleSheetsService {
           const folderName = `${folderNumber}. ${company.nama_perusahaan}`;
           const parentFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
 
-          console.log(
-            `📂 Deleting company folder: \"${folderName}\" and all documents...`
-          );
+          console.log(`📂 Deleting company folder: "${folderName}"...`);
           await oauth2GoogleService.deleteFolder(folderName, parentFolderId);
-          console.log(
-            `✅ Company folder and all documents deleted: \"${folderName}\"`
-          );
+          console.log(`✅ Company folder deleted: "${folderName}"`);
         }
-      } catch (driveError) {
+      } catch (error) {
         console.error(
           "❌ Failed to delete Google Drive folder:",
-          driveError.message
+          error.message
         );
-        // Continue with delete even if folder deletion fails
       }
 
-      // 3. Cascade delete all related data from Google Sheets
-      console.log(`📊 Deleting related data from Google Sheets...`);
+      return { success: true, message: "Assets deleted" };
+    } catch (error) {
+      throw new Error(`Failed to delete assets: ${error.message}`);
+    }
+  }
 
-      // List of all related tables to clean up
-      const relatedTables = [
-        "db_akta",
-        "db_pejabat",
-        "db_sbu",
-        "db_nib",
-        "db_kta",
-        "db_sertifikat_standar",
-        "db_npwp_perusahaan",
-        "db_kswp",
-        "db_spt",
-        "db_kontrak_pengalaman",
-        "db_pkp",
-        "db_cek",
-        "db_bpjs",
-      ];
+  /**
+   * Delete related data from all spreadsheet tables
+   * @param {string} id - Company ID
+   */
+  async deleteCompanyRelatedData(id) {
+    console.log(`📊 Deleting related data for company ${id}...`);
+    const relatedTables = [
+      "db_akta",
+      "db_pejabat",
+      "db_sbu",
+      "db_nib",
+      "db_kta",
+      "db_sertifikat_standar",
+      "db_npwp_perusahaan",
+      "db_kswp",
+      "db_spt",
+      "db_kontrak_pengalaman",
+      "db_pkp",
+      "db_cek",
+      "db_bpjs",
+    ];
 
-      for (const tableName of relatedTables) {
-        try {
-          await this.deleteSheetDataMany(tableName, "id_perusahaan", id);
-        } catch (tableError) {
-          // Log but continue - harmless if table doesn't exist or is empty
-          console.warn(
-            `   ⚠️ Warning: Failed to cascade delete from ${tableName}: ${tableError.message}`
-          );
-        }
+    let deletedCount = 0;
+    for (const tableName of relatedTables) {
+      try {
+        await this.deleteSheetDataMany(tableName, "id_perusahaan", id);
+        deletedCount++;
+      } catch (error) {
+        console.warn(
+          `   ⚠️ Failed to delete from ${tableName}: ${error.message}`
+        );
       }
+    }
+    console.log(`✅ Related data deletion completed`);
+    return { success: true, message: "Related data deleted" };
+  }
 
-      console.log(
-        `✅ Cascade delete completed, now deleting company profile ${id}...`
-      );
-
-      // 4. Finally delete the company profile itself from db_profil_perusahaan
+  /**
+   * Delete company profile record
+   * @param {string} id - Company ID
+   */
+  async deleteCompanyProfile(id) {
+    console.log(`❌ Deleting company profile record for ${id}...`);
+    try {
       const result = await this.deleteSheetData(
         "db_profil_perusahaan",
         "id_perusahaan",
         id
       );
+      console.log(`✅ Company profile deleted`);
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to delete profile: ${error.message}`);
+    }
+  }
 
-      console.log(
-        `✅ Company ${company.nama_perusahaan} successfully deleted!`
-      );
+  /**
+   * Delete company profile by ID with CASCADE DELETE (Legacy/Wrapper)
+   * @param {string} id - Company ID
+   */
+  async deleteProfilPerusahaan(id) {
+    try {
+      // Step 1: Assets
+      await this.deleteCompanyAssets(id);
+
+      // Step 2: Related Data
+      await this.deleteCompanyRelatedData(id);
+
+      // Step 3: Profile
+      const result = await this.deleteCompanyProfile(id);
 
       return result;
     } catch (error) {
@@ -1396,7 +1376,167 @@ class GoogleSheetsService {
    * @param {string} id - Personnel ID
    */
   /**
-   * Delete personnel by ID
+   * Helper to delete rows from a specific sheet based on ID
+   */
+  async _deleteRowsFromSheet(spreadsheetId, sheetName, idColumn, idValue) {
+    try {
+      // Read sheet
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${sheetName}!A1:Z2000`,
+      });
+      const rows = response.data.values;
+      if (!rows || rows.length < 2) return;
+
+      const headers = rows[0];
+      const colIndex = headers.indexOf(idColumn);
+      if (colIndex === -1) return;
+
+      const rowsToDelete = [];
+      // Loop through data rows (start from index 1)
+      for (let i = 1; i < rows.length; i++) {
+        const cellValue = rows[i][colIndex]
+          ? String(rows[i][colIndex]).trim()
+          : "";
+        const targetId = String(idValue).trim();
+
+        if (cellValue === targetId) {
+          rowsToDelete.push(i + 1); // 1-based index
+        }
+      }
+
+      if (rowsToDelete.length === 0) return;
+
+      rowsToDelete.sort((a, b) => b - a); // Descending
+
+      const tabs = await this.getSheetTabNames(spreadsheetId);
+      const tab = tabs.find((t) => t.title === sheetName);
+      if (!tab) return;
+
+      const requests = rowsToDelete.map((rowIndex) => ({
+        deleteDimension: {
+          range: {
+            sheetId: tab.sheetId,
+            dimension: "ROWS",
+            startIndex: rowIndex - 1,
+            endIndex: rowIndex,
+          },
+        },
+      }));
+
+      await this.sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        resource: { requests },
+      });
+      console.log(
+        `   ✅ Deleted ${rowsToDelete.length} rows from ${sheetName}`
+      );
+    } catch (e) {
+      console.warn(`   ⚠️ Error deleting from ${sheetName}: ${e.message}`);
+    }
+  }
+
+  /**
+   * Step 1: Delete Personnel Assets (Drive Folder)
+   */
+  async deletePersonnelAssets(id) {
+    await this.initialize();
+    try {
+      console.log(`🗑️  Step 1: Deleting personnel assets for ${id}`);
+      const allPersonil = await this.getAllPersonil();
+      const personel = allPersonil.find((p) => p.id_personel === id);
+
+      if (personel && personel.nama_lengkap) {
+        console.log(`   Deleting folder for: ${personel.nama_lengkap}`);
+        let personelParentFolderId =
+          process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID;
+
+        if (!personelParentFolderId) {
+          const dataFolder = await oauth2GoogleService.findFolderByName(
+            "Data",
+            process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
+          );
+          if (dataFolder) {
+            const pFolder = await oauth2GoogleService.findFolderByName(
+              "02 Database Personel",
+              dataFolder.id
+            );
+            if (pFolder) personelParentFolderId = pFolder.id;
+          }
+        }
+
+        if (personelParentFolderId) {
+          const folderName = personel.nama_lengkap; // Assuming folder name matches nama_lengkap
+          await oauth2GoogleService.deleteFolder(
+            folderName,
+            personelParentFolderId
+          );
+          console.log(`✅ Personnel folder deleted: "${folderName}"`);
+        }
+      }
+      return { success: true, message: "Assets deleted" };
+    } catch (error) {
+      console.error("Error deleting personnel assets:", error);
+      throw error; // Propagate error
+    }
+  }
+
+  /**
+   * Step 2: Delete Personnel Related Data
+   */
+  async deletePersonnelRelatedData(id) {
+    await this.initialize();
+    console.log(`🗑️  Step 2: Deleting related data for ${id}`);
+
+    // 1. Delete from Personnel Tables
+    const spreadsheetIdPersonel =
+      process.env.GOOGLE_SHEET_ID_PERSONEL ||
+      process.env.GOOGLE_SHEET_ID_PERSONIL;
+    const personelTables = ["db_ktp", "db_npwp_personel", "db_ijazah", "db_cv"];
+
+    for (const table of personelTables) {
+      await this._deleteRowsFromSheet(
+        spreadsheetIdPersonel,
+        table,
+        "id_personel",
+        id
+      );
+    }
+
+    // 2. Delete from Company Tables (db_pejabat)
+    const spreadsheetIdCompany = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
+    await this._deleteRowsFromSheet(
+      spreadsheetIdCompany,
+      "db_pejabat",
+      "id_personel",
+      id
+    );
+
+    return { success: true, message: "Related data deleted" };
+  }
+
+  /**
+   * Step 3: Delete Personnel Profile
+   */
+  async deletePersonnelProfile(id) {
+    await this.initialize();
+    console.log(`🗑️  Step 3: Deleting personnel profile for ${id}`);
+
+    const spreadsheetIdPersonel =
+      process.env.GOOGLE_SHEET_ID_PERSONEL ||
+      process.env.GOOGLE_SHEET_ID_PERSONIL;
+    await this._deleteRowsFromSheet(
+      spreadsheetIdPersonel,
+      "db_personel",
+      "id_personel",
+      id
+    );
+
+    return { success: true, message: "Profile deleted" };
+  }
+
+  /**
+   * Delete personnel by ID (Legacy/Full)
    * @param {string} id - Personnel ID
    */
   async deletePersonil(id) {
@@ -1405,161 +1545,19 @@ class GoogleSheetsService {
     try {
       console.log(`🗑️  DELETE PERSONIL START: ${id}`);
 
-      // 1. Get Personel Data
-      const allPersonil = await this.getAllPersonil();
-      const personel = allPersonil.find((p) => p.id_personel === id);
+      // 1. Delete Assets
+      await this.deletePersonnelAssets(id);
 
-      if (!personel) {
-        throw new Error(`Personnel with ID ${id} not found`);
-      }
+      // 2. Delete Related Data
+      await this.deletePersonnelRelatedData(id);
 
-      const namaLengkap = personel.nama_lengkap;
-      console.log(`   Personnel found: ${namaLengkap}`);
+      // 3. Delete Profile
+      await this.deletePersonnelProfile(id);
 
-      // Helper for deletion
-      const deleteFromSheet = async (
-        spreadsheetId,
-        sheetName,
-        idColumn,
-        idValue
-      ) => {
-        try {
-          // Read sheet
-          const response = await this.sheets.spreadsheets.values.get({
-            spreadsheetId,
-            range: `${sheetName}!A1:Z2000`,
-          });
-          const rows = response.data.values;
-          if (!rows || rows.length < 2) return;
-
-          const headers = rows[0];
-          const colIndex = headers.indexOf(idColumn);
-          if (colIndex === -1) return;
-
-          const rowsToDelete = [];
-          // rows[0] is header (row 1). rows[1] is row 2.
-          // Loop through data rows
-          // Loop through data rows
-          for (let i = 1; i < rows.length; i++) {
-            // Trim comparison to avoid whitespace issues
-            const cellValue = rows[i][colIndex]
-              ? String(rows[i][colIndex]).trim()
-              : "";
-            const targetId = String(idValue).trim();
-
-            if (cellValue === targetId) {
-              rowsToDelete.push(i + 1); // 1-based index (Row 1 is header)
-            }
-          }
-
-          if (rowsToDelete.length === 0) return;
-
-          rowsToDelete.sort((a, b) => b - a); // Descending
-
-          const tabs = await this.getSheetTabNames(spreadsheetId);
-          const tab = tabs.find((t) => t.title === sheetName);
-          if (!tab) return;
-
-          const requests = rowsToDelete.map((rowIndex) => ({
-            deleteDimension: {
-              range: {
-                sheetId: tab.sheetId,
-                dimension: "ROWS",
-                startIndex: rowIndex - 1,
-                endIndex: rowIndex,
-              },
-            },
-          }));
-
-          await this.sheets.spreadsheets.batchUpdate({
-            spreadsheetId,
-            resource: { requests },
-          });
-          console.log(
-            `   ✅ Deleted ${
-              rowsToDelete.length
-            } rows from ${sheetName} (found IDs at rows: ${rowsToDelete.join(
-              ", "
-            )})`
-          );
-        } catch (e) {
-          console.warn(`   ⚠️ Error deleting from ${sheetName}: ${e.message}`);
-        }
-      };
-
-      // 2. Delete from Personnel Tables (db_personel, db_ktp, etc.)
-      const spreadsheetIdPersonel =
-        process.env.GOOGLE_SHEET_ID_PERSONEL ||
-        process.env.GOOGLE_SHEET_ID_PERSONIL;
-      const personelTables = [
-        "db_personel",
-        "db_ktp",
-        "db_npwp_personel",
-        "db_ijazah",
-        "db_cv",
-      ]; // db_personel included
-
-      console.log(`   Deleting from Personnel Spreadsheet...`);
-      for (const table of personelTables) {
-        await deleteFromSheet(spreadsheetIdPersonel, table, "id_personel", id);
-      }
-
-      // 3. Delete from Company Tables (db_pejabat)
-      const spreadsheetIdCompany = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
-      console.log(`   Deleting from Company Spreadsheet (db_pejabat)...`);
-      await deleteFromSheet(
-        spreadsheetIdCompany,
-        "db_pejabat",
-        "id_personel",
-        id
-      );
-
-      // 4. Delete Folder from Google Drive
-      if (namaLengkap) {
-        try {
-          console.log(`   Deleting folder for: ${namaLengkap}`);
-
-          let personelParentFolder = null;
-          if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
-            personelParentFolder = {
-              id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID,
-            };
-          } else {
-            const dataFolder = await oauth2GoogleService.findFolderByName(
-              "Data",
-              process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
-            );
-            if (dataFolder) {
-              personelParentFolder = await oauth2GoogleService.findFolderByName(
-                "02. Personel",
-                dataFolder.id
-              );
-            }
-          }
-
-          if (personelParentFolder) {
-            const result = await oauth2GoogleService.deleteFolder(
-              namaLengkap,
-              personelParentFolder.id
-            );
-            if (result.success) {
-              console.log(`   ✅ Folder deleted: ${namaLengkap}`);
-            } else {
-              console.warn(`   ⚠️ Failed to delete folder: ${result.message}`);
-            }
-          } else {
-            console.warn(`   ⚠️ Parent folder "02. Personel" not found.`);
-          }
-        } catch (e) {
-          console.error(`   ❌ Folder delete failed: ${e.message}`);
-        }
-      }
-
-      console.log(`✅ Personnel deletion complete.`);
       return { success: true, message: "Personnel deleted successfully" };
     } catch (error) {
       console.error("Error in deletePersonil:", error);
-      throw new Error(`Failed to delete personel: ${error.message}`);
+      throw new Error(`Failed to delete personnel: ${error.message}`);
     }
   }
 
@@ -3831,6 +3829,7 @@ class GoogleSheetsService {
       "no_polisi",
       "merek",
       "warna",
+      "tahun_pembuatan",
       "url_stnk",
       "tanggal_input",
       "author",
@@ -3853,6 +3852,7 @@ class GoogleSheetsService {
       "no_polisi",
       "merek",
       "warna",
+      "tahun_pembuatan",
       "url_stnk",
       "tanggal_input",
       "author",

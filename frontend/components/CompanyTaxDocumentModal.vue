@@ -199,7 +199,15 @@
 <script setup>
 import BaseModal from "~/components/BaseModal.vue";
 
-const toast = useToast();
+const {
+  toast, // Kept as alias if needed, but preferably use specific methods
+  success,
+  error,
+  removeToast,
+  loadingScan,
+  successScan,
+  errorScan,
+} = useToast();
 
 const props = defineProps({
   show: Boolean,
@@ -275,11 +283,13 @@ const runtimeConfig = useRuntimeConfig();
 // AI Scan function
 const scanWithAI = async () => {
   if (!selectedFile.value) {
-    toast.error("Tidak ada file yang dipilih");
+    error("Tidak ada file yang dipilih");
     return;
   }
 
   isScanning.value = true;
+  const loadingToastId = loadingScan();
+
   try {
     // Create FormData to send PDF to backend
     const formData = new FormData();
@@ -343,7 +353,7 @@ const scanWithAI = async () => {
     console.log("[AI SCAN] ✅ Success:", result.data);
 
     // Show success message
-    toast.success(
+    successScan(
       `Data ${props.documentType.toUpperCase()} berhasil di-scan! Silakan periksa dan edit jika perlu.`
     );
 
@@ -353,6 +363,7 @@ const scanWithAI = async () => {
     console.error("[AI SCAN] ❌ Error:", err);
   } finally {
     isScanning.value = false;
+    if (toast.removeToast) toast.removeToast(loadingToastId);
   }
 };
 

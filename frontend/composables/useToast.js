@@ -38,10 +38,12 @@ export const useToast = () => {
     toasts.value = [];
   };
 
-  const hideToast = () => {
-    // Deprecated but kept for compatibility - removes the last toast or clears all?
-    // Let's make it clear all to be safe if previously it hid the single active toast
-    clearToasts();
+  const hideToast = (id) => {
+    if (id) {
+      removeToast(id);
+    } else {
+      clearToasts();
+    }
   };
 
   const success = (...args) => {
@@ -86,6 +88,33 @@ export const useToast = () => {
     }
   };
 
+  // Specialized Toasts
+  const loadingScan = (message = "Sedang memindai dokumen dengan AI...") => {
+    return info(message, 0);
+  };
+
+  const successScan = (
+    message = "Data berhasil diekstrak. Silakan validasi data sebelum menyimpan."
+  ) => {
+    return success(message);
+  };
+
+  const errorScan = (message = "Gagal memindai dokumen.") => {
+    return error(message);
+  };
+
+  const loadingUpload = (message = "Sedang mengupload file...") => {
+    return info(message, 0);
+  };
+
+  const successUpload = (message = "File berhasil diupload.") => {
+    return success(message);
+  };
+
+  const errorUpload = (message = "Gagal mengupload file.") => {
+    return error(message);
+  };
+
   return {
     toast: toasts, // Alias for backward compatibility
     toasts,
@@ -97,5 +126,11 @@ export const useToast = () => {
     error,
     warning,
     info,
+    loadingScan,
+    successScan,
+    errorScan,
+    loadingUpload,
+    successUpload,
+    errorUpload,
   };
 };

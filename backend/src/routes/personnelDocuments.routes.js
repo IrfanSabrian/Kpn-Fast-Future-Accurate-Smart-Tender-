@@ -45,6 +45,17 @@ const upload = multer({
 });
 
 /**
+ * Generic Upload Route (Step 1)
+ * POST /api/personnel-documents/:personelId/:type/upload
+ */
+import { uploadPersonnelDocument } from "../controllers/personnelDocuments.controller.js";
+router.post(
+  "/:personelId/:type/upload",
+  upload.single("file"),
+  uploadPersonnelDocument
+);
+
+/**
  * KTP Routes
  */
 router.post("/:personelId/ktp", upload.single("file"), addKtp);

@@ -257,6 +257,55 @@ Return ONLY valid JSON with this exact structure:
   }
 
   /**
+   * Scan STNK document and extract fields
+   */
+  async scanSTNK(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this Indonesian STNK (Surat Tanda Nomor Kendaraan) document carefully and extract ALL information in JSON format.
+
+IMPORTANT INSTRUCTIONS:
+- Extract EXACTLY as written in the document
+- "No. Polisi" is the vehicle registration number (e.g., KB 1234 AB)
+- "Merek" is the vehicle brand (e.g., TOYOTA, HONDA)
+- "Warna" is the vehicle color
+- "Tahun Pembuatan" is the manufacturing year (e.g., 2020)
+- If a field is not visible, use empty string ""
+
+Return ONLY valid JSON with this exact structure:
+{
+  "no_polisi": "License Plate Number",
+  "merek": "Vehicle Brand",
+  "warna": "Vehicle Color",
+  "tahun_pembuatan": "Manufacturing Year"
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error(
+          "AI tidak dapat menemukan data STNK yang valid. Pastikan dokumen terbaca."
+        );
+      }
+
+      return JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      if (
+        error.message.includes("AI tidak dapat") ||
+        error.message.includes("Dokumen tidak dapat")
+      ) {
+        throw error;
+      }
+      throw new Error(`Gagal memproses STNK: ${error.message}`);
+    }
+  }
+
+  /**
    * Main scan function - routes to appropriate scanner based on document type
    */
   async scanDocument(pdfBuffer, documentType) {
@@ -279,6 +328,9 @@ Return ONLY valid JSON with this exact structure:
           break;
         case "cv":
           result = await this.scanCV(pdfBuffer);
+          break;
+        case "stnk":
+          result = await this.scanSTNK(pdfBuffer);
           break;
         default:
           throw new Error(`Unsupported document type: ${documentType}`);

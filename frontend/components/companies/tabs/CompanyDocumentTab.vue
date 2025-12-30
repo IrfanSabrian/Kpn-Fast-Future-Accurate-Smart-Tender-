@@ -95,7 +95,11 @@
 
             <!-- Edit Button -->
             <button
-              v-if="!isEditing && (singleMode || selectedId === item[idKey])"
+              v-if="
+                !isEditing &&
+                (singleMode || selectedId === item[idKey]) &&
+                selectedUrl
+              "
               @click.stop="startEditing(item)"
               class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1.5 rounded-lg transition-colors border border-blue-100 dark:border-blue-800"
             >

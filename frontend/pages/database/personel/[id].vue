@@ -62,6 +62,7 @@
               icon="far fa-id-card"
               color="blue"
               :single-mode="true"
+              document-type="ktp"
               :pending-file="pendingUploads.ktp.file"
               :pending-preview="pendingUploads.ktp.preview"
               :is-uploading="uploadingState.ktp"
@@ -75,7 +76,6 @@
                 }
               "
               @update-item="handleUpdateItem"
-              @ai-scan="(data) => handleAiScan('ktp', data)"
             />
             <PersonnelDocumentTab
               ref="activeTabComponent"
@@ -88,6 +88,7 @@
               icon="fas fa-credit-card"
               color="orange"
               :single-mode="true"
+              document-type="npwp"
               :pending-file="pendingUploads.npwp.file"
               :pending-preview="pendingUploads.npwp.preview"
               :is-uploading="uploadingState.npwp"
@@ -101,7 +102,6 @@
                 }
               "
               @update-item="handleUpdateItem"
-              @ai-scan="(data) => handleAiScan('npwp', data)"
             />
             <PersonnelDocumentTab
               ref="activeTabComponent"
@@ -114,6 +114,7 @@
               icon="fas fa-graduation-cap"
               color="purple"
               :single-mode="true"
+              document-type="ijazah"
               :pending-file="pendingUploads.ijazah.file"
               :pending-preview="pendingUploads.ijazah.preview"
               :is-uploading="uploadingState.ijazah"
@@ -127,7 +128,6 @@
                 }
               "
               @update-item="handleUpdateItem"
-              @ai-scan="(data) => handleAiScan('ijazah', data)"
             />
             <PersonnelDocumentTab
               ref="activeTabComponent"
@@ -140,6 +140,7 @@
               icon="fas fa-file-alt"
               color="emerald"
               :single-mode="true"
+              document-type="cv"
               :pending-file="pendingUploads.cv.file"
               :pending-preview="pendingUploads.cv.preview"
               :is-uploading="uploadingState.cv"
@@ -153,7 +154,6 @@
                 }
               "
               @update-item="handleUpdateItem"
-              @ai-scan="(data) => handleAiScan('cv', data)"
             />
             <PersonnelDocumentTab
               ref="activeTabComponent"
@@ -166,6 +166,7 @@
               icon="fas fa-briefcase"
               color="cyan"
               :single-mode="false"
+              document-type="referensi"
               :pending-file="pendingUploads.referensi.file"
               :pending-preview="pendingUploads.referensi.preview"
               :is-uploading="uploadingState.referensi"
@@ -181,7 +182,6 @@
                 }
               "
               @update-item="handleUpdateItem"
-              @ai-scan="(data) => handleAiScan('referensi', data)"
             />
             <PersonnelDocumentTab
               ref="activeTabComponent"
@@ -194,6 +194,7 @@
               icon="fas fa-car"
               color="teal"
               :single-mode="false"
+              document-type="stnk"
               :pending-file="pendingUploads.stnk.file"
               :pending-preview="pendingUploads.stnk.preview"
               :is-uploading="uploadingState.stnk"
@@ -209,7 +210,6 @@
                 }
               "
               @update-item="handleUpdateItem"
-              @ai-scan="(data) => handleAiScan('stnk', data)"
             />
           </div>
         </Transition>
@@ -318,7 +318,7 @@ const route = useRoute();
 const router = useRouter();
 const config = useRuntimeConfig();
 const apiBaseUrl = config.public.apiBaseUrl;
-const { toast, success, error: showError, hideToast } = useToast();
+const { toast, success, error: showError, hideToast, info } = useToast();
 
 const loading = ref(true);
 const person = ref(null);
@@ -472,7 +472,7 @@ const stnkFields = [
   { label: "No. Polisi", key: "no_polisi", type: "text" },
   { label: "Merek", key: "merek", type: "text" },
   { label: "Warna", key: "warna", type: "text" },
-  { label: "Tgl Input", key: "tanggal_input", type: "text" },
+  { label: "Tahun Pembuatan", key: "tahun_pembuatan", type: "text" },
 ];
 
 const handleUploadSelect = (eventOrFile) => {
@@ -500,45 +500,69 @@ const handleUploadSave = async () => {
   if (!file) return;
   uploadingState.value[type] = true;
 
-  // Determine if we should POST (add) or PUT (update)
-  // based on whether the document data already exists
-  let method = "POST";
-  let hasData = false;
-
-  if (type === "ktp" && ktp.value) hasData = true;
-  if (type === "npwp" && npwp.value) hasData = true;
-  if (type === "ijazah" && ijazah.value) hasData = true;
-  if (type === "cv" && cv.value) hasData = true;
-  // For List Data (Referensi/STNK), upload without ID means CREATE (POST)
-  // If editing ID, it's PUT. But current logic assumes 'upload' in sidebar is for NEW or REPLACE current context.
-  // We'll assume upload means ADD NEW for list types for now unless we implement 'replace file' specific UI.
-  if (type === "referensi" || type === "stnk") {
-    hasData = false; // Always POST for new item
-  }
-
-  if (hasData) {
-    method = "PUT";
-  }
-
   try {
-    const formData = new FormData();
-    formData.append("file", file);
+    // Step 1: Upload to Google Drive
+    info("Mengunggah dokumen ke Google Drive...", 5000);
 
-    // Add existing data fields to prevent them being wiped if backend requires them
-    // (Though usually PATCH/PUT should only update what's sent, FormData updates might be strict)
-    // For now detailed fields are not needing to be resent if backend handles it gracefully
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
 
-    const res = await fetch(
-      `${apiBaseUrl}/personnel-documents/${route.params.id}/${type}`,
-      { method: method, body: formData }
+    const uploadRes = await fetch(
+      `${apiBaseUrl}/personnel-documents/${route.params.id}/${type}/upload`,
+      { method: "POST", body: uploadFormData }
     );
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.message || "Gagal upload dokumen");
+    if (!uploadRes.ok) throw new Error("Gagal mengunggah file ke Drive");
+
+    const uploadResult = await uploadRes.json();
+    const fileUrl = uploadResult.data.fileUrl;
+
+    // Step 2: Update Metadata/Database
+    info("Menyimpan data dokumen...", 3000);
+
+    let method = "PUT";
+    let bodyPayload = { fileUrl: fileUrl };
+
+    // Determine method and payload based on document type
+    if (type === "stnk") {
+      if (selectedStnkId.value) {
+        // Updating existing STNK
+        method = "PUT";
+        bodyPayload.id_stnk = selectedStnkId.value;
+      } else {
+        // Creating new STNK
+        method = "POST";
+      }
+    } else if (type === "referensi") {
+      if (selectedReferensiId.value) {
+        // Updating existing Referensi
+        method = "PUT";
+        bodyPayload.id_referensi = selectedReferensiId.value;
+      } else {
+        // Creating new Referensi
+        method = "POST";
+      }
+    } else {
+      // Single items (KTP, NPWP, etc.) always use PUT to update/create the slot
+      method = "PUT";
     }
 
-    success("Dokumen berhasil diupload");
+    // We send the fileUrl in body, backend will use it instead of expecting a file
+    const metaRes = await fetch(
+      `${apiBaseUrl}/personnel-documents/${route.params.id}/${type}`,
+      {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyPayload),
+      }
+    );
+
+    if (!metaRes.ok) {
+      const err = await metaRes.json();
+      throw new Error(err.message || "Gagal menyimpan data ke database");
+    }
+
+    success("Dokumen berhasil diupload & disimpan!");
     pendingUploads.value[type].file = null;
     pendingUploads.value[type].preview = null;
     await fetchPersonilDetail();
@@ -586,86 +610,6 @@ const handleUpdateItem = async (newData) => {
 };
 
 const activeTabComponent = ref(null);
-
-const handleAiScan = async (type) => {
-  // 1. Check if there is a pending file to scan
-  const pendingFile = pendingUploads.value[type].file;
-
-  // 2. Check if there is an existing file URL
-  let existingUrl = null;
-  if (type === "ktp") existingUrl = ktp.value?.file_ktp_url;
-  if (type === "npwp") existingUrl = npwp.value?.file_npwp_personel_url;
-  if (type === "ijazah") existingUrl = ijazah.value?.file_ijazah_url;
-  if (type === "cv") existingUrl = cv.value?.file_cv_url;
-
-  if (!pendingFile && !existingUrl) {
-    showError("Silakan upload dokumen terlebih dahulu untuk discan.");
-    return;
-  }
-
-  const toastId = toast.info("Memproses dengan AI...", { timeout: false });
-
-  try {
-    let result;
-
-    if (pendingFile) {
-      // Scan pending file
-      const formData = new FormData();
-      formData.append("file", pendingFile);
-      formData.append("documentType", type);
-
-      const res = await fetch(`${apiBaseUrl}/ai/scan-document`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Gagal memindai dokumen");
-      }
-      result = await res.json();
-    } else {
-      // Scan existing file from Drive
-      const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileUrl: existingUrl,
-          documentType: type,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Gagal memindai dokumen dari Drive");
-      }
-      result = await res.json();
-    }
-
-    // Apply results
-    const data = result.data;
-    if (type === "ktp") ktp.value = { ...ktp.value, ...data };
-    if (type === "npwp") npwp.value = { ...npwp.value, ...data };
-    if (type === "ijazah") ijazah.value = { ...ijazah.value, ...data };
-    if (type === "cv") cv.value = { ...cv.value, ...data };
-    // AI Scan for lists not fully supported in this snippet yet without item context
-    if (type === "referensi" || type === "stnk") {
-      success("Scan berhasil (tapi belum auto-fill ke list item)");
-      // Logic to add to list or update selected item would go here
-    }
-
-    // Update the editing form in the child component if active
-    if (activeTabComponent.value) {
-      activeTabComponent.value.updateEditData(data);
-    }
-
-    hideToast(toastId); // Clean up loading toast
-    success("Data berhasil diekstrak oleh AI. Silakan periksa dan Simpan.");
-  } catch (e) {
-    hideToast(toastId);
-    showError(e.message);
-  }
-};
 
 const showEditContactModal = ref(false);
 const showDeleteContactConfirm = ref(false);

@@ -1866,6 +1866,75 @@ export const deleteCompany = async (req, res) => {
 };
 
 /**
+ * Step 1: Delete Company Assets (Logo & Drive Folder)
+ * DELETE /api/companies/:id/assets
+ */
+export const deleteCompanyAssets = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🗑️  DELETE /api/companies/${id}/assets`);
+    const result = await googleSheetsService.deleteCompanyAssets(id);
+    res.json({
+      success: true,
+      message: "Company assets deleted successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("❌ Error in deleteCompanyAssets:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to delete company assets",
+    });
+  }
+};
+
+/**
+ * Step 2: Delete Related Data (Cascade delete)
+ * DELETE /api/companies/:id/related-data
+ */
+export const deleteCompanyRelatedData = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🗑️  DELETE /api/companies/${id}/related-data`);
+    const result = await googleSheetsService.deleteCompanyRelatedData(id);
+    res.json({
+      success: true,
+      message: "Company related data deleted successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("❌ Error in deleteCompanyRelatedData:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to delete company related data",
+    });
+  }
+};
+
+/**
+ * Step 3: Delete Company Profile Record
+ * DELETE /api/companies/:id/profile
+ */
+export const deleteCompanyProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🗑️  DELETE /api/companies/${id}/profile`);
+    const result = await googleSheetsService.deleteCompanyProfile(id);
+    res.json({
+      success: true,
+      message: "Company profile deleted successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("❌ Error in deleteCompanyProfile:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to delete company profile",
+    });
+  }
+};
+
+/**
  * Proxy endpoint to serve company kop image from Google Drive
  * GET /api/companies/:id/kop
  */
@@ -2065,5 +2134,157 @@ export const updateCompanyKbliBatch = async (req, res) => {
   } catch (error) {
     console.error("Error updating KBLI batch:", error);
     res.status(500).json({ error: error.message });
+  }
+};
+// ========================================
+// GENERIC DOCUMENT UPLOAD (STEP 1)
+// ========================================
+
+/**
+ * Upload company document to Drive and return URL
+ * Used for stepped upload process (Step 1)
+ */
+export const uploadCompanyDocument = async (req, res) => {
+  try {
+    const { id, type } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "File is required" });
+    }
+
+    const company = await googleSheetsService.getProfilPerusahaanById(id);
+    if (!company) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Company not found" });
+    }
+
+    // Determine folder number from company data or other source
+    // Ideally we assume the folder structure exists.
+    // We can try to guess folder number from existing data or just search.
+    // For now, let's assume we can get it or we might need to list folders?
+    // The previous implementation calculates folderNumber based on total companies for NEW companies.
+    // For EXISTING companies, we should probably find the folder.
+    // BUT `uploadDocumentToDrive` requires `folderNumber`.
+    // Let's IMPROVE `uploadDocumentToDrive` to FIND the folder if folderNumber is not reliable?
+    // Actually, `uploadDocumentToDrive` constructs the folder name: `${folderNumber}. ${namaPerusahaan}`
+    // We don't have folderNumber stored in DB usually.
+    // We might need to SEARCH for the folder by name.
+
+    // Simplification for now: Try to find folder by name "*{namaPerusahaan}*"
+    // But let's check how `uploadDocumentToDrive` is implemented.
+    // It takes folderNumber.
+    // We can try to "guess" it or better yet, make `uploadDocumentToDrive` search for folder.
+
+    // However, for this task, I will stick to a simpler approach:
+    // If we can't get folder number easily, we will search for the company folder by name.
+
+    // Let's refactor/use a version that searches.
+    // Since I can't easily change the helper widely used without risk, I'll add a check here.
+
+    // ... Actually, the current `uploadDocumentToDrive` is defined in this file.
+    // I will use `oauth2GoogleService` to find the folder.
+
+    const namaPerusahaan = company.nama_perusahaan;
+    const baseFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+
+    // Find company folder
+    const companyFolders = await oauth2GoogleService.searchFolder(
+      namaPerusahaan,
+      baseFolderId
+    );
+    let companyFolderId;
+    let companyFolderName;
+
+    if (companyFolders && companyFolders.length > 0) {
+      companyFolderId = companyFolders[0].id;
+      companyFolderName = companyFolders[0].name;
+    } else {
+      // Fallback: If not found, maybe create? Or error?
+      // Let's error for now as stepped upload implies existing company
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: `Google Drive folder for ${namaPerusahaan} not found`,
+        });
+    }
+
+    // Now determine subfolder based on type
+    const docConfig = {
+      akta: { namePart: "Akta Perusahaan", index: "2" }, // 1.2
+      nib: { namePart: "Nomor Induk Berusaha", index: "3" }, // 1.3 ? No, structure is different in `uploadDocumentToDrive`
+      sbu: { namePart: "Sertifikat Badan Usaha", index: "4" },
+      kta: { namePart: "Kartu Tanda Anggota", index: "5" },
+      sertifikat: { namePart: "Sertifikat Standar", index: "6" },
+      kontrak: { namePart: "Kontrak Pengalaman", index: "8" },
+      cek: { namePart: "Surat Referensi Bank", index: "9" },
+      bpjs: { namePart: "BPJS", index: "10" },
+      // Tax docs
+      spt: { namePart: "SPT Tahunan", index: "7" }, // Guessing index or creates new
+      npwp: { namePart: "NPWP", index: "7" },
+      pkp: { namePart: "PKP", index: "7" },
+      kswp: { namePart: "KSWP", index: "7" },
+    };
+
+    const config = docConfig[type];
+    let subFolderId;
+
+    if (config) {
+      // Try to find subfolder that contains the namePart
+      // e.g. "1.2 Akta Perusahaan"
+      const subFolders = await oauth2GoogleService.listFolders(companyFolderId);
+      const targetSub = subFolders.find((f) =>
+        f.name.includes(config.namePart)
+      );
+
+      if (targetSub) {
+        subFolderId = targetSub.id;
+      } else {
+        // Create if not exists?
+        // For now, let's just upload to company root if subfolder missing, or error.
+        // Let's create it.
+        // We need an index. The folder naming convention is strict.
+        // Let's just upload to Company Root if strictly required subfolder is missing to avoid breaking naming.
+        subFolderId = companyFolderId;
+      }
+    } else {
+      subFolderId = companyFolderId;
+    }
+
+    // Upload File
+    const fileName = `${type.toUpperCase()} ${namaPerusahaan} - ${Date.now()}.pdf`;
+
+    // We use a lower level upload since we resolved IDs manually
+    const fs = await import("fs/promises");
+    const result = await oauth2GoogleService.uploadFileToFolder(
+      file.path,
+      fileName,
+      file.mimetype,
+      subFolderId
+    );
+
+    // Cleanup
+    await fs.unlink(file.path).catch(() => {});
+
+    res.json({
+      success: true,
+      message: "File uploaded to Drive successfully",
+      data: {
+        fileUrl: result.webViewLink,
+        fileId: result.fileId,
+      },
+    });
+  } catch (error) {
+    console.error("Error in uploadCompanyDocument:", error);
+    // Cleanup
+    if (req.file) {
+      const fs = await import("fs/promises");
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+    res.status(500).json({ success: false, message: error.message });
   }
 };

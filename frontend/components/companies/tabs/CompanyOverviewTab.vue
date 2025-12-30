@@ -121,9 +121,9 @@
               </div>
               <div class="flex items-center gap-3 mb-3 relative z-10">
                 <div
-                  class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-500 dark:text-slate-300 ring-2 ring-white dark:ring-slate-700 shadow-sm text-sm"
+                  class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-slate-400 dark:text-slate-500 ring-2 ring-white dark:ring-slate-700 shadow-sm"
                 >
-                  {{ getInitials(item.nama_lengkap || "Personel") }}
+                  <i class="fas fa-user text-lg"></i>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div

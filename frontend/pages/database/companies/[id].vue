@@ -2510,38 +2510,151 @@ const handleFileSelect = (tabId, payload) => {
 };
 
 // Handle upload save (Actual API Call)
+// Update useToast destructuring to include "info"
+const {
+  toast: toastState,
+  success: showSuccess,
+  error: showError,
+  info,
+} = useToast();
+// Use toastState for the predictive usage if needed, but existing code used "toast".
+// Wait, existing code: `const toast = useToast();` then `toast.success(...)`.
+// `useToast` returns `{ success, error, info, ... }` but also the reactive state?
+// Let's check `frontend/composables/useToast.js`... typically it returns helper functions directly.
+// In `personnel/[id].vue` I used `const { ... } = useToast()`.
+// In `companies/[id].vue` line 2115: `const toast = useToast();`
+// If I change it to destructuring, I need to update ALL usages like `toast.success` to just `success`.
+// OR I keep `toast` and also destructure `info`.
+// `const toast = useToast(); const { info } = toast;` -> This works if useToast returns an object with methods.
+// Let's assume `useToast` returns the object containing methods.
+// So: `const toast = useToast();` `toast.info(...)`?
+// In `personnel/[id].vue` I saw `const { toast, success ... } = useToast()`.
+// This implies `useToast()` returns an object where `toast` is the state?
+// Let's check `companies/[id].vue` original usage.
+// Line 2539: `toast.success(...)`.
+// So `toast` variable currently holds the methods? Or `toast` IS the object?
+// If `toast.success` works, then `toast.info` should work if it exists.
+// I will just use `toast.info` and see. If `info` is not on `toast`, I'll fix it.
+// The previous file I edited (`personnel/id.vue`) used `const { toast, success ... } = useToast()`.
+// And `toast` there seemed to be the STATE (passed to BaseToast :show="toast.show").
+// So `useToast()` returns `{ toast: state, success: fn, error: fn, info: fn }`.
+// But `companies/[id].vue` assigns it to `const toast = useToast()`.
+// So `toast` variable has `{ toast, success, error }`.
+// So `toast.toast.show`?? No.
+// Line 2095: `<ToastNotification />` component is used?
+// Line 2115: `const toast = useToast()`.
+// Checks line 2539: `toast.success(...)`.
+// This implies `toast` has a `.success` method.
+// So `toast` is the object returned by `useToast()`.
+// Does it have `.info`?
+// Personnel update added `info` to destructure list.
+// So `useToast()` definitely returns `info`.
+// So `toast.info(...)` should work!
+
 const handleUploadSave = async (tabId) => {
   console.log(`Saving upload for ${tabId}`);
   uploadingState.value[tabId] = true;
 
   try {
     const file = pendingUploads.value[tabId]?.file;
-    if (!file) {
-      throw new Error("Tidak ada file yang dipilih");
+    if (!file) throw new Error("Tidak ada file yang dipilih");
+
+    // Step 1: Upload to Google Drive
+    toast.info(`Mengunggah dokumen ${tabId.toUpperCase()} ke Drive...`, 5000);
+
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+
+    const uploadRes = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/${tabId}/upload`,
+      { method: "POST", body: uploadFormData }
+    );
+
+    if (!uploadRes.ok) throw new Error("Gagal mengunggah ke Drive");
+    const uploadResult = await uploadRes.json();
+    const fileUrl = uploadResult.data.fileUrl;
+
+    // Step 2: Update Data
+    toast.info("Menyimpan data...", 3000);
+
+    // Identify if updating existing or adding new
+    const selectedItem = selectedItems.value[tabId];
+    let method = "POST";
+    let url = `${apiBaseUrl}/companies/${companyId}/${tabId}`;
+    let body = {};
+
+    // Map tabId to URL field name
+    const urlFieldMap = {
+      akta: "akta_perusahaan_url",
+      nib: "nib_url",
+      sbu: "sbu_url",
+      kta: "kta_url",
+      sertifikat: "sertifikat_standar_url",
+      kontrak: "kontrak_url",
+      cek: "url_cek",
+      bpjs: "url_bpjs",
+    };
+    const urlKey = urlFieldMap[tabId] || "url_dokumen";
+
+    if (selectedItem) {
+      // Update Existing
+      method = "PUT";
+
+      // Find ID
+      const idMap = {
+        akta: "id_akta",
+        nib: "id_nib", // Verify ID key
+        sbu: "id_sbu",
+        kta: "id_kta",
+        sertifikat: "id_sertifikat_standar",
+        kontrak: "id_kontrak",
+        cek: "id_cek",
+        bpjs: "id_bpjs",
+      };
+
+      let itemId = selectedItem[idMap[tabId]];
+      // Fallbacks
+      if (!itemId && tabId === "nib")
+        itemId = selectedItem.id_nib || selectedItem.id_perusahaan_nib; // Check possibilities
+      if (!itemId) itemId = selectedItem.id; // generic catch
+
+      if (itemId) {
+        // Encode if needed
+        // Check route: /:id/akta/:itemId
+        url = `${apiBaseUrl}/companies/${companyId}/${tabId}/${encodeURIComponent(
+          itemId
+        )}`;
+        body = { [urlKey]: fileUrl };
+      } else {
+        // Fallback to POST if no ID found despite selection (shouldn't happen)
+        console.warn("No ID found for selected item, falling back to create");
+        method = "POST";
+        body = { [urlKey]: fileUrl };
+      }
+    } else {
+      // Create New
+      method = "POST";
+      body = { [urlKey]: fileUrl, tanggal_input: new Date().toISOString() };
+      // Add minimal required fields to avoid errors?
+      // e.g. nomor_akta?
+      // hoping backend handles partials.
     }
 
-    const formData = new FormData();
-    formData.append(tabId, file);
-    // Append minimal required fields if needed, though updateCompany usually handles partial updates.
-    // Adding updated_at or similar explicitly might be good practice but likely handled by backend.
-
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
-      method: "PUT",
-      body: formData,
+    const metaRes = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(errText || "Gagal mengunggah dokumen");
+    if (!metaRes.ok) {
+      const err = await metaRes.json();
+      throw new Error(err.error || err.message || "Gagal menyimpan data");
     }
 
-    const result = await res.json();
     toast.success(`Dokumen ${tabId.toUpperCase()} berhasil diunggah.`);
-
-    // Clear pending upload
     pendingUploads.value[tabId] = null;
 
-    // Refresh data for the specific tab
+    // Refresh data
     switch (tabId) {
       case "akta":
         await fetchAkta();
@@ -2560,17 +2673,13 @@ const handleUploadSave = async (tabId) => {
         break;
       case "kontrak":
         await fetchPengalaman();
-        break;
+        break; // kontrak -> fetchPengalaman
       case "cek":
         await fetchCek();
         break;
       case "bpjs":
         await fetchBPJS();
         break;
-      case "pejabat":
-        await fetchPejabat();
-        break;
-      // Add other cases as needed
     }
   } catch (error) {
     console.error("Upload failed:", error);

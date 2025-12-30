@@ -189,14 +189,24 @@ router.post("/scan-drive-file", async (req, res) => {
 
     let data;
     // Route to appropriate scanner based on category/type
+    // Route to appropriate scanner based on category/type
     if (category === "tax") {
       data = await geminiAIService.scanTaxDocument(buffer, documentType);
     } else if (category === "company") {
       data = await geminiAIService.scanCompanyDocument(buffer, documentType);
+    } else if (category === "personnel") {
+      // Explicit personnel category
+      data = await geminiAIService.scanDocument(buffer, documentType);
     } else {
-      // Default logic
-      const taxTypes = ["npwp", "spt", "pkp", "kswp"];
-      if (taxTypes.includes(documentType.toLowerCase())) {
+      // Default logic / Auto-detection
+      const taxTypes = ["spt", "pkp", "kswp"]; // Removed npwp from here to avoid conflict
+
+      if (documentType.toLowerCase() === "npwp") {
+        // Ambiguous case. If not specified, default to Personnel?
+        // Or check if it looks like company?
+        // For now, let's assume 'scanDocument' (Personnel) because 'scan-tax-document' exists for companies.
+        data = await geminiAIService.scanDocument(buffer, documentType);
+      } else if (taxTypes.includes(documentType.toLowerCase())) {
         data = await geminiAIService.scanTaxDocument(buffer, documentType);
       } else if (["akta", "nib", "sbu"].includes(documentType.toLowerCase())) {
         data = await geminiAIService.scanCompanyDocument(buffer, documentType);

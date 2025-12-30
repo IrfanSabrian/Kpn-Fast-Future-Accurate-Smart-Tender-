@@ -1,6 +1,6 @@
 /**
  * OAuth2 Google Service
- * 
+ *
  * Universal service untuk semua Google APIs menggunakan OAuth2 User Authentication:
  * - Google Drive (file upload/management)
  * - Google Sheets (spreadsheet read/write)
@@ -8,11 +8,11 @@
  * - Google Gemini AI (future integration)
  */
 
-import { google } from 'googleapis';
-import { Readable } from 'stream';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { google } from "googleapis";
+import { Readable } from "stream";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,14 +36,18 @@ class OAuth2GoogleService {
 
     try {
       // Load OAuth2 credentials
-      const credentialsPath = path.join(__dirname, '../../credentials/oauth2-credentials.json');
-      
+      const credentialsPath = path.join(
+        __dirname,
+        "../../credentials/oauth2-credentials.json"
+      );
+
       if (!fs.existsSync(credentialsPath)) {
-        throw new Error('OAuth2 credentials file not found');
+        throw new Error("OAuth2 credentials file not found");
       }
 
-      const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-      const { client_id, client_secret, redirect_uris } = credentials.web || credentials.installed;
+      const credentials = JSON.parse(fs.readFileSync(credentialsPath, "utf8"));
+      const { client_id, client_secret, redirect_uris } =
+        credentials.web || credentials.installed;
 
       // Create OAuth2 client
       this.oauth2Client = new google.auth.OAuth2(
@@ -53,25 +57,30 @@ class OAuth2GoogleService {
       );
 
       // Load token if exists
-      const tokenPath = path.join(__dirname, '../../credentials/oauth2-token.json');
-      
+      const tokenPath = path.join(
+        __dirname,
+        "../../credentials/oauth2-token.json"
+      );
+
       if (fs.existsSync(tokenPath)) {
-        const token = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
+        const token = JSON.parse(fs.readFileSync(tokenPath, "utf8"));
         this.oauth2Client.setCredentials(token);
-        
+
         // Initialize all Google services
-        this.drive = google.drive({ version: 'v3', auth: this.oauth2Client });
-        this.sheets = google.sheets({ version: 'v4', auth: this.oauth2Client });
-        this.docs = google.docs({ version: 'v1', auth: this.oauth2Client });
-        
+        this.drive = google.drive({ version: "v3", auth: this.oauth2Client });
+        this.sheets = google.sheets({ version: "v4", auth: this.oauth2Client });
+        this.docs = google.docs({ version: "v1", auth: this.oauth2Client });
+
         this.isInitialized = true;
-        
-        console.log('✅ OAuth2 Google Service initialized (Drive, Sheets, Docs)');
+
+        console.log(
+          "✅ OAuth2 Google Service initialized (Drive, Sheets, Docs)"
+        );
       } else {
-        console.log('⚠️  OAuth2 token not found. User needs to authenticate.');
+        console.log("⚠️  OAuth2 token not found. User needs to authenticate.");
       }
     } catch (error) {
-      console.error('❌ Error initializing OAuth2 Google Service:', error);
+      console.error("❌ Error initializing OAuth2 Google Service:", error);
       throw error;
     }
   }
@@ -92,29 +101,29 @@ class OAuth2GoogleService {
   getAuthUrl() {
     const scopes = [
       // User Info scopes (untuk author detection)
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile',
-      
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+
       // Google Drive scopes
-      'https://www.googleapis.com/auth/drive',
-      'https://www.googleapis.com/auth/drive.file',
-      
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.file",
+
       // Google Sheets scopes
-      'https://www.googleapis.com/auth/spreadsheets',
-      'https://www.googleapis.com/auth/spreadsheets.readonly',
-      
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/spreadsheets.readonly",
+
       // Google Docs scopes
-      'https://www.googleapis.com/auth/documents',
-      'https://www.googleapis.com/auth/documents.readonly',
-      
+      "https://www.googleapis.com/auth/documents",
+      "https://www.googleapis.com/auth/documents.readonly",
+
       // Future: Gemini AI (will be available via Google AI API)
       // For now, we prepare the structure
     ];
 
     return this.oauth2Client.generateAuthUrl({
-      access_type: 'offline',
+      access_type: "offline",
       scope: scopes,
-      prompt: 'consent' // Force to get refresh token
+      prompt: "consent", // Force to get refresh token
     });
   }
 
@@ -127,19 +136,22 @@ class OAuth2GoogleService {
       this.oauth2Client.setCredentials(tokens);
 
       // Save token
-      const tokenPath = path.join(__dirname, '../../credentials/oauth2-token.json');
+      const tokenPath = path.join(
+        __dirname,
+        "../../credentials/oauth2-token.json"
+      );
       fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
 
       // Initialize all services
-      this.drive = google.drive({ version: 'v3', auth: this.oauth2Client });
-      this.sheets = google.sheets({ version: 'v4', auth: this.oauth2Client });
-      this.docs = google.docs({ version: 'v1', auth: this.oauth2Client });
+      this.drive = google.drive({ version: "v3", auth: this.oauth2Client });
+      this.sheets = google.sheets({ version: "v4", auth: this.oauth2Client });
+      this.docs = google.docs({ version: "v1", auth: this.oauth2Client });
       this.isInitialized = true;
 
-      console.log('✅ OAuth2 token saved and all services initialized');
-      return { success: true, message: 'Authentication successful' };
+      console.log("✅ OAuth2 token saved and all services initialized");
+      return { success: true, message: "Authentication successful" };
     } catch (error) {
-      console.error('❌ Error handling OAuth2 callback:', error);
+      console.error("❌ Error handling OAuth2 callback:", error);
       throw error;
     }
   }
@@ -148,7 +160,9 @@ class OAuth2GoogleService {
    * Check if user is authenticated
    */
   isAuthenticated() {
-    return this.isInitialized && this.oauth2Client && this.oauth2Client.credentials;
+    return (
+      this.isInitialized && this.oauth2Client && this.oauth2Client.credentials
+    );
   }
 
   /**
@@ -156,7 +170,7 @@ class OAuth2GoogleService {
    */
   getAuthClient() {
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
     return this.oauth2Client;
   }
@@ -169,45 +183,45 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
 
     try {
       // Get user info from Google API
-      const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
+      const oauth2 = google.oauth2({ version: "v2", auth: this.oauth2Client });
       const { data } = await oauth2.userinfo.get();
-      
+
       // Extract username (tanpa @gmail.com atau @domain)
-      const email = data.email || '';
-      const username = email.split('@')[0];
+      const email = data.email || "";
+      const username = email.split("@")[0];
 
       const userInfo = {
         email: email,
         username: username,
         name: data.name || username,
-        picture: data.picture || null,  // Google profile picture URL
-        role: 'Admin'  // Auto-set role as Admin
+        picture: data.picture || null, // Google profile picture URL
+        role: "Admin", // Auto-set role as Admin
       };
-      
-      console.log('📸 User info retrieved:', {
+
+      console.log("📸 User info retrieved:", {
         email: userInfo.email,
         name: userInfo.name,
         hasPicture: !!userInfo.picture,
-        pictureUrl: userInfo.picture
+        pictureUrl: userInfo.picture,
       });
-      
+
       return userInfo;
     } catch (error) {
-      console.error('Error getting user info:', error);
+      console.error("Error getting user info:", error);
       // Fallback: extract from token if API fails
       const tokenInfo = this.oauth2Client.credentials;
       if (tokenInfo && tokenInfo.scope) {
         return {
-          email: 'unknown',
-          username: 'system',
-          name: 'System',
+          email: "unknown",
+          username: "system",
+          name: "System",
           picture: null,
-          role: 'Admin'
+          role: "Admin",
         };
       }
       throw error;
@@ -219,17 +233,20 @@ class OAuth2GoogleService {
    */
   async logout() {
     try {
-      const tokenPath = path.join(__dirname, '../../credentials/oauth2-token.json');
+      const tokenPath = path.join(
+        __dirname,
+        "../../credentials/oauth2-token.json"
+      );
       if (fs.existsSync(tokenPath)) {
         fs.unlinkSync(tokenPath);
-        console.log('✅ OAuth2 token deleted successfully');
+        console.log("✅ OAuth2 token deleted successfully");
       }
       this.oauth2Client.setCredentials({});
       this.isInitialized = false; // Force re-init on next request
-      
+
       return true;
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
       throw error;
     }
   }
@@ -243,20 +260,20 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       let query = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-      
+
       if (parentId) {
         query += ` and '${parentId}' in parents`;
       }
 
       const response = await this.drive.files.list({
         q: query,
-        fields: 'files(id, name)',
-        spaces: 'drive'
+        fields: "files(id, name)",
+        spaces: "drive",
       });
 
       if (response.data.files && response.data.files.length > 0) {
@@ -277,13 +294,13 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       const fileMetadata = {
         name: folderName,
-        mimeType: 'application/vnd.google-apps.folder'
+        mimeType: "application/vnd.google-apps.folder",
       };
 
       if (parentId) {
@@ -292,7 +309,7 @@ class OAuth2GoogleService {
 
       const response = await this.drive.files.create({
         requestBody: fileMetadata,
-        fields: 'id, name'
+        fields: "id, name",
       });
 
       console.log(`✅ Folder created: ${folderName} (ID: ${response.data.id})`);
@@ -306,30 +323,47 @@ class OAuth2GoogleService {
   /**
    * Upload PDF file to Drive
    */
-  async uploadPdfFile(fileBuffer, fileName, mimeType, folderPath = [], baseParentId = null) {
+  async uploadPdfFile(
+    fileBuffer,
+    fileName,
+    mimeType,
+    folderPath = [],
+    baseParentId = null
+  ) {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       // Determine base parent ID
-      let currentParentId = baseParentId || process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID;
+      let currentParentId =
+        baseParentId || process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID;
 
       // Create nested folder structure
       if (folderPath && folderPath.length > 0) {
-        console.log(`📁 Creating folder path: ${folderPath.join(' / ')}`);
-        
+        console.log(`📁 Creating folder path: ${folderPath.join(" / ")}`);
+
         for (const folderName of folderPath) {
-          const existingFolder = await this.findFolderByName(folderName, currentParentId);
-          
+          const existingFolder = await this.findFolderByName(
+            folderName,
+            currentParentId
+          );
+
           if (existingFolder) {
-            console.log(`📁 Folder exists: ${folderName} (ID: ${existingFolder.id})`);
+            console.log(
+              `📁 Folder exists: ${folderName} (ID: ${existingFolder.id})`
+            );
             currentParentId = existingFolder.id;
           } else {
-            const newFolder = await this.createFolder(folderName, currentParentId);
-            console.log(`✅ Folder created: ${folderName} (ID: ${newFolder.id})`);
+            const newFolder = await this.createFolder(
+              folderName,
+              currentParentId
+            );
+            console.log(
+              `✅ Folder created: ${folderName} (ID: ${newFolder.id})`
+            );
             currentParentId = newFolder.id;
           }
         }
@@ -338,37 +372,37 @@ class OAuth2GoogleService {
       // Upload file
       const fileMetadata = {
         name: fileName,
-        parents: [currentParentId]
+        parents: [currentParentId],
       };
 
       const media = {
         mimeType: mimeType,
-        body: Readable.from(fileBuffer)
+        body: Readable.from(fileBuffer),
       };
 
       const response = await this.drive.files.create({
         requestBody: fileMetadata,
         media: media,
-        fields: 'id, name, webViewLink, webContentLink'
+        fields: "id, name, webViewLink, webContentLink",
       });
 
       // Make file publicly accessible (view only)
       await this.drive.permissions.create({
         fileId: response.data.id,
         requestBody: {
-          role: 'reader',
-          type: 'anyone'
-        }
+          role: "reader",
+          type: "anyone",
+        },
       });
 
       console.log(`✅ File uploaded: ${fileName} (ID: ${response.data.id})`);
-      
+
       return {
         success: true,
         fileId: response.data.id,
         fileName: response.data.name,
         webViewLink: response.data.webViewLink,
-        webContentLink: response.data.webContentLink
+        webContentLink: response.data.webContentLink,
       };
     } catch (error) {
       console.error(`❌ Error uploading file ${fileName}:`, error);
@@ -383,19 +417,19 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       await this.drive.files.delete({
-        fileId: fileId
+        fileId: fileId,
       });
 
       console.log(`✅ File deleted: ${fileId}`);
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: `File deleted successfully`,
-        fileId 
+        fileId,
       };
     } catch (error) {
       console.error(`❌ Error deleting file ${fileId}:`, error);
@@ -421,28 +455,28 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       // Find the folder first
       const folder = await this.findFolderByName(folderName, parentId);
-      
+
       if (!folder) {
         console.warn(`⚠️  Folder not found: ${folderName}`);
-        return { success: false, message: 'Folder not found' };
+        return { success: false, message: "Folder not found" };
       }
 
       // Delete the folder
       await this.drive.files.delete({
-        fileId: folder.id
+        fileId: folder.id,
       });
 
       console.log(`✅ Folder deleted: ${folderName} (ID: ${folder.id})`);
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: `Folder deleted successfully`,
-        folderId: folder.id 
+        folderId: folder.id,
       };
     } catch (error) {
       console.error(`❌ Error deleting folder ${folderName}:`, error);
@@ -458,19 +492,19 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       await this.drive.files.delete({
-        fileId: folderId
+        fileId: folderId,
       });
 
       console.log(`✅ Folder deleted by ID: ${folderId}`);
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: `Folder deleted successfully`,
-        folderId 
+        folderId,
       };
     } catch (error) {
       console.error(`❌ Error deleting folder by ID ${folderId}:`, error);
@@ -488,13 +522,13 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       // Find the folder
       const folder = await this.findFolderByName(oldName, parentId);
-      
+
       if (!folder) {
         console.warn(`⚠️  Folder not found: ${oldName}`);
         throw new Error(`Folder "${oldName}" not found`);
@@ -504,20 +538,25 @@ class OAuth2GoogleService {
       await this.drive.files.update({
         fileId: folder.id,
         requestBody: {
-          name: newName
-        }
+          name: newName,
+        },
       });
 
-      console.log(`✅ Folder renamed: "${oldName}" → "${newName}" (ID: ${folder.id})`);
-      return { 
-        success: true, 
+      console.log(
+        `✅ Folder renamed: "${oldName}" → "${newName}" (ID: ${folder.id})`
+      );
+      return {
+        success: true,
         message: `Folder renamed successfully`,
         folderId: folder.id,
         oldName,
-        newName
+        newName,
       };
     } catch (error) {
-      console.error(`❌ Error renaming folder "${oldName}" to "${newName}":`, error);
+      console.error(
+        `❌ Error renaming folder "${oldName}" to "${newName}":`,
+        error
+      );
       throw new Error(`Failed to rename folder: ${error.message}`);
     }
   }
@@ -531,20 +570,20 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       let query = `name='${fileName}' and trashed=false`;
-      
+
       if (parentId) {
         query += ` and '${parentId}' in parents`;
       }
 
       const response = await this.drive.files.list({
         q: query,
-        fields: 'files(id, name)',
-        spaces: 'drive'
+        fields: "files(id, name)",
+        spaces: "drive",
       });
 
       if (response.data.files && response.data.files.length > 0) {
@@ -567,26 +606,29 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       await this.drive.files.update({
         fileId: fileId,
         requestBody: {
-          name: newFileName
-        }
+          name: newFileName,
+        },
       });
 
       console.log(`✅ File renamed to: ${newFileName} (ID: ${fileId})`);
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: `File renamed successfully`,
         fileId,
-        newFileName
+        newFileName,
       };
     } catch (error) {
-      console.error(`❌ Error renaming file ${fileId} to "${newFileName}":`, error);
+      console.error(
+        `❌ Error renaming file ${fileId} to "${newFileName}":`,
+        error
+      );
       throw new Error(`Failed to rename file: ${error.message}`);
     }
   }
@@ -600,16 +642,16 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       const response = await this.drive.files.get(
         {
           fileId: fileId,
-          alt: 'media'
+          alt: "media",
         },
-        { responseType: 'arraybuffer' }
+        { responseType: "arraybuffer" }
       );
 
       console.log(`✅ File downloaded: ${fileId}`);
@@ -625,7 +667,7 @@ class OAuth2GoogleService {
   // For now, googleSheets.service.js still uses Service Account (which works fine for Sheets)
 
   // ==================== GOOGLE DOCS METHODS ====================
-  
+
   /**
    * Create a new Google Doc
    */
@@ -633,17 +675,19 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       const response = await this.docs.documents.create({
         requestBody: {
-          title: title
-        }
+          title: title,
+        },
       });
 
-      console.log(`✅ Document created: ${title} (ID: ${response.data.documentId})`);
+      console.log(
+        `✅ Document created: ${title} (ID: ${response.data.documentId})`
+      );
       return response.data;
     } catch (error) {
       console.error(`Error creating document ${title}:`, error);
@@ -658,17 +702,108 @@ class OAuth2GoogleService {
     await this.initialize();
 
     if (!this.isAuthenticated()) {
-      throw new Error('User not authenticated. Please login first.');
+      throw new Error("User not authenticated. Please login first.");
     }
 
     try {
       const response = await this.docs.documents.get({
-        documentId: documentId
+        documentId: documentId,
       });
 
       return response.data;
     } catch (error) {
       console.error(`Error getting document ${documentId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search for folders containing a specific name substring
+   */
+  async searchFolder(namePart, parentId = null) {
+    await this.initialize();
+    if (!this.isAuthenticated()) throw new Error("User not authenticated");
+
+    try {
+      let query = `name contains '${namePart}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      if (parentId) query += ` and '${parentId}' in parents`;
+
+      const response = await this.drive.files.list({
+        q: query,
+        fields: "files(id, name)",
+        spaces: "drive",
+      });
+      return response.data.files || [];
+    } catch (error) {
+      console.error(`Error searching folder ${namePart}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * List all subfolders within a parent folder
+   */
+  async listFolders(parentId) {
+    await this.initialize();
+    if (!this.isAuthenticated()) throw new Error("User not authenticated");
+
+    try {
+      const query = `'${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      const response = await this.drive.files.list({
+        q: query,
+        fields: "files(id, name)",
+        spaces: "drive",
+      });
+      return response.data.files || [];
+    } catch (error) {
+      console.error(`Error listing folders in ${parentId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Upload file directly to a specific folder ID
+   */
+  async uploadFileToFolder(filePath, fileName, mimeType, folderId) {
+    await this.initialize();
+    if (!this.isAuthenticated()) throw new Error("User not authenticated");
+
+    try {
+      const fs = await import("fs/promises");
+      const fileBuffer = await fs.readFile(filePath);
+
+      const fileMetadata = {
+        name: fileName,
+        parents: [folderId],
+      };
+
+      const media = {
+        mimeType: mimeType,
+        body: Readable.from(fileBuffer),
+      };
+
+      const response = await this.drive.files.create({
+        requestBody: fileMetadata,
+        media: media,
+        fields: "id, name, webViewLink, webContentLink",
+      });
+
+      // Permission
+      await this.drive.permissions
+        .create({
+          fileId: response.data.id,
+          requestBody: { role: "reader", type: "anyone" },
+        })
+        .catch((err) => console.warn("Permission set warning:", err.message));
+
+      return {
+        success: true,
+        fileId: response.data.id,
+        webViewLink: response.data.webViewLink,
+        webContentLink: response.data.webContentLink,
+      };
+    } catch (error) {
+      console.error(`Error uploading to folder ${folderId}:`, error);
       throw error;
     }
   }

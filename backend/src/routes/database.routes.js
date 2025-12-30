@@ -106,8 +106,13 @@ router.put(
   companyController.updateCompany
 );
 
-// Delete company by ID
+// Delete company by ID (Legacy/Full)
 router.delete("/:id", companyController.deleteCompany);
+
+// Stepped Deletion Routes
+router.delete("/:id/assets", companyController.deleteCompanyAssets);
+router.delete("/:id/related-data", companyController.deleteCompanyRelatedData);
+router.delete("/:id/profile", companyController.deleteCompanyProfile);
 
 // Get company kop image (proxy from Google Drive)
 router.get("/:id/kop", companyController.getCompanyKop);
@@ -122,6 +127,13 @@ router.post(
 // ========================================
 // SUB-MODULE ROUTES - Lazy Loading
 // ========================================
+
+// Generic Upload Route (Step 1)
+router.post(
+  "/:id/:type/upload",
+  upload.single("file"),
+  companyController.uploadCompanyDocument
+);
 
 // Get company's Akta data
 router.get("/:id/akta", companyController.getCompanyAkta);
