@@ -157,6 +157,34 @@
             />
             <PersonnelDocumentTab
               ref="activeTabComponent"
+              v-if="selectedDocument === 'skk'"
+              :items="skk"
+              :fields="skkFields"
+              id-key="id_skk"
+              title-key="kualifikasi"
+              title-label="Kualifikasi"
+              icon="fas fa-certificate"
+              color="teal"
+              :single-mode="false"
+              document-type="skk"
+              :pending-file="pendingUploads.skk.file"
+              :pending-preview="pendingUploads.skk.preview"
+              :is-uploading="uploadingState.skk"
+              :selected-item="selectedSkkItem"
+              :selected-url="selectedSkkItem?.url_skk"
+              @select-item="(item) => (selectedSkkId = item.id_skk)"
+              @upload-select="(f) => handleUploadSelect(f)"
+              @upload-save="handleUploadSave"
+              @upload-cancel="
+                () => {
+                  pendingUploads.skk.file = null;
+                  pendingUploads.skk.preview = null;
+                }
+              "
+              @update-item="handleUpdateItem"
+            />
+            <PersonnelDocumentTab
+              ref="activeTabComponent"
               v-if="selectedDocument === 'referensi'"
               :items="referensi"
               :fields="referensiFields"
@@ -327,12 +355,17 @@ const ktp = ref(null);
 const npwp = ref(null);
 const ijazah = ref(null);
 const cv = ref(null);
+const skk = ref([]);
 const referensi = ref([]);
 const stnk = ref([]);
 
+const selectedSkkId = ref(null);
 const selectedReferensiId = ref(null);
 const selectedStnkId = ref(null);
 
+const selectedSkkItem = computed(() =>
+  skk.value.find((s) => s.id_skk === selectedSkkId.value)
+);
 const selectedReferensiItem = computed(() =>
   referensi.value.find((r) => r.id_referensi === selectedReferensiId.value)
 );
@@ -345,6 +378,7 @@ const pendingUploads = ref({
   npwp: { file: null, preview: null },
   ijazah: { file: null, preview: null },
   cv: { file: null, preview: null },
+  skk: { file: null, preview: null },
   referensi: { file: null, preview: null },
   stnk: { file: null, preview: null },
 });
@@ -353,6 +387,7 @@ const uploadingState = ref({
   npwp: false,
   ijazah: false,
   cv: false,
+  skk: false,
   referensi: false,
   stnk: false,
 });
@@ -388,6 +423,12 @@ const documentTabs = computed(() => [
     label: "CV",
     icon: "fas fa-file-alt",
     hasData: !!(cv.value && (cv.value.id_cv || cv.value.file_cv_url)),
+  },
+  {
+    id: "skk",
+    label: "SKK",
+    icon: "fas fa-certificate",
+    hasData: skk.value && skk.value.length > 0,
   },
   {
     id: "referensi",
@@ -463,6 +504,13 @@ const cvFields = [
   { label: "Bahasa", key: "bahasa_dikuasai", type: "text" },
 ];
 
+const skkFields = [
+  { label: "Jenis SKK", key: "jenis_skk", type: "text" },
+  { label: "Kualifikasi", key: "kualifikasi", type: "text" },
+  { label: "Penerbit", key: "penerbit", type: "text" },
+  { label: "Masa Berlaku", key: "masa_berlaku", type: "date" },
+];
+
 const referensiFields = [
   { label: "Pengalaman", key: "pengalaman", type: "textarea" },
   { label: "Tgl Input", key: "tanggal_input", type: "text" },
@@ -531,6 +579,13 @@ const handleUploadSave = async () => {
         bodyPayload.id_stnk = selectedStnkId.value;
       } else {
         // Creating new STNK
+        method = "POST";
+      }
+    } else if (type === "skk") {
+      if (selectedSkkId.value) {
+        method = "PUT";
+        bodyPayload.id_skk = selectedSkkId.value;
+      } else {
         method = "POST";
       }
     } else if (type === "referensi") {
@@ -687,10 +742,12 @@ const fetchPersonilDetail = async () => {
     npwp.value = person.value.npwp || null;
     ijazah.value = person.value.ijazah || null;
     cv.value = person.value.cv || null;
+    skk.value = person.value.skk || [];
     referensi.value = person.value.referensi || [];
     stnk.value = person.value.stnk || [];
 
     // Auto select first item if available
+    if (skk.value.length > 0) selectedSkkId.value = skk.value[0].id_skk;
     if (referensi.value.length > 0)
       selectedReferensiId.value = referensi.value[0].id_referensi;
     if (stnk.value.length > 0) selectedStnkId.value = stnk.value[0].id_stnk;

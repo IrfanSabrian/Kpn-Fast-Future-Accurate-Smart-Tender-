@@ -407,8 +407,12 @@ export const addCompany = async (req, res) => {
             "   Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env"
           );
         } else {
+          // Resolve absolute path to avoid potential issues
+          const path = await import("path");
+          const absolutePath = path.resolve(logoFile.path);
+
           const cloudinaryResult = await cloudinaryService.uploadCompanyLogo(
-            logoFile.path,
+            absolutePath,
             nama_perusahaan,
             `Logo ${nama_perusahaan}`
           );
@@ -631,7 +635,7 @@ async function uploadLogoToDrive(file, namaPerusahaan, folderNumber) {
 
 /**
  * Helper function to upload kop to Google Drive
- * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/1.0 Logo & Kop/Kop [nama_perusahaan]
+ * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/[index].0 Logo & Kop/Kop [nama_perusahaan]
  * @param {Object} file - Multer file object
  * @param {string} namaPerusahaan - Company name
  * @param {string} folderNumber - Folder number (e.g., '01', '02')
@@ -643,10 +647,10 @@ async function uploadKopToDrive(file, namaPerusahaan, folderNumber) {
     throw new Error("GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env");
   }
 
-  // Folder structure: [folderNumber. nama_perusahaan]/[index].0 Logo & Kop/Kop [nama_perusahaan].ext
-  // folderNumber is like "01", "02" but subfolder uses just the index number (1, 2)
+  // Folder structure: [folderNumber. namaPerusahaan]/[companyIndex].0 Logo & Kop/Kop [nama_perusahaan].ext
+  // Uses dynamic company index for subfolder
+  const companyIndex = parseInt(folderNumber, 10); // "01" -> 1
   const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
-  const companyIndex = parseInt(folderNumber, 10); // Remove leading zero: "01" -> 1
   const folderPath = [companyFolderName, `${companyIndex}.0 Logo & Kop`];
 
   // Get file extension from original filename or mimetype
@@ -674,7 +678,7 @@ async function uploadKopToDrive(file, namaPerusahaan, folderNumber) {
 
 /**
  * Helper function to upload company profile PDF to Google Drive
- * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/1.1 Profil Perusahaan/Profil Perusahaan [nama_perusahaan].pdf
+ * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/[index].1 Profil Perusahaan/Profil Perusahaan [nama_perusahaan].pdf
  * @param {Object} file - Multer file object
  * @param {string} namaPerusahaan - Company name
  * @param {string} folderNumber - Folder number (e.g., '01', '02')
@@ -686,10 +690,9 @@ async function uploadCompanyProfileToDrive(file, namaPerusahaan, folderNumber) {
     throw new Error("GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env");
   }
 
-  // Folder structure: [folderNumber. nama_perusahaan]/[index].1 Profil Perusahaan/Profil Perusahaan [nama_perusahaan].pdf
-  // folderNumber is like "01", "02" but subfolder uses just the index number (1, 2)
+  // Folder structure: [folderNumber. namaPerusahaan]/[companyIndex].1 Profil Perusahaan/Profil Perusahaan [nama_perusahaan].pdf
+  const companyIndex = parseInt(folderNumber, 10); // "01" -> 1
   const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
-  const companyIndex = parseInt(folderNumber, 10); // Remove leading zero: "01" -> 1
   const folderPath = [companyFolderName, `${companyIndex}.1 Profil Perusahaan`];
 
   const fileName = `Profil Perusahaan ${namaPerusahaan}.pdf`;
@@ -713,7 +716,7 @@ async function uploadCompanyProfileToDrive(file, namaPerusahaan, folderNumber) {
 
 /**
  * Generic helper function to upload company document to Google Drive
- * Handles: Akta, NIB, SBU, KTA, Sertifikat, Kontrak (Pengalaman), Cek
+ * Handles: Akta, NIB, SBU, KTA, Sertifikat, Pajak (NEW), Kontrak (Pengalaman), Cek
  */
 async function uploadDocumentToDrive(
   file,
@@ -736,6 +739,8 @@ async function uploadDocumentToDrive(
     sbu: { index: "4", name: "Sertifikat Badan Usaha" },
     kta: { index: "5", name: "Kartu Tanda Anggota" },
     sertifikat: { index: "6", name: "Sertifikat Standar" },
+    // Index 7: Data Perpajakan (Combined folder for NPWP, SKT, SPPKP, SPT)
+    pajak: { index: "7", name: "Data Perpajakan" },
     kontrak: { index: "8", name: "Kontrak Pengalaman" },
     cek: { index: "9", name: "Surat Referensi Bank" },
     bpjs: { index: "10", name: "BPJS" },
@@ -749,6 +754,15 @@ async function uploadDocumentToDrive(
   // Folder structure: [folderNumber. namaPerusahaan]/[companyIndex].[index] [name]/[fileName]
   const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
   const subfolderName = `${companyIndex}.${config.index} ${config.name}`;
+
+  // Custom naming for Tax documents (since they share one folder but have different files)
+  // But wait, the current logic assumes 'documentType' maps 1:1 to folder AND filename prefix.
+  // For 'pajak', we might are getting specific subtypes (npwp, spt, etc)?
+  // If the input is just 'pajak', we use generic name?
+  // Let's stick to standard pattern first. If user uploads "pajak", it becomes "Data Perpajakan [Nama].pdf".
+  // Ideally, frontend sends specific types like 'npwp', 'spt'.
+  // However, request only asked to "add index 7 data pajak".
+
   const fileName = `${config.name} ${namaPerusahaan}.pdf`;
   const folderPath = [companyFolderName, subfolderName];
 
@@ -2205,12 +2219,10 @@ export const uploadCompanyDocument = async (req, res) => {
     } else {
       // Fallback: If not found, maybe create? Or error?
       // Let's error for now as stepped upload implies existing company
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: `Google Drive folder for ${namaPerusahaan} not found`,
-        });
+      return res.status(404).json({
+        success: false,
+        message: `Google Drive folder for ${namaPerusahaan} not found`,
+      });
     }
 
     // Now determine subfolder based on type

@@ -19,6 +19,9 @@ import {
   addCv,
   updateCv,
   deleteCv,
+  addSkk,
+  updateSkk,
+  deleteSkk,
   addReferensi,
   updateReferensi,
   deleteReferensi,
@@ -82,6 +85,13 @@ router.delete("/:personelId/ijazah", deleteIjazah);
 router.post("/:personelId/cv", upload.single("file"), addCv);
 router.put("/:personelId/cv", upload.single("file"), updateCv);
 router.delete("/:personelId/cv", deleteCv);
+
+/**
+ * SKK Routes
+ */
+router.post("/:personelId/skk", upload.single("file"), addSkk);
+router.put("/:personelId/skk", upload.single("file"), updateSkk);
+router.delete("/:personelId/skk/:id", deleteSkk);
 
 /**
  * Referensi Routes

@@ -375,6 +375,18 @@
             <span>Logout Akun Google</span>
           </button>
 
+          <!-- Gemini Settings Button -->
+          <NuxtLink
+            to="/settings/gemini"
+            @click="showProfileModal = false"
+            class="w-full mt-3 py-3 px-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 group"
+          >
+            <i
+              class="fas fa-cog group-hover:rotate-90 transition-transform text-slate-400"
+            ></i>
+            <span>Pengaturan API Key</span>
+          </NuxtLink>
+
           <!-- Footer Info -->
           <div v-if="isConnected" class="mt-5 text-center">
             <div

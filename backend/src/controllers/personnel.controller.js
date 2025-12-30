@@ -95,7 +95,159 @@ export const updatePersonnel = async (req, res) => {
     const { id } = req.params;
     const data = req.body;
 
+    // Get current personnel data to check if name changed
+    const currentPersonnel = await googleSheetsService.getPersonilById(id);
+
+    if (!currentPersonnel) {
+      return res.status(404).json({
+        success: false,
+        message: `Personnel with ID ${id} not found`,
+        data: null,
+      });
+    }
+
+    const oldName = currentPersonnel.nama_lengkap;
+    const newName = data.nama_lengkap || data.nama;
+
+    // Update personnel data in sheets
     const result = await googleSheetsService.updatePersonil(id, data);
+
+    // If name changed, rename all associated files in Google Drive
+    if (newName && oldName !== newName) {
+      console.log(
+        `📝 Name changed from "${oldName}" to "${newName}". Renaming files...`
+      );
+
+      // Import oauth2GoogleService for file operations
+      const oauth2GoogleService = (
+        await import("../services/oauth2Google.service.js")
+      ).default;
+
+      const documentsToRename = [
+        {
+          docType: "KTP",
+          oldFileName: `KTP ${oldName}.pdf`,
+          newFileName: `KTP ${newName}.pdf`,
+          url: currentPersonnel.ktp?.file_ktp_url,
+        },
+        {
+          docType: "NPWP",
+          oldFileName: `NPWP ${oldName}.pdf`,
+          newFileName: `NPWP ${newName}.pdf`,
+          url: currentPersonnel.npwp?.file_npwp_personel_url,
+        },
+        {
+          docType: "Ijazah",
+          oldFileName: `Ijazah ${oldName}.pdf`,
+          newFileName: `Ijazah ${newName}.pdf`,
+          url: currentPersonnel.ijazah?.file_ijazah_url,
+        },
+        {
+          docType: "CV",
+          oldFileName: `Daftar Riwayat Hidup ${oldName}.pdf`,
+          newFileName: `Daftar Riwayat Hidup ${newName}.pdf`,
+          url: currentPersonnel.cv?.file_cv_url,
+        },
+        {
+          docType: "Referensi",
+          oldFileName: `Surat Referensi ${oldName}.pdf`,
+          newFileName: `Surat Referensi ${newName}.pdf`,
+          url: null,
+        }, // Multiple files
+        {
+          docType: "STNK",
+          oldFileName: `STNK ${oldName}.pdf`,
+          newFileName: `STNK ${newName}.pdf`,
+          url: null,
+        }, // Multiple files
+      ];
+
+      // Rename single document files (KTP, NPWP, Ijazah, CV)
+      for (const doc of documentsToRename) {
+        if (doc.url) {
+          const fileId = oauth2GoogleService.extractFileIdFromUrl(doc.url);
+          if (fileId) {
+            try {
+              await oauth2GoogleService.renameFile(fileId, doc.newFileName);
+              console.log(
+                `✅ Renamed ${doc.docType}: ${doc.oldFileName} → ${doc.newFileName}`
+              );
+            } catch (err) {
+              console.warn(
+                `⚠️ Failed to rename ${doc.docType}: ${err.message}`
+              );
+            }
+          }
+        }
+      }
+
+      // Rename multiple document files (Referensi, STNK)
+      // For Referensi
+      if (currentPersonnel.referensi && currentPersonnel.referensi.length > 0) {
+        for (const ref of currentPersonnel.referensi) {
+          if (ref.url_referensi) {
+            const fileId = oauth2GoogleService.extractFileIdFromUrl(
+              ref.url_referensi
+            );
+            if (fileId) {
+              try {
+                await oauth2GoogleService.renameFile(
+                  fileId,
+                  `Surat Referensi ${newName}.pdf`
+                );
+                console.log(`✅ Renamed Referensi: ${ref.url_referensi}`);
+              } catch (err) {
+                console.warn(`⚠️ Failed to rename Referensi: ${err.message}`);
+              }
+            }
+          }
+        }
+      }
+
+      // For SKK
+      if (currentPersonnel.skk && currentPersonnel.skk.length > 0) {
+        for (const s of currentPersonnel.skk) {
+          if (s.url_skk) {
+            const fileId = oauth2GoogleService.extractFileIdFromUrl(s.url_skk);
+            if (fileId) {
+              try {
+                await oauth2GoogleService.renameFile(
+                  fileId,
+                  `SKK ${newName}.pdf`
+                );
+                console.log(`✅ Renamed SKK: ${s.url_skk}`);
+              } catch (err) {
+                console.warn(`⚠️ Failed to rename SKK: ${err.message}`);
+              }
+            }
+          }
+        }
+      }
+
+      // For STNK
+      if (currentPersonnel.stnk && currentPersonnel.stnk.length > 0) {
+        for (const stnk of currentPersonnel.stnk) {
+          if (stnk.url_stnk) {
+            const fileId = oauth2GoogleService.extractFileIdFromUrl(
+              stnk.url_stnk
+            );
+            if (fileId) {
+              try {
+                await oauth2GoogleService.renameFile(
+                  fileId,
+                  `STNK ${newName}.pdf`
+                );
+                console.log(`✅ Renamed STNK: ${stnk.url_stnk}`);
+              } catch (err) {
+                console.warn(`⚠️ Failed to rename STNK: ${err.message}`);
+              }
+            }
+          }
+        }
+      }
+
+      console.log(`✅ File renaming complete for ${newName}`);
+    }
 
     res.json({
       success: true,
@@ -167,12 +319,10 @@ export const deletePersonnelAssets = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error in deletePersonnelAssets:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Failed to delete personnel assets",
-      });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to delete personnel assets",
+    });
   }
 };
 
@@ -192,12 +342,10 @@ export const deletePersonnelRelatedData = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error in deletePersonnelRelatedData:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Failed to delete personnel related data",
-      });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to delete personnel related data",
+    });
   }
 };
 
@@ -217,11 +365,9 @@ export const deletePersonnelProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Error in deletePersonnelProfile:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Failed to delete personnel profile",
-      });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to delete personnel profile",
+    });
   }
 };

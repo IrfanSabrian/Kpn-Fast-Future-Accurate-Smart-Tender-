@@ -808,6 +808,32 @@ class OAuth2GoogleService {
     }
   }
 
+  /**
+   * Rename a file in Google Drive
+   * @param {string} fileId - The ID of the file to rename
+   * @param {string} newName - The new name for the file
+   */
+  async renameFile(fileId, newName) {
+    await this.initialize();
+    if (!this.isAuthenticated()) throw new Error("User not authenticated");
+
+    try {
+      const response = await this.drive.files.update({
+        fileId: fileId,
+        requestBody: {
+          name: newName,
+        },
+        fields: "id, name",
+      });
+
+      console.log(`✅ File renamed: ${fileId} → ${newName}`);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error renaming file ${fileId}:`, error);
+      throw error;
+    }
+  }
+
   // ==================== FUTURE: GEMINI AI ====================
   // Gemini AI akan diintegrasikan menggunakan Google AI SDK
   // Token OAuth2 yang sama bisa dipakai untuk authentication

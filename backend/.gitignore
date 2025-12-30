@@ -30,3 +30,6 @@ Thumbs.db
 # Build
 dist/
 build/
+
+# API Settings (Sensitive)
+config/api-settings.json

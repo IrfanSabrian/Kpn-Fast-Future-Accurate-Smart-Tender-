@@ -53,24 +53,24 @@ export const addKtp = async (req, res) => {
     // Add KTP data to Google Sheets (ALL fields to prevent column misalignment)
     const ktpData = {
       id_personel: personelId,
-      nik: data.nik || "",
+      nik: data.nik || "-",
       nama_ktp: data.nama_ktp || namaPersonel,
-      tempat_lahir_ktp: data.tempat_lahir_ktp || "",
-      tanggal_lahir_ktp: data.tanggal_lahir_ktp || "",
-      jenis_kelamin: data.jenis_kelamin || "",
-      golongan_darah: data.golongan_darah || "",
-      alamat_ktp: data.alamat_ktp || "",
-      rt_rw: data.rt_rw || "",
-      kelurahan_desa: data.kelurahan_desa || "",
-      kecamatan: data.kecamatan || "",
-      kota_kabupaten: data.kota_kabupaten || "",
-      provinsi: data.provinsi || "",
-      agama: data.agama || "",
-      status_perkawinan: data.status_perkawinan || "",
-      pekerjaan: data.pekerjaan || "",
-      kewarganegaraan: data.kewarganegaraan || "",
+      tempat_lahir_ktp: data.tempat_lahir_ktp || "-",
+      tanggal_lahir_ktp: data.tanggal_lahir_ktp || "-",
+      jenis_kelamin: data.jenis_kelamin || "-",
+      golongan_darah: data.golongan_darah || "-",
+      alamat_ktp: data.alamat_ktp || "-",
+      rt_rw: data.rt_rw || "-",
+      kelurahan_desa: data.kelurahan_desa || "-",
+      kecamatan: data.kecamatan || "-",
+      kota_kabupaten: data.kota_kabupaten || "-",
+      provinsi: data.provinsi || "-",
+      agama: data.agama || "-",
+      status_perkawinan: data.status_perkawinan || "-",
+      pekerjaan: data.pekerjaan || "-",
+      kewarganegaraan: data.kewarganegaraan || "-",
       berlaku_hingga: data.berlaku_hingga || "SEUMUR HIDUP",
-      tanggal_terbit_ktp: data.tanggal_terbit_ktp || "",
+      tanggal_terbit_ktp: data.tanggal_terbit_ktp || "-",
       file_ktp_url: uploadResult.webViewLink || "",
     };
 
@@ -291,11 +291,11 @@ export const addNpwp = async (req, res) => {
 
     const npwpData = {
       id_personel: personelId,
-      nomor_npwp_personel: data.nomor_npwp_personel || "",
-      nik_npwp_personel: data.nik_npwp_personel || "",
+      nomor_npwp_personel: data.nomor_npwp_personel || "-",
+      nik_npwp_personel: data.nik_npwp_personel || "-",
       nama_npwp_personel: data.nama_npwp_personel || namaPersonel,
-      alamat_npwp_personel: data.alamat_npwp_personel || "",
-      kpp_npwp_personel: data.kpp_npwp_personel || "",
+      alamat_npwp_personel: data.alamat_npwp_personel || "-",
+      kpp_npwp_personel: data.kpp_npwp_personel || "-",
       file_npwp_personel_url: uploadResult.webViewLink || "",
     };
 
@@ -472,15 +472,15 @@ export const addIjazah = async (req, res) => {
 
     const ijazahData = {
       id_personel: personelId,
-      jenjang_pendidikan: data.jenjang_pendidikan || "",
-      nama_institusi_pendidikan: data.nama_institusi_pendidikan || "",
-      fakultas: data.fakultas || "",
-      program_studi: data.program_studi || "",
-      nomor_ijazah: data.nomor_ijazah || "",
-      tahun_masuk: data.tahun_masuk || "",
-      tahun_lulus: data.tahun_lulus || "",
-      gelar_akademik: data.gelar_akademik || "",
-      ipk: data.ipk || "",
+      jenjang_pendidikan: data.jenjang_pendidikan || "-",
+      nama_institusi_pendidikan: data.nama_institusi_pendidikan || "-",
+      fakultas: data.fakultas || "-",
+      program_studi: data.program_studi || "-",
+      nomor_ijazah: data.nomor_ijazah || "-",
+      tahun_masuk: data.tahun_masuk || "-",
+      tahun_lulus: data.tahun_lulus || "-",
+      gelar_akademik: data.gelar_akademik || "-",
+      ipk: data.ipk || "-",
       file_ijazah_url: uploadResult.webViewLink || "",
     };
 
@@ -665,12 +665,12 @@ export const addCv = async (req, res) => {
     const cvData = {
       id_personel: personelId,
       nama_lengkap_cv: data.nama_lengkap_cv || namaPersonel,
-      ringkasan_profil: data.ringkasan_profil || "",
-      keahlian_utama: data.keahlian_utama || "",
-      total_pengalaman_tahun: data.total_pengalaman_tahun || "",
-      pengalaman_kerja_terakhir: data.pengalaman_kerja_terakhir || "",
-      sertifikasi_profesional: data.sertifikasi_profesional || "",
-      bahasa_dikuasai: data.bahasa_dikuasai || "",
+      ringkasan_profil: data.ringkasan_profil || "-",
+      keahlian_utama: data.keahlian_utama || "-",
+      total_pengalaman_tahun: data.total_pengalaman_tahun || "-",
+      pengalaman_kerja_terakhir: data.pengalaman_kerja_terakhir || "-",
+      sertifikasi_profesional: data.sertifikasi_profesional || "-",
+      bahasa_dikuasai: data.bahasa_dikuasai || "-",
       file_cv_url: uploadResult.webViewLink || "",
     };
 
@@ -814,6 +814,162 @@ export const deleteCv = async (req, res) => {
   }
 };
 
+// ==================== SKK ====================
+
+export const addSkk = async (req, res) => {
+  try {
+    const { personelId } = req.params;
+    const data = req.body;
+    const file = req.file;
+
+    const personel = await googleSheetsService.getPersonilById(personelId);
+    if (!personel) {
+      return res
+        .status(404)
+        .json({ success: false, message: `Personnel ${personelId} not found` });
+    }
+    const namaPersonel = personel.nama_lengkap;
+
+    let fileUrl = "";
+    const fileUrlFromBody = data.url_skk || data.fileUrl;
+
+    if (file) {
+      const folderPath = [
+        "02. Personel",
+        namaPersonel,
+        "05. Surat Keahlian Kerja",
+      ];
+      const fileName = `SKK ${namaPersonel}.pdf`;
+
+      const uploadResult = await oauth2GoogleService.uploadPdfFile(
+        file.buffer,
+        fileName,
+        file.mimetype,
+        folderPath
+      );
+      fileUrl = uploadResult.webViewLink;
+    } else if (fileUrlFromBody) {
+      fileUrl = fileUrlFromBody;
+    }
+
+    const docData = {
+      id_personel: personelId,
+      jenis_skk: data.jenis_skk || "",
+      kualifikasi: data.kualifikasi || "",
+      masa_berlaku: data.masa_berlaku || "",
+      penerbit: data.penerbit || "",
+      url_skk: fileUrl,
+    };
+
+    const result = await googleSheetsService.addSkk(docData);
+    res.status(201).json({
+      success: true,
+      message: "SKK added",
+      data: { ...result, fileUrl },
+    });
+  } catch (error) {
+    console.error("Error addSkk:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateSkk = async (req, res) => {
+  try {
+    const { personelId } = req.params;
+    const data = req.body;
+    const file = req.file;
+    const idSkk = data.id_skk;
+
+    if (!idSkk)
+      return res
+        .status(400)
+        .json({ success: false, message: "id_skk required" });
+
+    const personel = await googleSheetsService.getPersonilById(personelId);
+    if (!personel)
+      return res
+        .status(404)
+        .json({ success: false, message: "Personnel not found" });
+
+    const skkList = personel.skk || [];
+    const item = skkList.find((s) => s.id_skk === idSkk);
+
+    if (!item)
+      return res
+        .status(404)
+        .json({ success: false, message: "SKK item not found" });
+
+    let fileUrl = item.url_skk;
+
+    if (file) {
+      if (fileUrl) {
+        const oldId = oauth2GoogleService.extractFileIdFromUrl(fileUrl);
+        if (oldId)
+          await oauth2GoogleService
+            .deleteFile(oldId)
+            .catch((e) => console.warn(e));
+      }
+
+      const namaPersonel = personel.nama_lengkap;
+      const folderPath = [
+        "02. Personel",
+        namaPersonel,
+        "05. Surat Keahlian Kerja",
+      ];
+      const fileName = `SKK ${namaPersonel}.pdf`;
+
+      const uploadResult = await oauth2GoogleService.uploadPdfFile(
+        file.buffer,
+        fileName,
+        file.mimetype,
+        folderPath
+      );
+      fileUrl = uploadResult.webViewLink;
+    }
+
+    const docData = {
+      ...data,
+      url_skk: fileUrl,
+    };
+
+    const result = await googleSheetsService.updateSkk(idSkk, docData);
+    res.json({ success: true, message: "SKK updated", data: result });
+  } catch (error) {
+    console.error("Error updateSkk:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteSkk = async (req, res) => {
+  try {
+    const { personelId, id } = req.params;
+    const targetId = id || req.body.id_skk;
+
+    if (!targetId)
+      return res
+        .status(400)
+        .json({ success: false, message: "Target ID required" });
+
+    const personel = await googleSheetsService.getPersonilById(personelId);
+    const skkList = personel?.skk || [];
+    const item = skkList.find((s) => s.id_skk === targetId);
+
+    if (item && item.url_skk) {
+      const oldId = oauth2GoogleService.extractFileIdFromUrl(item.url_skk);
+      if (oldId)
+        await oauth2GoogleService
+          .deleteFile(oldId)
+          .catch((e) => console.warn(e));
+    }
+
+    const result = await googleSheetsService.deleteSkk(targetId);
+    res.json({ success: true, message: "SKK deleted", data: result });
+  } catch (error) {
+    console.error("Error deleteSkk:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ==================== REFERENSI ====================
 
 export const addReferensi = async (req, res) => {
@@ -837,8 +993,8 @@ export const addReferensi = async (req, res) => {
     const fileUrlFromBody = data.url_referensi || data.fileUrl; // Support URL from body
 
     if (file) {
-      // 05. Surat Referensi
-      const folderPath = ["02. Personel", namaPersonel, "05. Surat Referensi"];
+      // 06. Surat Referensi
+      const folderPath = ["02. Personel", namaPersonel, "06. Surat Referensi"];
       // Clean name without timestamp
       const fileName = `Surat Referensi ${namaPersonel}.pdf`;
 
@@ -915,7 +1071,7 @@ export const updateReferensi = async (req, res) => {
       }
 
       const namaPersonel = personel.nama_lengkap;
-      const folderPath = ["02. Personel", namaPersonel, "05. Surat Referensi"];
+      const folderPath = ["02. Personel", namaPersonel, "06. Surat Referensi"];
       const fileName = `Surat Referensi ${namaPersonel}.pdf`;
 
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
@@ -995,8 +1151,8 @@ export const addStnk = async (req, res) => {
     const fileUrlFromBody = data.url_stnk || data.fileUrl; // Support URL from body
 
     if (file) {
-      // 06. STNK
-      const folderPath = ["02. Personel", namaPersonel, "06. STNK"];
+      // 07. STNK
+      const folderPath = ["02. Personel", namaPersonel, "07. STNK"];
       // Clean name
       const fileName = `STNK ${namaPersonel}.pdf`;
 
@@ -1062,7 +1218,7 @@ export const updateStnk = async (req, res) => {
             .catch((e) => console.warn(e));
       }
       const namaPersonel = personel.nama_lengkap;
-      const folderPath = ["02. Personel", namaPersonel, "06. STNK"];
+      const folderPath = ["02. Personel", namaPersonel, "07. STNK"];
       const fileName = `STNK ${namaPersonel}.pdf`;
       const uploadResult = await oauth2GoogleService.uploadPdfFile(
         file.buffer,
@@ -1155,12 +1311,16 @@ export const uploadPersonnelDocument = async (req, res) => {
         folderName = "04. Daftar Riwayat Hidup";
         subFolder = `Daftar Riwayat Hidup ${namaPersonel}.pdf`;
         break;
+      case "skk":
+        folderName = "05. Surat Keahlian Kerja";
+        subFolder = `SKK ${namaPersonel}.pdf`;
+        break;
       case "referensi":
-        folderName = "05. Referensi Kerja";
+        folderName = "06. Surat Referensi";
         subFolder = `Referensi ${namaPersonel}.pdf`;
         break;
       case "stnk":
-        folderName = "06. STNK";
+        folderName = "07. STNK";
         subFolder = `STNK ${namaPersonel}.pdf`;
         break;
       default:

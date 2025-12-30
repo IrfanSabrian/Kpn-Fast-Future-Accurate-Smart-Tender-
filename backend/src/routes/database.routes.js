@@ -35,6 +35,8 @@ const upload = multer({
       "kontrak",
       "cek",
       "bpjs",
+      "file",
+      "pdf",
     ];
 
     // Allow PDF for document fields

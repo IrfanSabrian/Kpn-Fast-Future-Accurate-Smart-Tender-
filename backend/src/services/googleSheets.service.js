@@ -807,6 +807,7 @@ class GoogleSheetsService {
         npwpData,
         ijazahData,
         cvData,
+        skkData, // Added SKK
         referensiData,
         stnkData,
       ] = await Promise.all([
@@ -815,6 +816,7 @@ class GoogleSheetsService {
         this.readSheet(spreadsheetId, "db_npwp_personel"),
         this.readSheet(spreadsheetId, "db_ijazah"),
         this.readSheet(spreadsheetId, "db_cv"),
+        this.readSheet(spreadsheetId, "db_skk"), // Added SKK
         this.readSheet(spreadsheetId, "db_referensi"),
         this.readSheet(spreadsheetId, "db_stnk"),
       ]);
@@ -829,6 +831,7 @@ class GoogleSheetsService {
         const cv = cvData.find((c) => c.id_personel === p.id_personel) || {};
 
         // One-to-Many relationships
+        const skk = skkData.filter((s) => s.id_personel === p.id_personel); // SKK (Multiple)
         const referensi = referensiData.filter(
           (r) => r.id_personel === p.id_personel
         );
@@ -845,6 +848,7 @@ class GoogleSheetsService {
           npwp,
           ijazah,
           cv,
+          skk, // Array of SKK
           referensi, // Array of referensi
           stnk, // Array of stnk
         };
@@ -1492,7 +1496,13 @@ class GoogleSheetsService {
     const spreadsheetIdPersonel =
       process.env.GOOGLE_SHEET_ID_PERSONEL ||
       process.env.GOOGLE_SHEET_ID_PERSONIL;
-    const personelTables = ["db_ktp", "db_npwp_personel", "db_ijazah", "db_cv"];
+    const personelTables = [
+      "db_ktp",
+      "db_npwp_personel",
+      "db_ijazah",
+      "db_cv",
+      "db_skk",
+    ];
 
     for (const table of personelTables) {
       await this._deleteRowsFromSheet(
@@ -3776,6 +3786,49 @@ class GoogleSheetsService {
       throw new Error("Failed to batch update KBLI: " + e.message);
     }
   }
+  // ==================== SKK METHODS ====================
+  async addSkk(data) {
+    const headers = [
+      "id_skk",
+      "id_personel",
+      "jenis_skk",
+      "kualifikasi",
+      "masa_berlaku",
+      "penerbit",
+      "url_skk",
+      "tanggal_input",
+      "author",
+    ];
+    // Generate new ID
+    const currentData = await this.readSheet(
+      process.env.GOOGLE_SHEET_ID_PERSONEL ||
+        process.env.GOOGLE_SHEET_ID_PERSONIL,
+      "db_skk"
+    );
+    data.id_skk = this.generateNewId(currentData, "id_skk", "SKK");
+
+    return this.addSheetDataPersonel("db_skk", headers, data);
+  }
+
+  async updateSkk(id, data) {
+    const headers = [
+      "id_skk",
+      "id_personel",
+      "jenis_skk",
+      "kualifikasi",
+      "masa_berlaku",
+      "penerbit",
+      "url_skk",
+      "tanggal_input",
+      "author",
+    ];
+    return this.updateSheetDataPersonel("db_skk", headers, "id_skk", id, data);
+  }
+
+  async deleteSkk(id) {
+    return this.deleteSheetDataPersonel("db_skk", "id_skk", id);
+  }
+
   // ==================== REFERENSI METHODS ====================
 
   async addReferensi(data) {

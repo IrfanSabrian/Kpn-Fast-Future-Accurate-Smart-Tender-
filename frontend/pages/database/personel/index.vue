@@ -145,12 +145,12 @@
         <!-- Document Badges Row (If Available) -->
         <div
           v-if="getDocumentIcons(person).length > 0"
-          class="px-5 pb-4 pt-0 flex flex-wrap gap-2"
+          class="px-4 pb-4 pt-0 flex flex-wrap gap-1"
         >
           <div
             v-for="doc in getDocumentIcons(person)"
             :key="doc.type"
-            class="px-2 py-1 rounded text-[10px] uppercase tracking-wider font-bold flex items-center gap-1.5 border transition-transform hover:scale-105"
+            class="px-1.5 py-0.5 rounded text-[10px] uppercase font-bold flex items-center gap-1 border transition-transform hover:scale-105"
             :class="doc.class"
             :title="doc.type + ' tersedia'"
           >
@@ -737,6 +737,13 @@ const getDocumentIcons = (person) => {
       exists: !!(person.cv && (person.cv.id_cv || person.cv.file_cv_url)),
       class:
         "text-orange-600 bg-orange-50 border-orange-100 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
+    },
+    {
+      type: "SKK",
+      icon: "fas fa-certificate",
+      exists: person.skk && person.skk.length > 0,
+      class:
+        "text-teal-600 bg-teal-50 border-teal-100 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-800",
     },
     {
       type: "Ref",

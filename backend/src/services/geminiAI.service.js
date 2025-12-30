@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import fs from "fs/promises";
 import path from "path";
+import { fileURLToPath } from "url";
 
 class GeminiAIService {
   constructor() {
@@ -8,13 +9,39 @@ class GeminiAIService {
     this.model = null;
   }
 
+  async forceReload() {
+    this.model = null;
+    this.genAI = null;
+    await this.initialize();
+  }
+
   async initialize() {
     if (this.model) return;
 
-    const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+    let apiKey = "";
+
+    // Try to load from config file
+    try {
+      const configPath = path.join(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../config/api-settings.json"
+      );
+
+      const fs = await import("fs");
+      if (fs.existsSync(configPath)) {
+        const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+        if (config.gemini_api_key && config.gemini_api_key.trim() !== "") {
+          apiKey = config.gemini_api_key;
+          console.log("Using Gemini API Key from settings file");
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load api-settings.json:", e.message);
+    }
+
     if (!apiKey) {
       throw new Error(
-        "GOOGLE_GEMINI_API_KEY tidak ditemukan di environment variables"
+        "GOOGLE_GEMINI_API_KEY tidak ditemukan di environment variables atau settings"
       );
     }
 
@@ -612,7 +639,15 @@ Return ONLY valid JSON with this exact structure:
       if (!jsonMatch) {
         throw new Error("AI failed to extract JSON");
       }
-      return JSON.parse(jsonMatch[0]);
+
+      // Clean up potential markdown formatting or unexpected characters
+      let jsonString = jsonMatch[0];
+      // Sometimes models add ```json ... ``` wrapper inside the match if regex isn't strict enough
+      // or add trailing commas.
+      // Basic cleanup:
+      jsonString = jsonString.replace(/```json/g, "").replace(/```/g, "");
+
+      return JSON.parse(jsonString);
     } catch (e) {
       throw new Error("Gagal memproses Akta: " + e.message);
     }
