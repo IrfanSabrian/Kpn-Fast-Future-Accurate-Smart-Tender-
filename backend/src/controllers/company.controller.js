@@ -2492,7 +2492,7 @@ export const uploadPengalamanDocument = async (req, res) => {
 
     // Update the appropriate URL field in database
     const urlField = type === "daftar" ? "daftar_url" : "kontrak_url";
-    await googleSheetsService.updatePengalaman(itemId, {
+    await googleSheetsService.updateKontrakPengalaman(itemId, {
       [urlField]: result.webViewLink,
     });
 

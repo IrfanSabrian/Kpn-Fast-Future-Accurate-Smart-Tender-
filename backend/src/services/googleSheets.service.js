@@ -2427,8 +2427,11 @@ class GoogleSheetsService {
     // Assuming the first argument is the ID value.
     let idField = "id_kontrak";
 
-    // Check if it looks like KONTRxxx
-    if (!String(nomorKontrak).startsWith("KONTR")) {
+    // Check if it looks like KONTRxxx or KTRxxx
+    if (
+      !String(nomorKontrak).startsWith("KONTR") &&
+      !String(nomorKontrak).startsWith("KTR")
+    ) {
       // Fallback to nomor_kontrak if it doesn't look like our ID
       idField = "nomor_kontrak";
     }

@@ -273,15 +273,7 @@ router.delete("/:id/nib/:itemId", async (req, res) => {
 });
 
 // --- PENGALAMAN (KONTRAK) CRUD ---
-router.post("/:id/pengalaman", async (req, res) => {
-  try {
-    const data = { ...req.body, id_perusahaan: req.params.id };
-    const result = await googleSheetsService.addPengalaman(data);
-    res.status(201).json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.post("/:id/pengalaman", companyController.createPengalaman);
 
 router.put("/:id/pengalaman/:itemId", async (req, res) => {
   try {
@@ -580,15 +572,8 @@ router.delete("/projects/:idProject/personel/:nik", async (req, res) => {
 
 // --- PENGALAMAN / KONTRAK CRUD ---
 // (Updated: Fixed response structure to include data)
-router.post("/:id/pengalaman", async (req, res) => {
-  try {
-    const data = { ...req.body, id_perusahaan: req.params.id };
-    const result = await googleSheetsService.addKontrakPengalaman(data);
-    res.status(201).json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+// Route handled above by companyController.createPengalaman
+// router.post("/:id/pengalaman", ...);
 
 router.put("/:id/pengalaman/:itemId", async (req, res) => {
   try {

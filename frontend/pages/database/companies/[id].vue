@@ -268,151 +268,550 @@
                   v-else-if="
                     pengalamanViewMode === 'detail' && selectedPengalamanDetail
                   "
-                  class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+                  class="space-y-4"
                 >
-                  <!-- Back Button (Spanning full width or just left col) -->
-                  <div class="lg:col-span-12 mb-2">
+                  <!-- Back Button -->
+                  <div class="mb-2">
                     <button
                       @click="closePengalamanDetail"
-                      class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center gap-2 text-sm font-medium transition-colors hover:-translate-x-1"
+                      class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center gap-2 text-sm font-medium transition-colors"
                     >
                       <i class="fas fa-arrow-left"></i>
                       Kembali ke Daftar
                     </button>
                   </div>
 
-                  <!-- LEFT COLUMN: Data Info / Edit Button -->
-                  <div class="lg:col-span-7 space-y-6">
-                    <!-- Condition: PDF Exists -> Show Data Summary + Edit Button -->
+                  <!-- Data Info / Edit Button -->
+                  <div class="h-full">
                     <div
-                      v-if="selectedPengalamanDetail.kontrak_url"
-                      class="space-y-4"
+                      class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex flex-col h-[calc(100vh-250px)] overflow-hidden"
                     >
                       <div
-                        class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
+                        class="flex justify-between items-start p-6 border-b border-slate-100 dark:border-slate-700 shrink-0 bg-white dark:bg-slate-800 z-10"
                       >
-                        <div
-                          class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
-                        >
-                          <div class="flex items-center gap-3">
-                            <div
-                              class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0"
-                            >
-                              <i class="fas fa-file-contract"></i>
-                            </div>
-                            <div>
-                              <div
-                                class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                              >
-                                NOMOR KONTRAK
-                              </div>
-                              <h4
-                                class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
-                              >
-                                {{
-                                  selectedPengalamanDetail.nomor_kontrak || "-"
-                                }}
-                              </h4>
-                            </div>
-                          </div>
-                          <button
-                            @click="
-                              openEditKontrakModal(selectedPengalamanDetail)
-                            "
-                            class="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2"
+                        <div class="flex items-center gap-3">
+                          <div
+                            class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0"
                           >
-                            <i class="fas fa-edit"></i> Edit Data
-                          </button>
+                            <i class="fas fa-file-contract text-lg"></i>
+                          </div>
+                          <div>
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              NOMOR KONTRAK
+                            </div>
+                            <h4
+                              v-if="!isEditingKontrak"
+                              class="font-bold text-slate-800 dark:text-white text-xl leading-none mt-1"
+                            >
+                              {{
+                                selectedPengalamanDetail.nomor_kontrak || "-"
+                              }}
+                            </h4>
+                            <div v-else class="mt-1">
+                              <input
+                                v-model="kontrakFormData.nomor_kontrak"
+                                type="text"
+                                placeholder="Nomor Kontrak"
+                                class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-sm font-bold focus:outline-none focus:border-blue-500"
+                              />
+                            </div>
+                          </div>
                         </div>
+                        <div class="flex items-center gap-2">
+                          <template v-if="!isEditingKontrak">
+                            <button
+                              v-if="selectedPengalamanDetail.kontrak_url"
+                              @click="
+                                startEditKontrakInline(selectedPengalamanDetail)
+                              "
+                              class="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                            >
+                              <i class="fas fa-edit"></i> Edit Data
+                            </button>
+                          </template>
+                          <template v-else>
+                            <button
+                              @click="handleKontrakAiScanInline"
+                              :disabled="isAiScanning"
+                              class="text-xs font-bold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-2 rounded-lg transition-colors flex items-center gap-2"
+                            >
+                              <i
+                                :class="
+                                  isAiScanning
+                                    ? 'fas fa-spinner fa-spin'
+                                    : 'fas fa-magic'
+                                "
+                              ></i>
+                              {{ isAiScanning ? "Scaning..." : "AI Scan" }}
+                            </button>
+                            <button
+                              @click="cancelEditKontrakInline"
+                              class="text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition-colors"
+                            >
+                              Batal
+                            </button>
+                            <button
+                              @click="saveKontrakInline"
+                              :disabled="isSubmittingKontrak"
+                              class="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                            >
+                              <i
+                                v-if="isSubmittingKontrak"
+                                class="fas fa-spinner fa-spin"
+                              ></i>
+                              Simpan
+                            </button>
+                          </template>
+                        </div>
+                      </div>
 
-                        <div class="space-y-3">
-                          <!-- Mini Summary Grid -->
-                          <div class="grid grid-cols-2 gap-4">
-                            <div>
-                              <div
-                                class="text-[10px] font-bold text-slate-400 uppercase"
-                              >
-                                TANGGAL
+                      <div
+                        class="p-6 overflow-y-auto flex-1 space-y-6 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700"
+                      >
+                        <!-- EDIT MODE FORM -->
+                        <div v-if="isEditingKontrak" class="space-y-6">
+                          <!-- 1. Nilai & Waktu -->
+                          <div>
+                            <h5
+                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
+                            >
+                              <i class="fas fa-money-bill-wave"></i> Nilai &
+                              Waktu
+                            </h5>
+                            <div class="grid grid-cols-2 gap-4">
+                              <div class="col-span-2">
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >NILAI KONTRAK</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.nilai_kontrak"
+                                  type="number"
+                                  placeholder="Rp"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
                               </div>
-                              <div
-                                class="font-medium text-slate-700 dark:text-slate-200 text-sm"
-                              >
-                                {{
-                                  formatDate(
-                                    selectedPengalamanDetail.tanggal_kontrak
-                                  )
-                                }}
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >TANGGAL KONTRAK</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.tanggal_kontrak"
+                                  type="date"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >TGL SELESAI / PHO</label
+                                >
+                                <input
+                                  v-model="
+                                    kontrakFormData.tanggal_selesai_kontrak
+                                  "
+                                  type="date"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >WAKTU PELAKSANAAN</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.waktu_pelaksanaan"
+                                  type="text"
+                                  placeholder="Contoh: 180 Hari"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >TGL BA SERAH TERIMA</label
+                                >
+                                <input
+                                  v-model="
+                                    kontrakFormData.tanggal_ba_serah_terima
+                                  "
+                                  type="date"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
                               </div>
                             </div>
-                            <div>
-                              <div
-                                class="text-[10px] font-bold text-slate-400 uppercase"
-                              >
-                                NILAI
+                          </div>
+
+                          <div
+                            class="border-t border-slate-100 dark:border-slate-700"
+                          ></div>
+
+                          <!-- 2. Detail Pekerjaan -->
+                          <div>
+                            <h5
+                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
+                            >
+                              <i class="fas fa-building"></i> Detail Pekerjaan
+                            </h5>
+                            <div class="grid grid-cols-2 gap-4">
+                              <div class="col-span-2">
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >NAMA PEKERJAAN</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.nama_pekerjaan"
+                                  type="text"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
                               </div>
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >BIDANG</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.bidang_pekerjaan"
+                                  type="text"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >SUB BIDANG</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.sub_bidang_pekerjaan"
+                                  type="text"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                              <div class="col-span-2">
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >LOKASI PROYEK</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.lokasi"
+                                  type="text"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            class="border-t border-slate-100 dark:border-slate-700"
+                          ></div>
+
+                          <!-- 3. Pemberi Tugas -->
+                          <div>
+                            <h5
+                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
+                            >
+                              <i class="fas fa-user-tie"></i> Pemberi Tugas
+                            </h5>
+                            <div class="grid grid-cols-2 gap-4">
+                              <div class="col-span-2">
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >NAMA PEMBERI TUGAS</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.nama_pemberi_tugas"
+                                  type="text"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                              <div class="col-span-2">
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >ALAMAT</label
+                                >
+                                <textarea
+                                  v-model="kontrakFormData.alamat_pemberi_tugas"
+                                  rows="2"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                ></textarea>
+                              </div>
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >TELEPON</label
+                                >
+                                <input
+                                  v-model="
+                                    kontrakFormData.telepon_pemberi_tugas
+                                  "
+                                  type="text"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >FAX</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.fax_pemberi_tugas"
+                                  type="text"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- DISPLAY MODE (v-else) -->
+                        <div v-else class="space-y-6">
+                          <!-- 1. Informasi Utama & Nilai -->
+                          <div>
+                            <h5
+                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
+                            >
+                              <i class="fas fa-money-bill-wave"></i> Nilai &
+                              Waktu
+                            </h5>
+                            <div class="grid grid-cols-2 gap-4">
                               <div
-                                class="font-bold text-green-600 dark:text-green-400 text-sm"
+                                class="col-span-2 p-3 bg-green-50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-900/30"
                               >
-                                {{
-                                  selectedPengalamanDetail.nilai_kontrak
-                                    ? `Rp ${Number(
-                                        selectedPengalamanDetail.nilai_kontrak
-                                      ).toLocaleString("id-ID")}`
-                                    : "-"
-                                }}
+                                <div
+                                  class="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase"
+                                >
+                                  NILAI KONTRAK
+                                </div>
+                                <div
+                                  class="font-bold text-green-700 dark:text-green-400 text-lg"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.nilai_kontrak
+                                      ? `Rp ${Number(
+                                          selectedPengalamanDetail.nilai_kontrak
+                                        ).toLocaleString("id-ID")}`
+                                      : "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  TANGGAL KONTRAK
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    formatDate(
+                                      selectedPengalamanDetail.tanggal_kontrak
+                                    )
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  TGL SELESAI / PHO
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    formatDate(
+                                      selectedPengalamanDetail.tanggal_selesai_kontrak
+                                    )
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  WAKTU PELAKSANAAN
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.waktu_pelaksanaan ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  TGL BA SERAH TERIMA
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    formatDate(
+                                      selectedPengalamanDetail.tanggal_ba_serah_terima
+                                    )
+                                  }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            class="border-t border-slate-100 dark:border-slate-700"
+                          ></div>
+
+                          <!-- 2. Informasi Pekerjaan -->
+                          <div>
+                            <h5
+                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
+                            >
+                              <i class="fas fa-building"></i> Detail Pekerjaan
+                            </h5>
+                            <div class="grid grid-cols-2 gap-4">
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  NAMA PEKERJAAN
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.nama_pekerjaan ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  BIDANG
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.bidang_pekerjaan ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  SUB BIDANG
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.sub_bidang_pekerjaan ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  LOKASI PROYEK
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{ selectedPengalamanDetail.lokasi || "-" }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            class="border-t border-slate-100 dark:border-slate-700"
+                          ></div>
+
+                          <!-- 3. Pemberi Tugas -->
+                          <div>
+                            <h5
+                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
+                            >
+                              <i class="fas fa-user-tie"></i> Pemberi Tugas
+                            </h5>
+                            <div class="grid grid-cols-2 gap-4">
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  NAMA PEMBERI TUGAS
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.nama_pemberi_tugas ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  ALAMAT
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.alamat_pemberi_tugas ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  TELEPON
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.telepon_pemberi_tugas ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  FAX
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.fax_pemberi_tugas ||
+                                    "-"
+                                  }}
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-
-                    <!-- Condition: No PDF -> Upload Prompt -->
-                    <div
-                      v-else
-                      class="bg-slate-50 dark:bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-8 text-center"
-                    >
-                      <div
-                        class="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-400 mx-auto flex items-center justify-center mb-4"
-                      >
-                        <i class="fas fa-file-upload text-2xl"></i>
-                      </div>
-                      <h4
-                        class="text-slate-600 dark:text-slate-300 font-bold mb-1"
-                      >
-                        Dokumen Belum Diunggah
-                      </h4>
-                      <p class="text-slate-500 text-sm max-w-xs mx-auto">
-                        Silakan unggah dokumen PDF Kontrak di panel sebelah
-                        kanan untuk melengkapi data.
-                      </p>
-                    </div>
-                  </div>
-
-                  <!-- RIGHT COLUMN: PDF Preview / Upload -->
-                  <div class="lg:col-span-5 flex flex-col h-full sticky top-4">
-                    <DocumentPdfPreview
-                      documentType="pengalaman-kontrak"
-                      label="Kontrak Pengalaman"
-                      :subtitle="
-                        selectedPengalamanDetail
-                          ? `Kontrak: ${
-                              selectedPengalamanDetail.nomor_kontrak || '-'
-                            }`
-                          : ''
-                      "
-                      icon="fas fa-file-contract"
-                      iconColor="blue"
-                      :existingPdfUrl="selectedPengalamanDetail?.kontrak_url"
-                      :pendingFile="pendingUploads.kontrak?.file"
-                      :pendingPreview="pendingUploads.kontrak?.preview"
-                      :isUploading="uploadingState.kontrak"
-                      @file-selected="
-                        (event) => handleFileSelect('kontrak', event)
-                      "
-                      @save="handleUploadSave('kontrak')"
-                      @cancel="handleUploadCancel('kontrak')"
-                    />
                   </div>
                 </div>
               </div>
@@ -429,16 +828,33 @@
                   <DocumentPdfPreview
                     documentType="pengalaman-daftar"
                     label="Daftar Pengalaman"
-                    :subtitle="
-                      selectedPengalamanList
-                        ? `Daftar: ${selectedPengalamanList.nama_pekerjaan}`
-                        : 'Pilih pengalaman dari daftar'
-                    "
                     icon="fas fa-list-alt"
                     iconColor="purple"
                     :existingPdfUrl="selectedPengalamanList?.daftar_url"
                     :disableDirectUpload="true"
                     @upload-area-click="openAddPengalamanModal"
+                  />
+                </div>
+
+                <!-- Preview for DETAIL MODE: Kontrak Pengalaman -->
+                <div
+                  v-else-if="pengalamanViewMode === 'detail'"
+                  class="h-full flex flex-col"
+                >
+                  <DocumentPdfPreview
+                    documentType="pengalaman-kontrak"
+                    label="Kontrak Pengalaman"
+                    icon="fas fa-file-contract"
+                    iconColor="blue"
+                    :existingPdfUrl="selectedPengalamanDetail?.kontrak_url"
+                    :pendingFile="pendingUploads.kontrak?.file"
+                    :pendingPreview="pendingUploads.kontrak?.preview"
+                    :isUploading="uploadingState.kontrak"
+                    @file-selected="
+                      (event) => handleFileSelect('kontrak', event)
+                    "
+                    @save="handleUploadSave('kontrak')"
+                    @cancel="handleUploadCancel('kontrak')"
                   />
                 </div>
               </div>
@@ -2718,6 +3134,7 @@ const pejabatFormData = ref({
   jabatan_custom: "",
 });
 const isSubmittingPejabat = ref(false);
+const isEditingKontrak = ref(false);
 
 // Selected items for PDF preview (per tab)
 const selectedItems = ref({
@@ -3049,7 +3466,73 @@ const handleAiScanKontrak = async () => {
   }
 };
 
-const saveKontrakData = async () => {
+const handleKontrakAiScanInline = async () => {
+  if (!selectedPengalamanDetail.value?.kontrak_url) {
+    toast.error("File kontrak belum tersedia untuk di-scan");
+    return;
+  }
+
+  isAiScanning.value = true;
+  toast.info("Sedang melakukan scan AI...", 0);
+
+  try {
+    const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileUrl: selectedPengalamanDetail.value.kontrak_url,
+        documentType: "kontrak",
+        category: "company",
+      }),
+    });
+
+    const result = await res.json();
+
+    if (result.success && result.data) {
+      // Update form with scanned data
+      Object.keys(kontrakFormData.value).forEach((key) => {
+        if (result.data[key]) {
+          kontrakFormData.value[key] = result.data[key];
+        }
+      });
+      toast.success("AI Scan Berhasil!");
+    } else {
+      throw new Error(result.message || "Scan AI gagal");
+    }
+  } catch (error) {
+    console.error("AI Scan Error:", error);
+    toast.error("Gagal melakukan scan AI: " + error.message);
+  } finally {
+    isAiScanning.value = false;
+  }
+};
+
+const startEditKontrakInline = (item) => {
+  // Populate form with existing data
+  kontrakFormData.value = {
+    nama_pekerjaan: item.nama_pekerjaan || "",
+    bidang_pekerjaan: item.bidang_pekerjaan || "",
+    sub_bidang_pekerjaan: item.sub_bidang_pekerjaan || "",
+    lokasi: item.lokasi || "",
+    nama_pemberi_tugas: item.nama_pemberi_tugas || "",
+    alamat_pemberi_tugas: item.alamat_pemberi_tugas || "",
+    telepon_pemberi_tugas: item.telepon_pemberi_tugas || "",
+    fax_pemberi_tugas: item.fax_pemberi_tugas || "",
+    nomor_kontrak: item.nomor_kontrak || "",
+    tanggal_kontrak: item.tanggal_kontrak || "",
+    nilai_kontrak: item.nilai_kontrak || "",
+    waktu_pelaksanaan: item.waktu_pelaksanaan || "",
+    tanggal_selesai_kontrak: item.tanggal_selesai_kontrak || "",
+    tanggal_ba_serah_terima: item.tanggal_ba_serah_terima || "",
+  };
+  isEditingKontrak.value = true;
+};
+
+const cancelEditKontrakInline = () => {
+  isEditingKontrak.value = false;
+};
+
+const saveKontrakInline = async () => {
   if (!selectedPengalamanDetail.value?.id_kontrak) {
     toast.error("ID kontrak tidak ditemukan");
     return;
@@ -3072,7 +3555,7 @@ const saveKontrakData = async () => {
     }
 
     toast.success("Data kontrak berhasil diperbarui!");
-    showEditKontrakModal.value = false;
+    isEditingKontrak.value = false;
 
     // Refresh data
     await fetchPengalaman();
@@ -3092,6 +3575,13 @@ const saveKontrakData = async () => {
   } finally {
     isSubmittingKontrak.value = false;
   }
+};
+
+const saveKontrakData = async () => {
+  // KEPT FOR BACKWARD COMPATIBILITY IF MODAL IS USED ELSEWHERE
+  // BUT INLINE IS PREFERRED NOW.
+  await saveKontrakInline();
+  showEditKontrakModal.value = false;
 };
 
 // Pending uploads for CompanyDocumentTab
@@ -3541,7 +4031,11 @@ const handleUploadSave = async (tabId) => {
       if (itemId) {
         // Encode if needed
         // Check route: /:id/akta/:itemId
-        url = `${apiBaseUrl}/companies/${companyId}/${tabId}/${encodeURIComponent(
+        // Fix: Map 'kontrak' to 'pengalaman' endpoint
+        let endpoint = tabId;
+        if (tabId === "kontrak") endpoint = "pengalaman";
+
+        url = `${apiBaseUrl}/companies/${companyId}/${endpoint}/${encodeURIComponent(
           itemId
         )}`;
         body = { [urlKey]: fileUrl };
