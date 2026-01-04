@@ -117,101 +117,332 @@
               @ai-scan="(data) => handleAiScan('akta', data)"
             />
 
-            <!-- KONTRAK/PENGALAMAN TAB -->
-            <CompanyDocumentTab
+            <!-- PENGALAMAN (KONTRAK) TAB - Custom Dual-View Implementation -->
+            <div
               v-if="activeTab === 'kontrak'"
-              label="Kontrak"
-              document-type="kontrak"
-              :items="subModules.kontrak"
-              id-key="id_kontrak"
-              title-key="nama_pekerjaan"
-              title-label="NAMA PEKERJAAN"
-              :fields="[
-                { label: 'BIDANG PEKERJAAN', key: 'bidang_pekerjaan' },
-                { label: 'SUB BIDANG', key: 'sub_bidang_pekerjaan' },
-                { label: 'LOKASI', key: 'lokasi' },
-                { label: 'NAMA PEMBERI TUGAS', key: 'nama_pemberi_tugas' },
-                { label: 'ALAMAT PEMBERI TUGAS', key: 'alamat_pemberi_tugas' },
-                { label: 'TELP PEMBERI TUGAS', key: 'telepon_pemberi_tugas' },
-                { label: 'FAX PEMBERI TUGAS', key: 'fax_pemberi_tugas' },
-                { label: 'NOMOR KONTRAK', key: 'nomor_kontrak' },
-                { label: 'TANGGAL KONTRAK', key: 'tanggal_kontrak' },
-                {
-                  label: 'BIDANG PEKERJAAN',
-                  key: 'bidang_pekerjaan',
-                  type: 'text',
-                },
-                {
-                  label: 'SUB BIDANG',
-                  key: 'sub_bidang_pekerjaan',
-                  type: 'text',
-                },
-                { label: 'LOKASI', key: 'lokasi', type: 'text' },
-                {
-                  label: 'NAMA PEMBERI TUGAS',
-                  key: 'nama_pemberi_tugas',
-                  type: 'text',
-                },
-                {
-                  label: 'ALAMAT PEMBERI TUGAS',
-                  key: 'alamat_pemberi_tugas',
-                  type: 'textarea',
-                },
-                {
-                  label: 'TELP PEMBERI TUGAS',
-                  key: 'telepon_pemberi_tugas',
-                  type: 'text',
-                },
-                {
-                  label: 'FAX PEMBERI TUGAS',
-                  key: 'fax_pemberi_tugas',
-                  type: 'text',
-                },
-                { label: 'NOMOR KONTRAK', key: 'nomor_kontrak', type: 'text' },
-                {
-                  label: 'TANGGAL KONTRAK',
-                  key: 'tanggal_kontrak',
-                  type: 'date',
-                  format: formatDate,
-                },
-                {
-                  label: 'NILAI KONTRAK',
-                  key: 'nilai_kontrak',
-                  type: 'number',
-                  format: (val) =>
-                    val ? `Rp ${Number(val).toLocaleString('id-ID')}` : '-',
-                },
-                {
-                  label: 'WAKTU PELAKSANAAN',
-                  key: 'waktu_pelaksanaan',
-                  type: 'text',
-                },
-                {
-                  label: 'TANGGAL SELESAI',
-                  key: 'tanggal_selesai_kontrak',
-                  type: 'date',
-                  format: formatDate,
-                },
-                {
-                  label: 'TGL BA SERAH TERIMA',
-                  key: 'tanggal_ba_serah_terima',
-                  type: 'date',
-                  format: formatDate,
-                },
-              ]"
-              icon="fas fa-briefcase"
-              color="purple"
-              :selected-item="selectedItems.kontrak"
-              :selected-url="getSelectedDocUrl('kontrak')"
-              :pending-file="pendingUploads.kontrak?.file"
-              :pending-preview="pendingUploads.kontrak?.preview"
-              :is-uploading="uploadingState.kontrak"
-              @select-item="(item) => selectItem('kontrak', item)"
-              @upload-select="(file) => handleFileSelect('kontrak', file)"
-              @upload-save="() => handleUploadSave('kontrak')"
-              @upload-cancel="() => handleUploadCancel('kontrak')"
-              @update-item="(data) => handleUpdateItem('kontrak', data)"
-            />
+              class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+            >
+              <!-- LEFT COLUMN: Data List or Details -->
+              <div class="lg:col-span-7 space-y-6">
+                <!-- VIEW MODE: LIST (Daftar Pengalaman) -->
+                <div v-if="pengalamanViewMode === 'list'" class="space-y-4">
+                  <!-- Header & Add Button -->
+                  <div class="flex justify-between items-center mb-2">
+                    <h3
+                      class="text-lg font-bold text-slate-700 dark:text-white"
+                    >
+                      Daftar Pengalaman
+                    </h3>
+                    <button
+                      @click="openAddPengalamanModal"
+                      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm hover:shadow"
+                    >
+                      <i class="fas fa-plus"></i>
+                      Tambah Daftar
+                    </button>
+                  </div>
+
+                  <!-- Empty State -->
+                  <div
+                    v-if="
+                      !subModules.kontrak || subModules.kontrak.length === 0
+                    "
+                    class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-8 text-center"
+                  >
+                    <div
+                      class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 mx-auto flex items-center justify-center mb-4"
+                    >
+                      <i class="fas fa-briefcase text-2xl"></i>
+                    </div>
+                    <h4 class="text-slate-600 dark:text-slate-300 font-medium">
+                      Belum ada data pengalaman
+                    </h4>
+                    <p class="text-slate-500 text-sm mt-1">
+                      Klik tombol tambah untuk menambahkan pengalaman baru.
+                    </p>
+                  </div>
+
+                  <!-- List Items -->
+                  <div v-else class="space-y-3">
+                    <div
+                      v-for="(item, index) in subModules.kontrak"
+                      :key="item.id_kontrak"
+                      class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 cursor-pointer relative group transition-all hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md"
+                      :class="{
+                        'ring-2 ring-blue-500 border-transparent':
+                          selectedPengalamanList?.id_kontrak ===
+                          item.id_kontrak,
+                      }"
+                      @click="selectPengalamanList(item)"
+                    >
+                      <!-- Action Buttons (Hover) -->
+                      <div
+                        class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      >
+                        <button
+                          @click.stop="openEditPengalaman(item)"
+                          class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/10 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-all border border-blue-100 dark:border-blue-900/30"
+                          title="Edit Data"
+                        >
+                          <i class="fas fa-pen text-xs"></i>
+                        </button>
+                        <button
+                          @click.stop="confirmDeletePengalaman(item)"
+                          class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/10 dark:text-red-400 dark:hover:bg-red-900/20 transition-all border border-red-100 dark:border-red-900/30"
+                          title="Hapus Data"
+                        >
+                          <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                      </div>
+
+                      <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                          <div
+                            class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0"
+                          >
+                            <i class="fas fa-briefcase"></i>
+                          </div>
+                          <div>
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                            >
+                              KEGIATAN
+                            </div>
+                            <h4
+                              class="font-bold text-slate-800 dark:text-white text-base leading-tight mt-0.5"
+                            >
+                              {{ item.nama_kegiatan || "-" }}
+                            </h4>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- 3 Key Fields Grid -->
+                      <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                        <div>
+                          <div
+                            class="text-[10px] font-bold text-slate-400 uppercase text-slate-500"
+                          >
+                            SUB KEGIATAN
+                          </div>
+                          <div
+                            class="font-medium text-slate-700 dark:text-slate-300 line-clamp-1"
+                          >
+                            {{ item.nama_sub_kegiatan || "-" }}
+                          </div>
+                        </div>
+                        <div class="col-span-2">
+                          <div
+                            class="text-[10px] font-bold text-slate-400 uppercase text-slate-500"
+                          >
+                            LOKASI
+                          </div>
+                          <div
+                            class="font-medium text-slate-700 dark:text-slate-300 line-clamp-1"
+                          >
+                            {{ item.lokasi || "-" }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Detail Button -->
+                      <div
+                        class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end"
+                      >
+                        <button
+                          @click.stop="viewPengalamanDetail(item)"
+                          class="text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline flex items-center gap-1 group/btn"
+                        >
+                          LIHAT DETAIL KONTRAK
+                          <i
+                            class="fas fa-arrow-right transform group-hover/btn:translate-x-1 transition-transform"
+                          ></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- VIEW MODE: DETAIL (Kontrak Pengalaman) -->
+                <div
+                  v-else-if="
+                    pengalamanViewMode === 'detail' && selectedPengalamanDetail
+                  "
+                  class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+                >
+                  <!-- Back Button (Spanning full width or just left col) -->
+                  <div class="lg:col-span-12 mb-2">
+                    <button
+                      @click="closePengalamanDetail"
+                      class="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center gap-2 text-sm font-medium transition-colors hover:-translate-x-1"
+                    >
+                      <i class="fas fa-arrow-left"></i>
+                      Kembali ke Daftar
+                    </button>
+                  </div>
+
+                  <!-- LEFT COLUMN: Data Info / Edit Button -->
+                  <div class="lg:col-span-7 space-y-6">
+                    <!-- Condition: PDF Exists -> Show Data Summary + Edit Button -->
+                    <div
+                      v-if="selectedPengalamanDetail.kontrak_url"
+                      class="space-y-4"
+                    >
+                      <div
+                        class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 transition-all hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md"
+                      >
+                        <div
+                          class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
+                        >
+                          <div class="flex items-center gap-3">
+                            <div
+                              class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center shrink-0"
+                            >
+                              <i class="fas fa-file-contract"></i>
+                            </div>
+                            <div>
+                              <div
+                                class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                              >
+                                NOMOR KONTRAK
+                              </div>
+                              <h4
+                                class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
+                              >
+                                {{
+                                  selectedPengalamanDetail.nomor_kontrak || "-"
+                                }}
+                              </h4>
+                            </div>
+                          </div>
+                          <button
+                            @click="
+                              openEditKontrakModal(selectedPengalamanDetail)
+                            "
+                            class="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2"
+                          >
+                            <i class="fas fa-edit"></i> Edit Data
+                          </button>
+                        </div>
+
+                        <div class="space-y-3">
+                          <!-- Mini Summary Grid -->
+                          <div class="grid grid-cols-2 gap-4">
+                            <div>
+                              <div
+                                class="text-[10px] font-bold text-slate-400 uppercase"
+                              >
+                                TANGGAL
+                              </div>
+                              <div
+                                class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                              >
+                                {{
+                                  formatDate(
+                                    selectedPengalamanDetail.tanggal_kontrak
+                                  )
+                                }}
+                              </div>
+                            </div>
+                            <div>
+                              <div
+                                class="text-[10px] font-bold text-slate-400 uppercase"
+                              >
+                                NILAI
+                              </div>
+                              <div
+                                class="font-bold text-green-600 dark:text-green-400 text-sm"
+                              >
+                                {{
+                                  selectedPengalamanDetail.nilai_kontrak
+                                    ? `Rp ${Number(
+                                        selectedPengalamanDetail.nilai_kontrak
+                                      ).toLocaleString("id-ID")}`
+                                    : "-"
+                                }}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Condition: No PDF -> Upload Prompt -->
+                    <div
+                      v-else
+                      class="bg-slate-50 dark:bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-8 text-center"
+                    >
+                      <div
+                        class="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-400 mx-auto flex items-center justify-center mb-4"
+                      >
+                        <i class="fas fa-file-upload text-2xl"></i>
+                      </div>
+                      <h4
+                        class="text-slate-600 dark:text-slate-300 font-bold mb-1"
+                      >
+                        Dokumen Belum Diunggah
+                      </h4>
+                      <p class="text-slate-500 text-sm max-w-xs mx-auto">
+                        Silakan unggah dokumen PDF Kontrak di panel sebelah
+                        kanan untuk melengkapi data.
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- RIGHT COLUMN: PDF Preview / Upload -->
+                  <div class="lg:col-span-5 flex flex-col h-full sticky top-4">
+                    <DocumentPdfPreview
+                      documentType="pengalaman-kontrak"
+                      label="Kontrak Pengalaman"
+                      :subtitle="
+                        selectedPengalamanDetail
+                          ? `Kontrak: ${
+                              selectedPengalamanDetail.nomor_kontrak || '-'
+                            }`
+                          : ''
+                      "
+                      icon="fas fa-file-contract"
+                      iconColor="blue"
+                      :existingPdfUrl="selectedPengalamanDetail?.kontrak_url"
+                      :pendingFile="pendingUploads.kontrak?.file"
+                      :pendingPreview="pendingUploads.kontrak?.preview"
+                      :isUploading="uploadingState.kontrak"
+                      @file-selected="
+                        (event) => handleFileSelect('kontrak', event)
+                      "
+                      @save="handleUploadSave('kontrak')"
+                      @cancel="handleUploadCancel('kontrak')"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT COLUMN: PDF Preview -->
+              <div
+                class="lg:col-span-5 flex flex-col h-full sticky top-4 space-y-4"
+              >
+                <!-- Preview for LIST MODE: Daftar Pengalaman -->
+                <div
+                  v-if="pengalamanViewMode === 'list'"
+                  class="h-full flex flex-col"
+                >
+                  <DocumentPdfPreview
+                    documentType="pengalaman-daftar"
+                    label="Daftar Pengalaman"
+                    :subtitle="
+                      selectedPengalamanList
+                        ? `Daftar: ${selectedPengalamanList.nama_pekerjaan}`
+                        : 'Pilih pengalaman dari daftar'
+                    "
+                    icon="fas fa-list-alt"
+                    iconColor="purple"
+                    :existingPdfUrl="selectedPengalamanList?.daftar_url"
+                    :disableDirectUpload="true"
+                    @upload-area-click="openAddPengalamanModal"
+                  />
+                </div>
+              </div>
+            </div>
 
             <!-- CEK TAB -->
             <CompanyDocumentTab
@@ -2092,6 +2323,328 @@
       </template>
     </CompanyTaxDocumentModal>
 
+    <!-- Add/Edit Daftar Pengalaman Modal -->
+    <BaseModal
+      :show="showAddPengalamanModal"
+      @close="showAddPengalamanModal = false"
+      maxWidth="5xl"
+      title="Tambah Daftar Pengalaman"
+    >
+      <template #default>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[380px]">
+          <!-- Left Column: Form Fields -->
+          <div class="lg:col-span-7 space-y-6">
+            <div class="flex items-center gap-3 mb-2">
+              <div
+                class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center"
+              >
+                <i class="fas fa-edit"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 dark:text-white">
+                  Informasi Pekerjaan
+                </h4>
+                <p class="text-xs text-slate-500">
+                  Lengkapi detail pekerjaan di bawah ini
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+              <FormInput
+                v-model="daftarPengalamanFormData.nama_kegiatan"
+                label="Kegiatan"
+                placeholder="Contoh: Penyelenggaraan Bangunan Gedung"
+                required
+              />
+              <FormInput
+                v-model="daftarPengalamanFormData.nama_sub_kegiatan"
+                label="Sub Kegiatan"
+                placeholder="Contoh: Pengubahsuaian Bangunan Gedung"
+              />
+              <FormInput
+                v-model="daftarPengalamanFormData.lokasi"
+                label="Lokasi"
+                placeholder="Contoh: Kabupaten Sambas"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Right Column: Upload & Scan -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="flex items-center justify-between mb-2">
+              <label
+                class="text-sm font-bold text-slate-700 dark:text-slate-300"
+              >
+                <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                Dokumen Pendukung <span class="text-red-500">*</span>
+              </label>
+
+              <!-- Action Buttons (Only visible if file selected) -->
+              <div v-if="daftarPdfFile" class="flex gap-2">
+                <button
+                  @click="handleAiScanLocalDaftar"
+                  :disabled="isAiScanning || !daftarPdfFile"
+                  class="px-3 py-1.5 text-xs font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <i v-if="isAiScanning" class="fas fa-spinner fa-spin"></i>
+                  <i v-else class="fas fa-magic"></i>
+                  <span>Scan AI</span>
+                </button>
+                <button
+                  @click="$refs.daftarPdfInput.click()"
+                  class="w-8 h-8 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all flex items-center justify-center shadow-sm"
+                  title="Perbarui PDF"
+                >
+                  <i class="fas fa-sync-alt text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="w-full h-[320px] rounded-xl border transition-all relative overflow-hidden flex flex-col bg-white dark:bg-slate-800"
+              :class="
+                daftarPdfFile
+                  ? 'border-slate-200 dark:border-slate-700'
+                  : 'border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:shadow-md cursor-pointer'
+              "
+              @click="!daftarPdfFile && $refs.daftarPdfInput.click()"
+            >
+              <input
+                ref="daftarPdfInput"
+                type="file"
+                accept="application/pdf"
+                @change="handleDaftarPdfSelect"
+                class="hidden"
+              />
+
+              <!-- Preview State -->
+              <div v-if="daftarPdfFile" class="flex-1 flex flex-col relative">
+                <iframe
+                  v-if="daftarPdfPreviewUrl"
+                  :src="daftarPdfPreviewUrl + '#toolbar=0'"
+                  class="w-full h-full flex-1 border-none"
+                ></iframe>
+
+                <div
+                  class="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between"
+                >
+                  <div
+                    class="truncate text-xs font-bold text-slate-700 dark:text-slate-300 flex-1 mr-2"
+                  >
+                    {{ daftarPdfFile.name }}
+                  </div>
+                  <div class="text-[10px] text-slate-500 font-mono">
+                    {{ formatFileSize(daftarPdfFile.size) }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Upload Placeholder State -->
+              <div
+                v-else
+                class="flex-1 flex flex-col items-center justify-center text-center p-6"
+              >
+                <div
+                  class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center mb-4"
+                >
+                  <i class="fas fa-cloud-upload-alt text-3xl"></i>
+                </div>
+                <h5
+                  class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1"
+                >
+                  Klik untuk Upload PDF
+                </h5>
+                <p class="text-xs text-slate-500 max-w-[200px]">
+                  Format PDF, Maksimal ukuran file 50MB.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button
+            @click="showAddPengalamanModal = false"
+            :disabled="isSubmittingDaftarPengalaman"
+            class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+          >
+            Batal
+          </button>
+          <button
+            @click="saveDaftarPengalaman"
+            :disabled="
+              isSubmittingDaftarPengalaman ||
+              !daftarPdfFile ||
+              !daftarPengalamanFormData.nama_kegiatan ||
+              !daftarPengalamanFormData.lokasi
+            "
+            class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <i
+              v-if="isSubmittingDaftarPengalaman"
+              class="fas fa-spinner fa-spin"
+            ></i>
+            <i v-else class="fas fa-save"></i>
+            {{ isSubmittingDaftarPengalaman ? "Menyimpan..." : "Simpan" }}
+          </button>
+        </div>
+      </template>
+    </BaseModal>
+
+    <!-- Edit Kontrak Pengalaman Modal -->
+    <BaseModal
+      :show="showEditKontrakModal"
+      @close="showEditKontrakModal = false"
+      maxWidth="5xl"
+      title="Edit Kontrak Pengalaman"
+    >
+      <template #default>
+        <div class="space-y-6">
+          <!-- AI Scan Button -->
+          <div class="flex justify-end mb-4">
+            <button
+              @click="handleAiScanKontrak"
+              :disabled="isAiScanning || !selectedPengalamanDetail?.kontrak_url"
+              class="px-4 py-2 text-sm font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <i v-if="isAiScanning" class="fas fa-spinner fa-spin"></i>
+              <i v-else class="fas fa-magic"></i>
+              {{ isAiScanning ? "Scanning..." : "Scan AI" }}
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Informasi Pekerjaan -->
+            <div class="md:col-span-2">
+              <h4
+                class="text-sm font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2"
+              >
+                <i class="fas fa-info-circle"></i> Informasi Pekerjaan
+              </h4>
+            </div>
+            <FormInput
+              v-model="kontrakFormData.nama_pekerjaan"
+              label="Nama Pekerjaan"
+              placeholder="Nama proyek"
+              required
+            />
+            <FormInput
+              v-model="kontrakFormData.bidang_pekerjaan"
+              label="Bidang Pekerjaan"
+              placeholder="Bidang"
+            />
+            <FormInput
+              v-model="kontrakFormData.sub_bidang_pekerjaan"
+              label="Sub Bidang"
+              placeholder="Sub bidang"
+            />
+            <FormInput
+              v-model="kontrakFormData.lokasi"
+              label="Lokasi"
+              placeholder="Lokasi proyek"
+            />
+
+            <!-- Pemberi Tugas -->
+            <div class="md:col-span-2 mt-4">
+              <h4
+                class="text-sm font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2"
+              >
+                <i class="fas fa-user-tie"></i> Pemberi Tugas
+              </h4>
+            </div>
+            <FormInput
+              v-model="kontrakFormData.nama_pemberi_tugas"
+              label="Nama Pemberi Tugas"
+              placeholder="Nama instansi/perusahaan"
+            />
+            <FormInput
+              v-model="kontrakFormData.telepon_pemberi_tugas"
+              label="Telepon"
+              placeholder="No. telepon"
+            />
+            <FormInput
+              v-model="kontrakFormData.alamat_pemberi_tugas"
+              label="Alamat"
+              type="textarea"
+              :rows="2"
+              placeholder="Alamat lengkap"
+            />
+            <FormInput
+              v-model="kontrakFormData.fax_pemberi_tugas"
+              label="Fax"
+              placeholder="No. fax"
+            />
+
+            <!-- Data Kontrak -->
+            <div class="md:col-span-2 mt-4">
+              <h4
+                class="text-sm font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2"
+              >
+                <i class="fas fa-file-signature"></i> Data Kontrak
+              </h4>
+            </div>
+            <FormInput
+              v-model="kontrakFormData.nomor_kontrak"
+              label="Nomor Kontrak"
+              placeholder="No. kontrak"
+              required
+            />
+            <FormInput
+              v-model="kontrakFormData.tanggal_kontrak"
+              label="Tanggal Kontrak"
+              type="date"
+            />
+            <FormInput
+              v-model="kontrakFormData.nilai_kontrak"
+              label="Nilai Kontrak"
+              type="number"
+              placeholder="Nilai dalam Rupiah"
+            />
+            <FormInput
+              v-model="kontrakFormData.waktu_pelaksanaan"
+              label="Waktu Pelaksanaan"
+              placeholder="Misal: 180 hari"
+            />
+            <FormInput
+              v-model="kontrakFormData.tanggal_selesai_kontrak"
+              label="Tanggal Selesai"
+              type="date"
+            />
+            <FormInput
+              v-model="kontrakFormData.tanggal_ba_serah_terima"
+              label="Tanggal BA Serah Terima"
+              type="date"
+            />
+          </div>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button
+            @click="showEditKontrakModal = false"
+            :disabled="isSubmittingKontrak"
+            class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+          >
+            Batal
+          </button>
+          <button
+            @click="saveKontrakData"
+            :disabled="isSubmittingKontrak || !kontrakFormData.nomor_kontrak"
+            class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <i v-if="isSubmittingKontrak" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ isSubmittingKontrak ? "Menyimpan..." : "Simpan" }}
+          </button>
+        </div>
+      </template>
+    </BaseModal>
+
     <ToastNotification />
   </div>
 </template>
@@ -2178,6 +2731,368 @@ const selectedItems = ref({
   cek: null,
   bpjs: null,
 });
+
+// Pengalaman View Logic
+const pengalamanViewMode = ref("list"); // 'list' | 'detail'
+const selectedPengalamanList = ref(null);
+const selectedPengalamanDetail = ref(null);
+const showAddPengalamanModal = ref(false);
+const showEditKontrakModal = ref(false);
+
+const openAddPengalamanModal = () => {
+  showAddPengalamanModal.value = true;
+};
+
+const selectPengalamanList = (item) => {
+  selectedPengalamanList.value = item;
+};
+
+const viewPengalamanDetail = (item) => {
+  selectedPengalamanDetail.value = item;
+  pengalamanViewMode.value = "detail";
+};
+
+const closePengalamanDetail = () => {
+  pengalamanViewMode.value = "list";
+  selectedPengalamanDetail.value = null;
+};
+
+const openEditKontrakModal = (item) => {
+  selectedPengalamanDetail.value = item;
+  // Populate form with existing data
+  kontrakFormData.value = {
+    nama_pekerjaan: item.nama_pekerjaan || "",
+    bidang_pekerjaan: item.bidang_pekerjaan || "",
+    sub_bidang_pekerjaan: item.sub_bidang_pekerjaan || "",
+    lokasi: item.lokasi || "",
+    nama_pemberi_tugas: item.nama_pemberi_tugas || "",
+    alamat_pemberi_tugas: item.alamat_pemberi_tugas || "",
+    telepon_pemberi_tugas: item.telepon_pemberi_tugas || "",
+    fax_pemberi_tugas: item.fax_pemberi_tugas || "",
+    nomor_kontrak: item.nomor_kontrak || "",
+    tanggal_kontrak: item.tanggal_kontrak || "",
+    nilai_kontrak: item.nilai_kontrak || "",
+    waktu_pelaksanaan: item.waktu_pelaksanaan || "",
+    tanggal_selesai_kontrak: item.tanggal_selesai_kontrak || "",
+    tanggal_ba_serah_terima: item.tanggal_ba_serah_terima || "",
+  };
+  showEditKontrakModal.value = true;
+};
+
+const openEditPengalaman = (item) => {
+  // TODO: Implement edit functionality later
+  toast.info("Fitur edit akan segera tersedia");
+};
+
+const confirmDeletePengalaman = (item) => {
+  if (confirm(`Yakin ingin membatalkan kontrak "${item.nama_kegiatan}"?`)) {
+    deletePengalaman(item.id_kontrak);
+  }
+};
+
+const deletePengalaman = async (id) => {
+  try {
+    const res = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/pengalaman/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!res.ok) throw new Error("Gagal menghapus data");
+
+    toast.success("Data berhasil dihapus");
+    await fetchCompanyDetail();
+  } catch (error) {
+    console.error("Delete error:", error);
+    toast.error(error.message);
+  }
+};
+
+// Form data for Daftar Pengalaman modal
+const daftarPengalamanFormData = ref({
+  nama_kegiatan: "",
+  nama_sub_kegiatan: "",
+  lokasi: "",
+});
+const daftarPdfFile = ref(null);
+const daftarPdfInput = ref(null);
+const daftarPdfPreviewUrl = ref(null);
+const isSubmittingDaftarPengalaman = ref(false);
+
+const handleDaftarPdfSelect = (event) => {
+  const file = event.target.files[0];
+  if (file && file.type === "application/pdf") {
+    daftarPdfFile.value = file;
+    // Create preview URL
+    if (daftarPdfPreviewUrl.value)
+      URL.revokeObjectURL(daftarPdfPreviewUrl.value);
+    daftarPdfPreviewUrl.value = URL.createObjectURL(file);
+  }
+};
+
+const clearDaftarPdf = () => {
+  if (daftarPdfPreviewUrl.value) {
+    URL.revokeObjectURL(daftarPdfPreviewUrl.value);
+    daftarPdfPreviewUrl.value = null;
+  }
+  daftarPdfFile.value = null;
+  if (daftarPdfInput.value) {
+    daftarPdfInput.value.value = "";
+  }
+};
+
+const handleAiScanLocalDaftar = async () => {
+  if (!daftarPdfFile.value) return;
+
+  isAiScanning.value = true;
+  // Show persistent scanning toast
+  const scanToastId = toast.info("Sedang memindai PDF dengan AI...", 0);
+
+  try {
+    const formData = new FormData();
+    formData.append("file", daftarPdfFile.value);
+    formData.append("documentType", "kontrak"); // Use 'kontrak' generic for experience/project docs
+
+    const res = await fetch(`${apiBaseUrl}/ai/scan-generic`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error("Gagal melakukan scan AI");
+
+    const result = await res.json();
+    if (result.success && result.data) {
+      const data = result.data;
+      // Map to form data
+      daftarPengalamanFormData.value = {
+        nama_kegiatan:
+          data.nama_kegiatan || daftarPengalamanFormData.value.nama_kegiatan,
+        nama_sub_kegiatan:
+          data.nama_sub_kegiatan ||
+          daftarPengalamanFormData.value.nama_sub_kegiatan,
+        lokasi: data.lokasi || daftarPengalamanFormData.value.lokasi,
+      };
+
+      toast.hideToast(scanToastId);
+      toast.success(
+        "Data berhasil diekstrak dari PDF. Silakan validasi sebelum menyimpan."
+      );
+    }
+  } catch (error) {
+    console.error("AI Scan Error:", error);
+    toast.hideToast(scanToastId);
+    toast.error("Gagal memindai dokumen: " + error.message);
+  } finally {
+    isAiScanning.value = false;
+  }
+};
+
+const saveDaftarPengalaman = async () => {
+  // Validation
+  if (!daftarPdfFile.value) {
+    toast.error("PDF Daftar Pengalaman wajib diupload!");
+    return;
+  }
+
+  if (
+    !daftarPengalamanFormData.value.nama_kegiatan ||
+    !daftarPengalamanFormData.value.lokasi
+  ) {
+    toast.error("Kegiatan dan Lokasi wajib diisi!");
+    return;
+  }
+
+  isSubmittingDaftarPengalaman.value = true;
+  try {
+    toast.info("Membuat data pengalaman...");
+
+    // Step 1: Create the experience record (POST)
+    const createRes = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/pengalaman`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...daftarPengalamanFormData.value,
+        }),
+      }
+    );
+
+    if (!createRes.ok) {
+      const errorText = await createRes.text();
+      console.error("Create pengalaman error:", errorText);
+      throw new Error("Gagal membuat data pengalaman");
+    }
+
+    const createResult = await createRes.json();
+    console.log(
+      "Create pengalaman response RAW:",
+      JSON.stringify(createResult, null, 2)
+    );
+    console.log("createResult.success:", createResult.success);
+    console.log("createResult.data:", createResult.data);
+    console.log(
+      "createResult.data?.id_kontrak:",
+      createResult.data?.id_kontrak
+    );
+
+    // Try to extract ID from various possible structures
+    const newItemId = createResult.data?.id_kontrak || createResult.id_kontrak;
+    console.log("Extracted newItemId:", newItemId);
+
+    if (!newItemId) {
+      console.error("❌ ID NOT FOUND. Response structure:", createResult);
+      console.error("   typeof createResult.data:", typeof createResult.data);
+      console.error("   Object.keys(createResult):", Object.keys(createResult));
+      throw new Error(
+        "Gagal mendapatkan ID pengalaman dari server. Silakan coba lagi."
+      );
+    }
+
+    // Step 2: Upload PDF to Google Drive
+    toast.info("Mengunggah PDF Daftar Pengalaman...");
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", daftarPdfFile.value);
+
+    const uploadRes = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/pengalaman/${newItemId}/daftar/upload`,
+      {
+        method: "POST",
+        body: uploadFormData,
+      }
+    );
+
+    if (!uploadRes.ok) {
+      throw new Error("Gagal mengunggah PDF");
+    }
+
+    toast.success("Daftar pengalaman berhasil ditambahkan!");
+    showAddPengalamanModal.value = false;
+
+    // Reset form
+    daftarPengalamanFormData.value = {
+      nama_kegiatan: "",
+      nama_sub_kegiatan: "",
+      lokasi: "",
+    };
+    clearDaftarPdf();
+
+    // Refresh data
+    await fetchCompanyDetail();
+  } catch (error) {
+    console.error("Error saving daftar pengalaman:", error);
+    toast.error(`Gagal menyimpan: ${error.message}`);
+  } finally {
+    isSubmittingDaftarPengalaman.value = false;
+  }
+};
+
+// Form data for Kontrak Pengalaman modal
+const kontrakFormData = ref({
+  nama_pekerjaan: "",
+  bidang_pekerjaan: "",
+  sub_bidang_pekerjaan: "",
+  lokasi: "",
+  nama_pemberi_tugas: "",
+  alamat_pemberi_tugas: "",
+  telepon_pemberi_tugas: "",
+  fax_pemberi_tugas: "",
+  nomor_kontrak: "",
+  tanggal_kontrak: "",
+  nilai_kontrak: "",
+  waktu_pelaksanaan: "",
+  tanggal_selesai_kontrak: "",
+  tanggal_ba_serah_terima: "",
+});
+const isSubmittingKontrak = ref(false);
+const isAiScanning = ref(false);
+
+const handleAiScanKontrak = async () => {
+  if (!selectedPengalamanDetail.value?.kontrak_url) {
+    toast.error("Tidak ada URL dokumen untuk di-scan");
+    return;
+  }
+
+  isAiScanning.value = true;
+  try {
+    toast.info("Sedang melakukan scan AI...", 0);
+
+    const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileUrl: selectedPengalamanDetail.value.kontrak_url,
+        documentType: "kontrak",
+        category: "company",
+      }),
+    });
+
+    const result = await res.json();
+
+    if (result.success && result.data) {
+      // Update form with scanned data
+      Object.keys(kontrakFormData.value).forEach((key) => {
+        if (result.data[key]) {
+          kontrakFormData.value[key] = result.data[key];
+        }
+      });
+      toast.success("AI Scan Berhasil!");
+    } else {
+      throw new Error(result.message || "Scan AI gagal");
+    }
+  } catch (error) {
+    console.error("AI Scan Error:", error);
+    toast.error("Gagal melakukan scan AI: " + error.message);
+  } finally {
+    isAiScanning.value = false;
+  }
+};
+
+const saveKontrakData = async () => {
+  if (!selectedPengalamanDetail.value?.id_kontrak) {
+    toast.error("ID kontrak tidak ditemukan");
+    return;
+  }
+
+  isSubmittingKontrak.value = true;
+  try {
+    const res = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/pengalaman/${selectedPengalamanDetail.value.id_kontrak}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(kontrakFormData.value),
+      }
+    );
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.message || "Gagal menyimpan data");
+    }
+
+    toast.success("Data kontrak berhasil diperbarui!");
+    showEditKontrakModal.value = false;
+
+    // Refresh data
+    await fetchPengalaman();
+
+    // Update selected detail
+    if (selectedPengalamanDetail.value) {
+      const updatedItem = subModules.value.kontrak.find(
+        (item) => item.id_kontrak === selectedPengalamanDetail.value.id_kontrak
+      );
+      if (updatedItem) {
+        selectedPengalamanDetail.value = updatedItem;
+      }
+    }
+  } catch (error) {
+    console.error("Error saving kontrak:", error);
+    toast.error(`Gagal menyimpan: ${error.message}`);
+  } finally {
+    isSubmittingKontrak.value = false;
+  }
+};
 
 // Pending uploads for CompanyDocumentTab
 const pendingUploads = ref({
@@ -2578,7 +3493,12 @@ const handleUploadSave = async (tabId) => {
     toast.info("Menyimpan data...", 3000);
 
     // Identify if updating existing or adding new
-    const selectedItem = selectedItems.value[tabId];
+    // For kontrak in detail view, use selectedPengalamanDetail instead
+    let selectedItem = selectedItems.value[tabId];
+    if (tabId === "kontrak" && pengalamanViewMode.value === "detail") {
+      selectedItem = selectedPengalamanDetail.value;
+    }
+
     let method = "POST";
     let url = `${apiBaseUrl}/companies/${companyId}/${tabId}`;
     let body = {};
@@ -2673,6 +3593,19 @@ const handleUploadSave = async (tabId) => {
         break;
       case "kontrak":
         await fetchPengalaman();
+        // If in detail view, update the selected detail
+        if (
+          pengalamanViewMode.value === "detail" &&
+          selectedPengalamanDetail.value
+        ) {
+          const updatedItem = subModules.value.kontrak.find(
+            (item) =>
+              item.id_kontrak === selectedPengalamanDetail.value.id_kontrak
+          );
+          if (updatedItem) {
+            selectedPengalamanDetail.value = updatedItem;
+          }
+        }
         break; // kontrak -> fetchPengalaman
       case "cek":
         await fetchCek();
@@ -3079,7 +4012,12 @@ const fetchPajak = async () => {
         subModules.value.kswp.length +
         subModules.value.spt.length +
         subModules.value.pkp.length;
-      tabs.find((t) => t.id === "pajak").count = taxCount;
+
+      // Fix: Accessed global 'tabs' ref with .value
+      if (tabs.value) {
+        const pajakTab = tabs.value.find((t) => t.id === "pajak");
+        if (pajakTab) pajakTab.count = taxCount;
+      }
 
       if (subModules.value.spt.length)
         selectedItems.value.spt = subModules.value.spt[0];
@@ -3105,8 +4043,11 @@ const fetchPengalaman = async () => {
     const res = await fetch(`${apiBaseUrl}/companies/${companyId}/pengalaman`);
     if (res.ok) {
       subModules.value.kontrak = await res.json();
-      if (subModules.value.kontrak.length)
+      if (subModules.value.kontrak.length) {
         selectedItems.value.kontrak = subModules.value.kontrak[0];
+        // Also initialize selectedPengalamanList for the list view
+        selectedPengalamanList.value = subModules.value.kontrak[0];
+      }
       console.log(
         "✅ Pengalaman Data loaded:",
         subModules.value.kontrak.length,

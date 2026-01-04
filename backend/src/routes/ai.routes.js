@@ -231,4 +231,32 @@ router.post("/scan-drive-file", async (req, res) => {
   }
 });
 
+/**
+ * POST /api/ai/scan-generic
+ * Scan any company document type supported by scanCompanyDocument
+ */
+router.post("/scan-generic", upload.single("file"), async (req, res) => {
+  try {
+    const { documentType } = req.body;
+
+    if (!req.file || !documentType) {
+      return res
+        .status(400)
+        .json({ success: false, message: "File and documentType required" });
+    }
+
+    console.log(`[AI GENERIC SCAN] Scanning ${documentType}...`);
+    // Reuse scanCompanyDocument which now supports 'kontrak_pengalaman'
+    const data = await geminiAIService.scanCompanyDocument(
+      req.file.buffer,
+      documentType
+    );
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error(`[AI GENERIC SCAN] Error:`, error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 export default router;

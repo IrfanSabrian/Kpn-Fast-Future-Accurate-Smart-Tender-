@@ -109,7 +109,7 @@
       <div
         v-else
         class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-        @click="$refs.uploadInput.click()"
+        @click="handleUploadAreaClick"
       >
         <input
           ref="uploadInput"
@@ -178,10 +178,19 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  disableDirectUpload: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Emits
-const emit = defineEmits(["file-selected", "save", "cancel"]);
+const emit = defineEmits([
+  "file-selected",
+  "save",
+  "cancel",
+  "upload-area-click",
+]);
 
 // Computed
 const isPending = computed(() => !!props.pendingFile);
@@ -216,6 +225,18 @@ const formatFileSize = (bytes) => {
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+};
+
+const handleUploadAreaClick = () => {
+  if (props.disableDirectUpload) {
+    emit("upload-area-click");
+  } else {
+    // Original behavior - open file picker
+    const uploadInput = document.querySelector(
+      `input[type="file"][accept="application/pdf"]`
+    );
+    if (uploadInput) uploadInput.click();
+  }
 };
 
 const handleFileSelect = (event) => {

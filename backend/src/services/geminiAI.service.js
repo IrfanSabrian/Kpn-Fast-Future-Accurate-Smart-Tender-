@@ -147,18 +147,33 @@ Return ONLY valid JSON with this exact structure:
 
     const prompt = `Analyze this Indonesian NPWP (Nomor Pokok Wajib Pajak / Tax ID) document carefully and extract ALL information in JSON format.
 
-IMPORTANT INSTRUCTIONS:
+IMPORTANT INSTRUCTIONS FOR NPWP VERSION DETECTION:
+There are 2 versions of NPWP documents:
+
+VERSION 1 (OLD NPWP - Yellow card with "DIREKTORAT JENDERAL PAJAK"):
+- Has separate NPWP number in format: XX.XXX.XXX.X-XXX.XXX (e.g., 75.352.841.3-701.000)
+- Has separate NIK in format: 16 digits (e.g., 6171012405910009)
+- Extract both numbers separately
+
+VERSION 2 (NEW NPWP - White/Blue card with "npwp" logo):
+- The NPWP number IS the NIK (same 16 digits in format XXXX XXXX XXXX XXXX)
+- For this version: use the same 16-digit number for BOTH "nomor_npwp_personel" AND "nik_npwp_personel"
+- Example: if you see "6171 0311 0703 0007", use "6171031107030007" for both fields
+
+EXTRACTION RULES:
 - Extract EXACTLY as written in the document
 - Use UPPERCASE for values that are in uppercase
-- For NPWP number, use format: XX.XXX.XXX.X-XXX.XXX
+- For old format NPWP, use dots and hyphens: XX.XXX.XXX.X-XXX.XXX
+- For new format NPWP, use 16 digits without spaces: XXXXXXXXXXXXXXXX
 - If a field is not visible, use empty string ""
+- KPP names may vary in format (e.g., "KPP Pratama Pontianak Barat" or "KANTOR PELAYANAN PAJAK PRATAMA PONTIANAK BARAT")
 
 Return ONLY valid JSON with this exact structure:
 {
-  "nomor_npwp_personel": "NPWP number (XX.XXX.XXX.X-XXX.XXX)",
-  "nik_npwp_personel": "16-digit NIK if shown",
+  "nomor_npwp_personel": "NPWP number (format depends on version)",
+  "nik_npwp_personel": "16-digit NIK (same as NPWP if version 2)",
   "nama_npwp_personel": "Full name as shown",
-  "kpp_npwp_personel": "KPP name (e.g., KPP Pratama Jakarta Pusat)",
+  "kpp_npwp_personel": "KPP name",
   "alamat_npwp_personel": "Full registered address"
 }`;
 
@@ -797,6 +812,84 @@ Return ONLY valid JSON with this exact structure:
   }
 
   /**
+   * Scan Kontrak Pengalaman document (Handles both SPK and Table formats)
+   */
+  async scanKontrakPengalaman(pdfBuffer) {
+    await this.initialize();
+
+    const prompt = `Analyze this document which could be:
+1. TABLE FORMAT: "Daftar Pengalaman" table with columns: No | Nama Pekerjaan | Bidang/Sub Bidang Pekerjaan | Lokasi
+2. SPK FORMAT: Surat Perintah Kerja with PROGRAM, KEGIATAN, SUB KEGIATAN, PEKERJAAN sections
+
+Extract the following in JSON format:
+
+FOR TABLE FORMAT (Daftar Pengalaman):
+- Look for table with columns: "Nama Pekerjaan", "Bidang/Sub Bidang Pekerjaan", "Lokasi"
+- Extract the FIRST row of data (ignore header)
+- MAPPING:
+  * "Nama Pekerjaan" column → Extract as "nama_kegiatan"
+  * "Bidang/Sub Bidang Pekerjaan" column → Extract as "nama_sub_kegiatan" (capture ALL text in this cell)
+  * "Lokasi" column → Extract as "lokasi"
+
+- Example Table Row:
+  | Nama Pekerjaan | Bidang/Sub Bidang Pekerjaan | Lokasi |
+  |----------------|------------------------------|---------|
+  | Penyelenggaraan Bangunan Gedung Di Wilayah Daerah Kabupaten/Kota Pemberiaan Izin Mendirikan Bangunan (IMB) dan Sertifikat Laik Fungsi Bangunan Gedung | Penyelenggaraan Bangunan Gedung Di Wilayah Daerah Kabupaten/Kota | Kabupaten Sambas |
+  
+  Should extract as:
+  nama_kegiatan: "Penyelenggaraan Bangunan Gedung Di Wilayah Daerah Kabupaten/Kota Pemberiaan Izin Mendirikan Bangunan (IMB) dan Sertifikat Laik Fungsi Bangunan Gedung"
+  nama_sub_kegiatan: "Penyelenggaraan Bangunan Gedung Di Wilayah Daerah Kabupaten/Kota"
+  lokasi: "Kabupaten Sambas"
+
+FOR SPK FORMAT:
+- Look for "PROGRAM:", "KEGIATAN:", "SUB KEGIATAN:", "PEKERJAAN:" labels
+- Extract each exactly as written
+
+IMPORTANT:
+- For dates use YYYY-MM-DD format
+- For Nilai Kontrak, extract number only (no Rp, dots, or commas)
+- If a cell has multiple lines, capture ALL text from that cell
+- If field not found, use empty string ""
+
+JSON Structure:
+{
+  "nama_program": "Program name (if exists in SPK)",
+  "nama_kegiatan": "From 'Nama Pekerjaan' column (TABLE) or 'KEGIATAN' section (SPK)",
+  "nama_sub_kegiatan": "From 'Bidang/Sub Bidang Pekerjaan' column (TABLE) or 'SUB KEGIATAN' section (SPK)",
+  "nama_pekerjaan": "Same as nama_kegiatan for TABLE, or 'PEKERJAAN' section for SPK",
+  "lokasi": "From 'Lokasi' column (TABLE) or location text (SPK)",
+  "nama_pemberi_tugas": "Client name (SPK only)",
+  "alamat_pemberi_tugas": "Client address (SPK only)",
+  "telepon_pemberi_tugas": "Client phone (SPK only)",
+  "fax_pemberi_tugas": "Client fax (SPK only)",
+  "kode_pos_pemberi_tugas": "Client postal code (SPK only)",
+  "sumber_dana": "Funding source e.g., DAU, APBD (SPK only)",
+  "nomor_kontrak": "Contract number (SPK only)",
+  "tanggal_kontrak": "Contract date YYYY-MM-DD (SPK only)",
+  "nilai_kontrak": "Contract value number only (SPK only)",
+  "waktu_pelaksanaan": "Duration e.g., 30 HARI KALENDER (SPK only)",
+  "tanggal_mulai": "Start date YYYY-MM-DD (SPK only)",
+  "tanggal_selesai_kontrak": "End date YYYY-MM-DD (SPK only)",
+  "tanggal_ba_serah_terima": "Handover date YYYY-MM-DD (SPK only)"
+}`;
+
+    try {
+      const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");
+      const result = await this.model.generateContent([prompt, imagePart]);
+      const response = await result.response;
+      const text = response.text();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error("AI failed to extract JSON");
+      }
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      throw new Error("Gagal memproses Kontrak: " + e.message);
+    }
+  }
+
+  /**
    * Scan Company Document (Akta, NIB, etc.)
    */
   async scanCompanyDocument(pdfBuffer, documentType) {
@@ -817,6 +910,10 @@ Return ONLY valid JSON with this exact structure:
           break;
         case "kta":
           result = await this.scanKTA(pdfBuffer);
+          break;
+        case "kontrak":
+        case "kontrak_pengalaman":
+          result = await this.scanKontrakPengalaman(pdfBuffer);
           break;
         default:
           throw new Error(`Unsupported company document type: ${documentType}`);

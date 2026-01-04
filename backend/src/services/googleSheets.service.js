@@ -2380,6 +2380,7 @@ class GoogleSheetsService {
       "waktu_pelaksanaan",
       "tanggal_selesai_kontrak",
       "tanggal_ba_serah_terima",
+      "daftar_url",
       "kontrak_url",
       "tanggal_input",
       "author",
@@ -2418,6 +2419,7 @@ class GoogleSheetsService {
       "waktu_pelaksanaan",
       "tanggal_selesai_kontrak",
       "tanggal_ba_serah_terima",
+      "daftar_url",
       "kontrak_url",
     ];
 
@@ -3986,6 +3988,171 @@ class GoogleSheetsService {
       console.error("Error getting document counts:", error);
       return {};
     }
+  }
+  // --- KONTRAK PENGALAMAN CRUD ---
+  async addKontrakPengalaman(data) {
+    if (!this.initialized) await this.initialize();
+
+    // Generate ID
+    const currentData = await this.readSheet(
+      process.env.GOOGLE_SHEET_ID_PERUSAHAAN,
+      "db_kontrak_pengalaman"
+    );
+    const newId = this.generateNewId(currentData, "id_kontrak", "KTR");
+
+    // Auto-generate tanggal_input
+    const now = new Date();
+    const tanggalInput = `${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
+      now.getHours()
+    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
+      now.getSeconds()
+    ).padStart(2, "0")}`;
+
+    // Get author from OAuth2
+    let author = "system";
+    try {
+      const userInfo = await oauth2GoogleService.getUserInfo();
+      author = userInfo.name || userInfo.username || "system";
+    } catch (e) {
+      console.warn("Could not get user info for author:", e.message);
+    }
+
+    // New schema with 24 columns
+    const newRow = [
+      newId, // id_kontrak
+      data.id_perusahaan, // id_perusahaan
+      data.nama_program || "", // nama_program (NEW)
+      data.nama_kegiatan || "", // nama_kegiatan (was bidang_pekerjaan)
+      data.nama_sub_kegiatan || "", // nama_sub_kegiatan (was sub_bidang_pekerjaan)
+      data.nama_pekerjaan || "", // nama_pekerjaan
+      data.lokasi || "", // lokasi
+      data.nama_pemberi_tugas || "", // nama_pemberi_tugas
+      data.alamat_pemberi_tugas || "", // alamat_pemberi_tugas
+      data.telepon_pemberi_tugas || "", // telepon_pemberi_tugas
+      data.fax_pemberi_tugas || "", // fax_pemberi_tugas
+      data.kode_pos_pemberi_tugas || "", // kode_pos_pemberi_tugas (NEW)
+      data.sumber_dana || "", // sumber_dana (NEW)
+      data.nomor_kontrak || "", // nomor_kontrak
+      data.tanggal_kontrak || "", // tanggal_kontrak
+      data.nilai_kontrak || "", // nilai_kontrak
+      data.waktu_pelaksanaan || "", // waktu_pelaksanaan
+      data.tanggal_mulai || "", // tanggal_mulai (NEW)
+      data.tanggal_selesai_kontrak || "", // tanggal_selesai_kontrak
+      data.tanggal_ba_serah_terima || "", // tanggal_ba_serah_terima
+      data.daftar_url || "", // daftar_url
+      data.kontrak_url || "", // kontrak_url
+      tanggalInput, // tanggal_input (AUTO)
+      author, // author (AUTO)
+    ];
+
+    await this.sheets.spreadsheets.values.append({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID_PERUSAHAAN,
+      range: "db_kontrak_pengalaman!A:X",
+      valueInputOption: "USER_ENTERED",
+      resource: { values: [newRow] },
+    });
+
+    return { id_kontrak: newId, ...data };
+  }
+
+  async updateKontrakPengalaman(idKontrak, data) {
+    if (!this.initialized) await this.initialize();
+
+    const rows = await this.readSheet(
+      process.env.GOOGLE_SHEET_ID_PERUSAHAAN,
+      "db_kontrak_pengalaman"
+    );
+    const rowIndex = rows.findIndex((row) => row.id_kontrak === idKontrak);
+
+    if (rowIndex === -1)
+      throw new Error(`Kontrak dengan ID ${idKontrak} tidak ditemukan`);
+
+    const existingRow = rows[rowIndex];
+
+    // Construct updated row with new 24-column schema (preserving existing values if new data is undefined)
+    const updatedRow = [
+      existingRow.id_kontrak, // 0: id_kontrak
+      existingRow.id_perusahaan, // 1: id_perusahaan
+      data.nama_program !== undefined
+        ? data.nama_program
+        : existingRow.nama_program, // 2: nama_program
+      data.nama_kegiatan !== undefined
+        ? data.nama_kegiatan
+        : existingRow.nama_kegiatan, // 3: nama_kegiatan
+      data.nama_sub_kegiatan !== undefined
+        ? data.nama_sub_kegiatan
+        : existingRow.nama_sub_kegiatan, // 4: nama_sub_kegiatan
+      data.nama_pekerjaan !== undefined
+        ? data.nama_pekerjaan
+        : existingRow.nama_pekerjaan, // 5: nama_pekerjaan
+      data.lokasi !== undefined ? data.lokasi : existingRow.lokasi, // 6: lokasi
+      data.nama_pemberi_tugas !== undefined
+        ? data.nama_pemberi_tugas
+        : existingRow.nama_pemberi_tugas, // 7
+      data.alamat_pemberi_tugas !== undefined
+        ? data.alamat_pemberi_tugas
+        : existingRow.alamat_pemberi_tugas, // 8
+      data.telepon_pemberi_tugas !== undefined
+        ? data.telepon_pemberi_tugas
+        : existingRow.telepon_pemberi_tugas, // 9
+      data.fax_pemberi_tugas !== undefined
+        ? data.fax_pemberi_tugas
+        : existingRow.fax_pemberi_tugas, // 10
+      data.kode_pos_pemberi_tugas !== undefined
+        ? data.kode_pos_pemberi_tugas
+        : existingRow.kode_pos_pemberi_tugas, // 11
+      data.sumber_dana !== undefined
+        ? data.sumber_dana
+        : existingRow.sumber_dana, // 12: sumber_dana
+      data.nomor_kontrak !== undefined
+        ? data.nomor_kontrak
+        : existingRow.nomor_kontrak, // 13
+      data.tanggal_kontrak !== undefined
+        ? data.tanggal_kontrak
+        : existingRow.tanggal_kontrak, // 14
+      data.nilai_kontrak !== undefined
+        ? data.nilai_kontrak
+        : existingRow.nilai_kontrak, // 15
+      data.waktu_pelaksanaan !== undefined
+        ? data.waktu_pelaksanaan
+        : existingRow.waktu_pelaksanaan, // 16
+      data.tanggal_mulai !== undefined
+        ? data.tanggal_mulai
+        : existingRow.tanggal_mulai, // 17: tanggal_mulai
+      data.tanggal_selesai_kontrak !== undefined
+        ? data.tanggal_selesai_kontrak
+        : existingRow.tanggal_selesai_kontrak, // 18
+      data.tanggal_ba_serah_terima !== undefined
+        ? data.tanggal_ba_serah_terima
+        : existingRow.tanggal_ba_serah_terima, // 19
+      data.daftar_url !== undefined ? data.daftar_url : existingRow.daftar_url, // 20
+      data.kontrak_url !== undefined
+        ? data.kontrak_url
+        : existingRow.kontrak_url, // 21
+      existingRow.tanggal_input, // 22: tanggal_input (preserve)
+      existingRow.author, // 23: author (preserve)
+    ];
+
+    await this.sheets.spreadsheets.values.update({
+      spreadsheetId: process.env.GOOGLE_SHEET_ID_PERUSAHAAN,
+      range: `db_kontrak_pengalaman!A${rowIndex + 2}`,
+      valueInputOption: "USER_ENTERED",
+      resource: { values: [updatedRow] },
+    });
+
+    return { ...data, id_kontrak: idKontrak };
+  }
+
+  async deleteKontrakPengalaman(idKontrak) {
+    if (!this.initialized) await this.initialize();
+    return await this._deleteRowsFromSheet(
+      process.env.SPREADSHEET_ID_DB_PERUSAHAAN,
+      "db_kontrak_pengalaman",
+      "id_kontrak",
+      idKontrak
+    );
   }
 }
 

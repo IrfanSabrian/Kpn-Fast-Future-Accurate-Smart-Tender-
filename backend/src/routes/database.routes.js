@@ -33,6 +33,7 @@ const upload = multer({
       "kta",
       "sertifikat",
       "kontrak",
+      "daftar",
       "cek",
       "bpjs",
       "file",
@@ -302,6 +303,15 @@ router.delete("/:id/pengalaman/:itemId", async (req, res) => {
   }
 });
 
+// Upload Pengalaman document (daftar or kontrak PDF) with custom naming
+// POST /:id/pengalaman/:itemId/:type/upload
+// type: "daftar" or "kontrak"
+router.post(
+  "/:id/pengalaman/:itemId/:type/upload",
+  upload.single("file"),
+  companyController.uploadPengalamanDocument
+);
+
 // --- SBU CRUD ---
 router.post("/:id/sbu", async (req, res) => {
   try {
@@ -561,6 +571,41 @@ router.delete("/projects/:idProject/personel/:nik", async (req, res) => {
     const result = await googleSheetsService.deletePersonelProject(
       req.params.idProject,
       req.params.nik
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- PENGALAMAN / KONTRAK CRUD ---
+// (Updated: Fixed response structure to include data)
+router.post("/:id/pengalaman", async (req, res) => {
+  try {
+    const data = { ...req.body, id_perusahaan: req.params.id };
+    const result = await googleSheetsService.addKontrakPengalaman(data);
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.put("/:id/pengalaman/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.updateKontrakPengalaman(
+      req.params.itemId,
+      req.body
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete("/:id/pengalaman/:itemId", async (req, res) => {
+  try {
+    const result = await googleSheetsService.deleteKontrakPengalaman(
+      req.params.itemId
     );
     res.json(result);
   } catch (error) {

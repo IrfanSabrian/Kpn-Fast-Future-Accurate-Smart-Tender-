@@ -266,6 +266,52 @@ export const getCompanyPengalaman = async (req, res) => {
   }
 };
 
+/**
+ * Create Pengalaman Record
+ * POST /api/companies/:id/pengalaman
+ */
+export const createPengalaman = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`📝 Creating Pengalaman for company ${id}`);
+
+    // Verify company exists
+    const company = await googleSheetsService.getCompanyById(id);
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found",
+      });
+    }
+
+    // Add company ID to data
+    const pengalamanData = {
+      id_perusahaan: id,
+      ...req.body,
+    };
+
+    // Create pengalaman record
+    const result = await googleSheetsService.addKontrakPengalaman(
+      pengalamanData
+    );
+
+    console.log(`✅ Pengalaman created with ID: ${result.id_kontrak}`);
+    console.log(`📦 Result object:`, JSON.stringify(result, null, 2));
+
+    const response = {
+      success: true,
+      message: "Pengalaman created successfully",
+      data: result,
+    };
+    console.log(`📤 Sending response:`, JSON.stringify(response, null, 2));
+
+    res.status(201).json(response);
+  } catch (error) {
+    console.error("Error in createPengalaman:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // GET /api/companies/:id/kbli
 export const getCompanyKbli = async (req, res) => {
   try {
@@ -785,6 +831,71 @@ async function uploadDocumentToDrive(
       folderPath: folderPath.join("/"),
       fileName,
       fullPath: `${folderPath.join("/")}/${fileName}`,
+    },
+  };
+}
+
+/**
+ * Upload Pengalaman document (Daftar or Kontrak) to Google Drive
+ * Uses custom naming: "{type} - {nama_pekerjaan} - {nama_perusahaan}.pdf"
+ * Both go to the same folder: x.8 Kontrak Pengalaman
+ *
+ * @param {Object} file - Multer file object
+ * @param {string} namaPerusahaan - Company name
+ * @param {string} folderNumber - Company folder number (e.g., "01")
+ * @param {string} type - "daftar" or "kontrak"
+ * @param {string} namaPekerjaan - Job/project name for the file
+ */
+async function uploadPengalamanDocumentToDrive(
+  file,
+  namaPerusahaan,
+  folderNumber,
+  type,
+  namaKegiatan
+) {
+  const basePerusahaanFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+
+  if (!basePerusahaanFolderId) {
+    throw new Error("GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env");
+  }
+
+  const companyIndex = parseInt(folderNumber, 10);
+
+  // Both daftar and kontrak go to the same folder
+  const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
+  const subfolderName = `${companyIndex}.8 Kontrak Pengalaman`;
+
+  // Custom file naming based on type
+  const typeLabel =
+    type === "daftar" ? "Daftar Pengalaman" : "Kontrak Pengalaman";
+
+  const sanitizedJob = (namaKegiatan || "")
+    .replace(/[\/\\?%*:|"<>]/g, "-")
+    .trim();
+
+  const fileName = `${typeLabel} - ${sanitizedJob} - ${namaPerusahaan}.pdf`;
+  const folderPath = [companyFolderName, subfolderName];
+
+  // Read file as buffer
+  const fs = await import("fs/promises");
+  const fileBuffer = await fs.readFile(file.path);
+
+  // Upload using oauth2GoogleService
+  const result = await oauth2GoogleService.uploadPdfFile(
+    fileBuffer,
+    fileName,
+    "application/pdf",
+    folderPath,
+    basePerusahaanFolderId
+  );
+
+  return {
+    ...result,
+    meta: {
+      folderPath: folderPath.join("/"),
+      fileName,
+      fullPath: `${folderPath.join("/")}/${fileName}`,
+      type,
     },
   };
 }
@@ -2295,6 +2406,118 @@ export const uploadCompanyDocument = async (req, res) => {
   } catch (error) {
     console.error("Error in uploadCompanyDocument:", error);
     // Cleanup
+    if (req.file) {
+      const fs = await import("fs/promises");
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Upload Pengalaman Document (Daftar or Kontrak PDF)
+ * POST /api/companies/:id/pengalaman/:itemId/:type/upload
+ *
+ * Uses custom naming: "{type} - {nama_pekerjaan} - {nama_perusahaan}.pdf"
+ * Both daftar and kontrak go to the same folder: x.8 Kontrak Pengalaman
+ */
+export const uploadPengalamanDocument = async (req, res) => {
+  try {
+    const { id, itemId, type } = req.params;
+    const file = req.file;
+
+    console.log(
+      `📤 Upload Pengalaman Document: ${type} for company ${id}, item ${itemId}`
+    );
+
+    // Validate type
+    if (!["daftar", "kontrak"].includes(type)) {
+      if (file) {
+        const fs = await import("fs/promises");
+        await fs.unlink(file.path).catch(() => {});
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'Type must be "daftar" or "kontrak"',
+      });
+    }
+
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    // Get company data
+    const company = await googleSheetsService.getCompanyById(id);
+    if (!company) {
+      const fs = await import("fs/promises");
+      await fs.unlink(file.path).catch(() => {});
+      return res.status(404).json({
+        success: false,
+        message: "Company not found",
+      });
+    }
+
+    // Get pengalaman data to get nama_kegiatan for file naming
+    const allPengalaman = await googleSheetsService.getAllPengalaman(id);
+    const pengalaman = allPengalaman.find((p) => p.id_kontrak === itemId);
+
+    if (!pengalaman) {
+      const fs = await import("fs/promises");
+      await fs.unlink(file.path).catch(() => {});
+      return res.status(404).json({
+        success: false,
+        message: "Pengalaman record not found",
+      });
+    }
+
+    const namaKegiatan = pengalaman.nama_kegiatan || "Unknown Project";
+    const namaPerusahaan = company.nama_perusahaan;
+
+    // Get company folder number
+    const allCompanies = await googleSheetsService.getAllCompanies();
+    const companyIndex = allCompanies.findIndex((c) => c.id_perusahaan === id);
+    const folderNumber = String(companyIndex + 1).padStart(2, "0");
+
+    // Upload using helper function
+    const result = await uploadPengalamanDocumentToDrive(
+      file,
+      namaPerusahaan,
+      folderNumber,
+      type,
+      namaKegiatan
+    );
+
+    // Update the appropriate URL field in database
+    const urlField = type === "daftar" ? "daftar_url" : "kontrak_url";
+    await googleSheetsService.updatePengalaman(itemId, {
+      [urlField]: result.webViewLink,
+    });
+
+    // Cleanup temp file
+    const fs = await import("fs/promises");
+    await fs.unlink(file.path).catch(() => {});
+
+    console.log(`✅ ${type} document uploaded successfully`);
+    console.log(`   File: ${result.meta.fileName}`);
+    console.log(`   URL: ${result.webViewLink}`);
+
+    res.json({
+      success: true,
+      message: `${
+        type === "daftar" ? "Daftar" : "Kontrak"
+      } Pengalaman uploaded successfully`,
+      data: {
+        fileUrl: result.webViewLink,
+        fileId: result.fileId,
+        fileName: result.meta.fileName,
+        type,
+      },
+    });
+  } catch (error) {
+    console.error("Error in uploadPengalamanDocument:", error);
     if (req.file) {
       const fs = await import("fs/promises");
       await fs.unlink(req.file.path).catch(() => {});
