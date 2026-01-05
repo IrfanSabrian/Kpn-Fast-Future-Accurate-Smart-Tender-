@@ -163,7 +163,10 @@
                   </div>
 
                   <!-- List Items -->
-                  <div v-else class="space-y-3">
+                  <div
+                    v-else
+                    class="max-h-[calc(100vh-250px)] overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700"
+                  >
                     <div
                       v-for="(item, index) in subModules.kontrak"
                       :key="item.id_kontrak"
@@ -2531,6 +2534,9 @@
             label="Nomor NPWP"
             placeholder="XX.XXX.XXX.X-XXX.XXX"
             :disabled="disabled"
+            :showValidation="showNpwpValidation"
+            :locked="npwpFieldLocks.nomor_npwp"
+            @update:locked="(val) => (npwpFieldLocks.nomor_npwp = val)"
             required
           />
           <FormInput
@@ -2538,6 +2544,9 @@
             label="Nama Wajib Pajak"
             placeholder="Nama perusahaan"
             :disabled="disabled"
+            :showValidation="showNpwpValidation"
+            :locked="npwpFieldLocks.nama_wp"
+            @update:locked="(val) => (npwpFieldLocks.nama_wp = val)"
             required
           />
           <FormInput
@@ -2547,19 +2556,50 @@
             :rows="3"
             placeholder="Alamat lengkap"
             :disabled="disabled"
+            :showValidation="showNpwpValidation"
+            :locked="npwpFieldLocks.alamat"
+            @update:locked="(val) => (npwpFieldLocks.alamat = val)"
           />
           <FormInput
             v-model="npwpUploadFormData.kpp"
             label="KPP"
             placeholder="KPP Pratama ..."
             :disabled="disabled"
+            :showValidation="showNpwpValidation"
+            :locked="npwpFieldLocks.kpp"
+            @update:locked="(val) => (npwpFieldLocks.kpp = val)"
           />
           <FormInput
             v-model="npwpUploadFormData.tanggal_terdaftar"
             label="Tanggal Terdaftar"
             type="date"
             :disabled="disabled"
+            :showValidation="showNpwpValidation"
+            :locked="npwpFieldLocks.tanggal_terdaftar"
+            @update:locked="(val) => (npwpFieldLocks.tanggal_terdaftar = val)"
           />
+        </div>
+      </template>
+
+      <!-- Footer Actions -->
+      <template #footer-actions>
+        <div class="flex items-center justify-end gap-2">
+          <span
+            v-if="showNpwpValidation && !isAllNpwpValidated"
+            class="text-[10px] text-orange-500 font-medium animate-pulse"
+          >
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            Ceklis semua data!
+          </span>
+
+          <button
+            v-if="showNpwpValidation && !isAllNpwpValidated"
+            @click="validateAllNpwpFields"
+            class="px-2 py-1.5 text-xs font-bold text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 rounded-lg transition-colors flex items-center gap-1 border border-green-200 dark:border-green-800"
+            title="Ceklis (Validasi) Semua Input"
+          >
+            <i class="fas fa-check-double"></i> Ceklis Semua
+          </button>
         </div>
       </template>
     </CompanyTaxDocumentModal>
@@ -3156,6 +3196,81 @@ const selectedPengalamanDetail = ref(null);
 const showAddPengalamanModal = ref(false);
 const showEditKontrakModal = ref(false);
 
+// NPWP Field Locks & Validation
+const npwpFieldLocks = ref({
+  nomor_npwp: false,
+  nama_wp: false,
+  alamat: false,
+  kpp: false,
+  tanggal_terdaftar: false,
+});
+const showNpwpValidation = ref(true); // Changed to true for immediate testing
+const npwpUploadFormData = ref({
+  nomor_npwp: "",
+  nama_wp: "",
+  alamat: "",
+  kpp: "",
+  tanggal_terdaftar: "",
+});
+const showNpwpUploadModal = ref(false);
+
+// SPT Field Locks & Validation
+const sptFieldLocks = ref({
+  tahun_pajak: false,
+  masa_pajak: false,
+  jenis_spt: false,
+  nominal: false,
+  tanggal_penyampaian: false,
+  nomor_tanda_terima: false,
+  nama_wp: false,
+  npwp: false,
+  status_spt: false,
+});
+const showSptValidation = ref(false);
+const sptUploadFormData = ref({
+  tahun_pajak: "",
+  masa_pajak: "",
+  jenis_spt: "",
+  nominal: "",
+  tanggal_penyampaian: "",
+  nomor_tanda_terima: "",
+  nama_wp: "",
+  npwp: "",
+  status_spt: "Normal",
+});
+
+// PKP Field Locks & Validation
+const pkpFieldLocks = ref({
+  nomor_pkp: false,
+  tanggal_pengukuhan: false,
+  nama_pkp: false,
+  alamat_pkp: false,
+});
+const showPkpValidation = ref(false);
+const pkpUploadFormData = ref({
+  nomor_pkp: "",
+  tanggal_pengukuhan: "",
+  nama_pkp: "",
+  alamat_pkp: "",
+});
+
+// KSWP Field Locks & Validation
+const kswpFieldLocks = ref({
+  nama_wp: false,
+  npwp: false,
+  tahun_kswp: false,
+  status_kswp: false,
+  tanggal_terbit: false,
+});
+const showKswpValidation = ref(false);
+const kswpUploadFormData = ref({
+  nama_wp: "",
+  npwp: "",
+  tahun_kswp: "",
+  status_kswp: "",
+  tanggal_terbit: "",
+});
+
 const openAddPengalamanModal = () => {
   showAddPengalamanModal.value = true;
 };
@@ -3225,6 +3340,161 @@ const deletePengalaman = async (id) => {
     toast.error(error.message);
   }
 };
+
+// NPWP AI Scan Handler
+const handleNpwpAIScan = (data) => {
+  console.log("[NPWP] AI Scan Complete:", data);
+
+  // Fill form dengan data dari AI
+  Object.keys(data).forEach((key) => {
+    if (npwpUploadFormData.value.hasOwnProperty(key)) {
+      npwpUploadFormData.value[key] = data[key] || "";
+    }
+  });
+
+  // Reset all locks to false (user must manually validate each field)
+  Object.keys(npwpFieldLocks.value).forEach((key) => {
+    npwpFieldLocks.value[key] = false;
+  });
+
+  // Enable validation buttons
+  showNpwpValidation.value = true;
+
+  const filledCount = Object.keys(data).filter(
+    (k) => data[k] && data[k] !== ""
+  ).length;
+  toast.success(
+    "Data NPWP Berhasil Dipindai",
+    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`
+  );
+};
+
+// SPT AI Scan Handler
+const handleSptAIScan = (data) => {
+  console.log("[SPT] AI Scan Complete:", data);
+
+  Object.keys(data).forEach((key) => {
+    if (sptUploadFormData.value.hasOwnProperty(key)) {
+      sptUploadFormData.value[key] = data[key] || "";
+    }
+  });
+
+  // Reset all locks to false
+  Object.keys(sptFieldLocks.value).forEach((key) => {
+    sptFieldLocks.value[key] = false;
+  });
+
+  showSptValidation.value = true;
+  const filledCount = Object.keys(data).filter(
+    (k) => data[k] && data[k] !== ""
+  ).length;
+  toast.success(
+    "Data SPT Berhasil Dipindai",
+    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`
+  );
+};
+
+// PKP AI Scan Handler
+const handlePkpAIScan = (data) => {
+  console.log("[PKP] AI Scan Complete:", data);
+
+  Object.keys(data).forEach((key) => {
+    if (pkpUploadFormData.value.hasOwnProperty(key)) {
+      pkpUploadFormData.value[key] = data[key] || "";
+    }
+  });
+
+  // Reset all locks to false
+  Object.keys(pkpFieldLocks.value).forEach((key) => {
+    pkpFieldLocks.value[key] = false;
+  });
+
+  showPkpValidation.value = true;
+  const filledCount = Object.keys(data).filter(
+    (k) => data[k] && data[k] !== ""
+  ).length;
+  toast.success(
+    "Data PKP Berhasil Dipindai",
+    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`
+  );
+};
+
+// KSWP AI Scan Handler
+const handleKswpAIScan = (data) => {
+  console.log("[KSWP] AI Scan Complete:", data);
+
+  Object.keys(data).forEach((key) => {
+    if (kswpUploadFormData.value.hasOwnProperty(key)) {
+      kswpUploadFormData.value[key] = data[key] || "";
+    }
+  });
+
+  // Reset all locks to false
+  Object.keys(kswpFieldLocks.value).forEach((key) => {
+    kswpFieldLocks.value[key] = false;
+  });
+
+  showKswpValidation.value = true;
+  const filledCount = Object.keys(data).filter(
+    (k) => data[k] && data[k] !== ""
+  ).length;
+  toast.success(
+    "Data KSWP Berhasil Dipindai",
+    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`
+  );
+};
+
+// NPWP Validation Helpers
+const validateAllNpwpFields = () => {
+  Object.keys(npwpFieldLocks.value).forEach((key) => {
+    npwpFieldLocks.value[key] = true;
+  });
+};
+
+const isAllNpwpValidated = computed(() => {
+  return Object.keys(npwpFieldLocks.value).every(
+    (key) => npwpFieldLocks.value[key]
+  );
+});
+
+// SPT Validation Helpers
+const validateAllSptFields = () => {
+  Object.keys(sptFieldLocks.value).forEach((key) => {
+    sptFieldLocks.value[key] = true;
+  });
+};
+
+const isAllSptValidated = computed(() => {
+  return Object.keys(sptFieldLocks.value).every(
+    (key) => sptFieldLocks.value[key]
+  );
+});
+
+// PKP Validation Helpers
+const validateAllPkpFields = () => {
+  Object.keys(pkpFieldLocks.value).forEach((key) => {
+    pkpFieldLocks.value[key] = true;
+  });
+};
+
+const isAllPkpValidated = computed(() => {
+  return Object.keys(pkpFieldLocks.value).every(
+    (key) => pkpFieldLocks.value[key]
+  );
+});
+
+// KSWP Validation Helpers
+const validateAllKswpFields = () => {
+  Object.keys(kswpFieldLocks.value).forEach((key) => {
+    kswpFieldLocks.value[key] = true;
+  });
+};
+
+const isAllKswpValidated = computed(() => {
+  return Object.keys(kswpFieldLocks.value).every(
+    (key) => kswpFieldLocks.value[key]
+  );
+});
 
 // Form data for Daftar Pengalaman modal
 const daftarPengalamanFormData = ref({
@@ -3606,50 +3876,6 @@ const uploadingState = ref({
   kontrak: false,
   cek: false,
   bpjs: false,
-});
-
-// Tax Document Upload Modals
-const showNpwpUploadModal = ref(false);
-const showSptUploadModal = ref(false);
-const showPkpUploadModal = ref(false);
-const showKswpUploadModal = ref(false);
-
-// Tax Document Form Data
-const npwpUploadFormData = ref({
-  nomor_npwp: "",
-  nama_wp: "",
-  alamat: "",
-  kpp: "",
-  tanggal_terdaftar: "",
-});
-
-const sptUploadFormData = ref({
-  tahun_pajak: "",
-  masa_pajak: "",
-  jenis_spt: "",
-  pembetulan_ke: "0",
-  nominal: 0,
-  tanggal_penyampaian: "",
-  nomor_tanda_terima: "",
-  nama_wp: "",
-  npwp: "",
-  nitku: "",
-  status_spt: "Normal",
-});
-
-const pkpUploadFormData = ref({
-  nomor_pkp: "",
-  tanggal_pengukuhan: "",
-  nama_pkp: "",
-  alamat: "",
-});
-
-const kswpUploadFormData = ref({
-  nama_wp: "",
-  npwp: "",
-  tahun_kswp: "",
-  status_kswp: "",
-  tanggal_terbit: "",
 });
 
 // Tabs Configuration (Re-ordered & Renamed) - Pejabat removed, moved to Overview
@@ -5337,26 +5563,8 @@ const clearContactData = async () => {
   }
 };
 
-// AI Scan Handlers for Tax Documents
-const handleNpwpAIScan = (data) => {
-  console.log("[AI SCAN] NPWP Perusahaan data:", data);
-  Object.assign(npwpUploadFormData.value, data);
-};
-
-const handleSptAIScan = (data) => {
-  console.log("[AI SCAN] SPT data:", data);
-  Object.assign(sptUploadFormData.value, data);
-};
-
-const handlePkpAIScan = (data) => {
-  console.log("[AI SCAN] PKP data:", data);
-  Object.assign(pkpUploadFormData.value, data);
-};
-
-const handleKswpAIScan = (data) => {
-  console.log("[AI SCAN] KSWP data:", data);
-  Object.assign(kswpUploadFormData.value, data);
-};
+// AI Scan Handlers are defined earlier in the file (around line 3251-3407)
+// with full validation, field locking, and toast notifications
 
 // Save Tax Document Handlers
 const saveNpwpDocument = async (file) => {
@@ -5418,7 +5626,7 @@ const saveSptDocument = async (file) => {
 
   try {
     const formData = new FormData();
-    formData.append("spt", file);
+    formData.append("spt_perusahaan", file);
     formData.append("tahun_pajak", sptUploadFormData.value.tahun_pajak || "");
     formData.append("masa_pajak", sptUploadFormData.value.masa_pajak || "");
     formData.append("jenis_spt", sptUploadFormData.value.jenis_spt || "");
@@ -5490,7 +5698,7 @@ const savePkpDocument = async (file) => {
 
   try {
     const formData = new FormData();
-    formData.append("pkp", file);
+    formData.append("sppkp_perusahaan", file);
     formData.append("nomor_pkp", pkpUploadFormData.value.nomor_pkp || "");
     formData.append(
       "tanggal_pengukuhan",
@@ -5539,7 +5747,7 @@ const saveKswpDocument = async (file) => {
 
   try {
     const formData = new FormData();
-    formData.append("kswp", file);
+    formData.append("skt_perusahaan", file);
     formData.append("nama_wp_kswp", kswpUploadFormData.value.nama_wp || "");
     formData.append("npwp_kswp", kswpUploadFormData.value.npwp || "");
     formData.append("tahun_kswp", kswpUploadFormData.value.tahun_kswp || "");

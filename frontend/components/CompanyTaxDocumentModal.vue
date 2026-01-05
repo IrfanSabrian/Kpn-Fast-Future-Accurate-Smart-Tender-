@@ -44,130 +44,91 @@
               :disabled="!hasFileUpload && !isEditMode"
               :hasFileUpload="hasFileUpload"
             ></slot>
+
+            <!-- Footer Actions Slot (for validation buttons) -->
+            <div
+              class="sticky bottom-0 z-10 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 py-3 mt-2"
+            >
+              <slot name="footer-actions"></slot>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Right Column: Upload/Preview (1 col) -->
       <div
-        class="lg:col-span-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[400px] relative group"
+        class="lg:col-span-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[400px]"
       >
-        <!-- Header with Actions -->
+        <!-- Header -->
         <div
-          class="bg-white dark:bg-slate-800 px-3 py-2 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center shadow-sm z-10"
+          class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0"
         >
-          <div class="flex items-center gap-2">
-            <i
-              class="fas"
-              :class="
-                previewUrl ? 'fa-eye' : 'fa-cloud-upload-alt text-blue-500'
-              "
-            ></i>
-            <span
-              class="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider"
+          <div>
+            <h3
+              class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-xs"
             >
-              {{ previewUrl ? "Preview" : "Upload" }}
-            </span>
+              <i class="fas fa-file-pdf text-red-500"></i>
+              Dokumen {{ documentLabel }}
+            </h3>
           </div>
-
-          <!-- Actions: Only visible if previewUrl exists -->
-          <div v-if="previewUrl" class="flex items-center gap-1">
-            <input
-              ref="fileInput"
-              type="file"
-              accept=".pdf,application/pdf"
-              @change="handleFileSelect"
-              class="hidden"
-            />
-
-            <!-- AI Scan Button -->
+          <div class="flex gap-2">
+            <!-- AI Scan Button (Visible if file exists) -->
             <button
+              v-if="selectedFile"
               @click="scanWithAI"
               :disabled="isScanning"
-              type="button"
-              class="text-[10px] font-bold px-2 py-1 rounded transition-all border disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              :class="
-                isScanning
-                  ? 'bg-purple-100 text-purple-600 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-900/30'
-                  : 'bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-600 border-purple-200 dark:from-purple-900/10 dark:to-pink-900/10 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 dark:text-purple-400 dark:border-purple-900/30'
-              "
+              class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors flex items-center gap-1"
             >
-              <i v-if="isScanning" class="fas fa-spinner fa-spin"></i>
-              <i v-else class="fas fa-brain"></i>
-              <span class="hidden sm:inline">{{
-                isScanning ? "Scanning..." : "AI Scan"
-              }}</span>
+              <i
+                :class="isScanning ? 'fas fa-spinner fa-spin' : 'fas fa-magic'"
+              ></i>
+              <span>AI Scan</span>
             </button>
 
-            <!-- Replace PDF Button -->
+            <!-- Change/Upload Button -->
             <button
               @click="$refs.fileInput.click()"
-              type="button"
-              class="text-[10px] bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 px-2 py-1 rounded transition-colors border border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:text-blue-400"
+              class="px-2 py-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] text-slate-600 hover:text-blue-600 text-center"
+              title="Ganti File"
             >
               <i class="fas fa-sync-alt"></i>
             </button>
-
-            <!-- Delete Button -->
-            <button
-              @click="removeFile"
-              type="button"
-              class="text-[10px] bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded transition-colors border border-red-100 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400"
-            >
-              <i class="fas fa-trash"></i>
-            </button>
           </div>
         </div>
 
-        <!-- Content Area -->
-        <div class="flex-1 relative bg-slate-200/50 dark:bg-slate-900/50 p-2">
-          <!-- State 1: Preview -->
+        <!-- Content -->
+        <div class="flex-1 bg-slate-100 dark:bg-slate-900 relative">
           <iframe
             v-if="previewUrl"
             :src="previewUrl"
-            class="w-full h-full rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm bg-white"
+            class="w-full h-full absolute inset-0 border-none"
           ></iframe>
 
-          <!-- State 2: Upload Placeholder/Button -->
+          <!-- Upload Placeholder -->
           <div
             v-else
             @click="$refs.fileInput.click()"
-            class="w-full h-full rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 bg-white dark:bg-slate-800 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer group/upload"
+            class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
-            <input
-              v-if="!previewUrl"
-              ref="fileInput"
-              type="file"
-              accept=".pdf,application/pdf"
-              @change="handleFileSelect"
-              class="hidden"
-            />
-
-            <!-- Decoration -->
             <div
-              class="w-16 h-16 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center mb-4 group-hover/upload:scale-110 group-hover/upload:rotate-3 transition-transform duration-300 shadow-sm"
+              class="w-16 h-16 rounded-full flex items-center justify-center mb-3 bg-red-50 dark:bg-red-900/20 text-red-500"
             >
-              <i class="fas fa-cloud-upload-alt text-2xl"></i>
+              <i class="fas fa-file-pdf text-2xl"></i>
             </div>
-
-            <h3
-              class="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1 group-hover/upload:text-blue-600 dark:group-hover/upload:text-blue-400"
-            >
-              Upload PDF
-            </h3>
-            <p
-              class="text-slate-400 max-w-[150px] text-center text-[10px] mb-3 leading-tight"
-            >
-              Klik untuk pilih dokumen
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-300">
+              Upload {{ documentLabel }} PDF
             </p>
-
-            <div
-              class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-semibold text-slate-500 dark:text-slate-400"
-            >
-              Max 10MB
-            </div>
+            <p class="text-[10px] text-slate-500">Klik untuk pilih file</p>
           </div>
         </div>
+
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".pdf,application/pdf"
+          @change="handleFileSelect"
+          class="hidden"
+        />
       </div>
     </div>
 
@@ -199,15 +160,7 @@
 <script setup>
 import BaseModal from "~/components/BaseModal.vue";
 
-const {
-  toast, // Kept as alias if needed, but preferably use specific methods
-  success,
-  error,
-  removeToast,
-  loadingScan,
-  successScan,
-  errorScan,
-} = useToast();
+const { error: showError, success: showSuccess, info: showInfo } = useToast();
 
 const props = defineProps({
   show: Boolean,
@@ -283,12 +236,17 @@ const runtimeConfig = useRuntimeConfig();
 // AI Scan function
 const scanWithAI = async () => {
   if (!selectedFile.value) {
-    error("Tidak ada file yang dipilih");
+    showError("Tidak ada file yang dipilih");
     return;
   }
 
   isScanning.value = true;
-  const loadingToastId = loadingScan();
+
+  // Show info toast that scanning has started
+  showInfo(
+    `Memindai dokumen ${props.documentType.toUpperCase()}...`,
+    "Mohon tunggu sebentar"
+  );
 
   try {
     // Create FormData to send PDF to backend
@@ -336,7 +294,7 @@ const scanWithAI = async () => {
           "Waktu pemindaian habis. File mungkin terlalu besar atau kompleks. Silakan coba lagi atau isi manual.";
       }
 
-      toast.error(userMessage);
+      showError("Gagal Memindai Dokumen", userMessage);
       throw new Error(userMessage);
     }
 
@@ -344,7 +302,7 @@ const scanWithAI = async () => {
 
     // Check if result has valid data
     if (!result.success || !result.data) {
-      toast.error(
+      showError(
         "Data tidak lengkap. AI tidak dapat menemukan informasi yang cukup di dokumen. Silakan isi form secara manual."
       );
       throw new Error("Invalid or incomplete data from AI");
@@ -352,18 +310,32 @@ const scanWithAI = async () => {
 
     console.log("[AI SCAN] ✅ Success:", result.data);
 
-    // Show success message
-    successScan(
-      `Data ${props.documentType.toUpperCase()} berhasil di-scan! Silakan periksa dan edit jika perlu.`
+    // Count extracted fields
+    const extractedFields = Object.keys(result.data).filter(
+      (key) => result.data[key] && result.data[key] !== ""
+    ).length;
+
+    // Show success toast with info about extracted fields
+    showSuccess(
+      `Data ${props.documentType.toUpperCase()} berhasil dipindai!`,
+      `${extractedFields} field terisi otomatis. Silakan periksa dan edit jika diperlukan.`
     );
 
     // Emit scanned data to parent component
     emit("aiScanComplete", result.data);
   } catch (err) {
     console.error("[AI SCAN] ❌ Error:", err);
+
+    // Only show error toast if not already shown above
+    if (!err.message.includes("PDF tidak dapat dibaca")) {
+      showError(
+        "Gagal Memindai Dokumen",
+        err.message ||
+          "Terjadi kesalahan saat memindai dokumen. Silakan coba lagi atau isi form secara manual."
+      );
+    }
   } finally {
     isScanning.value = false;
-    if (toast.removeToast) toast.removeToast(loadingToastId);
   }
 };
 
@@ -412,13 +384,13 @@ const handleFileSelect = (event) => {
 
   // Validate file type
   if (file.type !== "application/pdf") {
-    toast.error("File harus berformat PDF");
+    showError("File harus berformat PDF");
     return;
   }
 
-  // Validate file size (10MB)
-  if (file.size > 10 * 1024 * 1024) {
-    toast.error("Ukuran file maksimal 10MB");
+  // Validate file size (80MB)
+  if (file.size > 80 * 1024 * 1024) {
+    showError("Ukuran file maksimal 80MB");
     return;
   }
 

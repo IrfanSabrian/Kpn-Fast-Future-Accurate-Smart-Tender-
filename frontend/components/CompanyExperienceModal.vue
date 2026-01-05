@@ -3,17 +3,17 @@
     <template #header>
       <div class="flex items-center gap-4">
         <div
-          class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
+          class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
         >
-          <i class="fas fa-briefcase text-lg"></i>
+          <i class="fas fa-briefcase text-xl"></i>
         </div>
         <div>
           <h3
-            class="text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+            class="text-xl font-bold text-slate-900 dark:text-white tracking-tight"
           >
             {{ isEditMode ? "Edit" : "Tambah" }} Pengalaman
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">
             Formulir Data Kontrak & Dokumen Pendukung
           </p>
         </div>
@@ -300,7 +300,7 @@
         >
           <i v-if="saving" class="fas fa-spinner fa-spin"></i>
           <i v-else class="fas fa-save"></i>
-          {{ saving ? "Menyimpan..." : "Simpan Data" }}
+          {{ saving ? "Menyimpan..." : "Simpan Dokumen" }}
         </button>
       </div>
     </template>
@@ -407,8 +407,8 @@ const handleFileSelect = (event) => {
     return;
   }
 
-  if (file.size > 10 * 1024 * 1024) {
-    toast.error("Ukuran file maksimal 10MB");
+  if (file.size > 80 * 1024 * 1024) {
+    toast.error("Ukuran file maksimal 80MB");
     return;
   }
 

@@ -191,7 +191,7 @@
             <div
               class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-semibold text-slate-500 dark:text-slate-400"
             >
-              Max 10MB
+              Max 80MB
             </div>
           </div>
         </div>
@@ -436,9 +436,9 @@ const handleFileSelect = (event) => {
     return;
   }
 
-  // Validate file size (10MB)
-  if (file.size > 10 * 1024 * 1024) {
-    alert("Ukuran file maksimal 10MB");
+  // Validate file size (80MB)
+  if (file.size > 80 * 1024 * 1024) {
+    alert("Ukuran file maksimal 80MB");
     return;
   }
 

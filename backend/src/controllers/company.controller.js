@@ -637,7 +637,7 @@ function getExtensionFromMimetype(mimetype) {
 
 /**
  * Helper function to upload logo to Google Drive
- * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/1.0 Logo & Kop/Logo [nama_perusahaan]
+ * Path: {GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID}/[folderNumber. nama_perusahaan]/[index].0 Logo & Kop/Logo [nama_perusahaan]
  * @param {Object} file - Multer file object
  * @param {string} namaPerusahaan - Company name
  * @param {string} folderNumber - Folder number (e.g., '01', '02')
@@ -649,10 +649,11 @@ async function uploadLogoToDrive(file, namaPerusahaan, folderNumber) {
     throw new Error("GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env");
   }
 
-  // Folder structure: [folderNumber. nama_perusahaan]/1.0 Logo & Kop/Logo [nama_perusahaan].ext
+  // Folder structure: [folderNumber. nama_perusahaan]/[companyIndex].0 Logo & Kop/Logo [nama_perusahaan].ext
   // Example: 01. CV. VERUS CONSULTANT ENGINEERING/1.0 Logo & Kop/Logo CV. VERUS....png
+  const companyIndex = parseInt(folderNumber, 10); // "01" -> 1
   const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
-  const folderPath = [companyFolderName, "1.0 Logo & Kop"];
+  const folderPath = [companyFolderName, `${companyIndex}.0 Logo & Kop`];
 
   // Get file extension from original filename or mimetype
   const path = await import("path");
@@ -786,6 +787,10 @@ async function uploadDocumentToDrive(
     kta: { index: "5", name: "Kartu Tanda Anggota" },
     sertifikat: { index: "6", name: "Sertifikat Standar" },
     // Index 7: Data Perpajakan (Combined folder for NPWP, SKT, SPPKP, SPT)
+    npwp: { index: "7", name: "NPWP" },
+    spt: { index: "7", name: "SPT Tahunan" },
+    pkp: { index: "7", name: "PKP" },
+    kswp: { index: "7", name: "KSWP" },
     pajak: { index: "7", name: "Data Perpajakan" },
     kontrak: { index: "8", name: "Kontrak Pengalaman" },
     cek: { index: "9", name: "Surat Referensi Bank" },
@@ -922,6 +927,10 @@ export const updateCompany = async (req, res) => {
     const kontrakFile = req.files?.kontrak?.[0];
     const cekFile = req.files?.cek?.[0];
     const bpjsFile = req.files?.bpjs?.[0];
+    const npwpFile = req.files?.npwp_perusahaan?.[0];
+    const sptFile = req.files?.spt_perusahaan?.[0];
+    const pkpFile = req.files?.sppkp_perusahaan?.[0];
+    const kswpFile = req.files?.skt_perusahaan?.[0];
 
     console.log("📄 Update payload:", {
       nama_perusahaan,
@@ -945,6 +954,10 @@ export const updateCompany = async (req, res) => {
       kontrak: kontrakFile ? "Yes" : "No",
       cek: cekFile ? "Yes" : "No",
       bpjs: bpjsFile ? "Yes" : "No",
+      npwp: npwpFile ? "Yes" : "No",
+      spt: sptFile ? "Yes" : "No",
+      pkp: pkpFile ? "Yes" : "No",
+      kswp: kswpFile ? "Yes" : "No",
     });
 
     // 1. Get all companies to find folder number (needed for Drive upload)
@@ -980,6 +993,10 @@ export const updateCompany = async (req, res) => {
     let kontrakUrl = existingCompany.kontrak_url;
     let cekUrl = existingCompany.cek_url;
     let bpjsUrl = existingCompany.url_bpjs;
+    let npwpUrl = existingCompany.npwp_perusahaan_url;
+    let sptUrl = existingCompany.spt_url;
+    let pkpUrl = existingCompany.url_pkp;
+    let kswpUrl = existingCompany.kswp_url;
 
     // 2. Upload New Logo if provided
     if (logoFile) {
@@ -1075,6 +1092,10 @@ export const updateCompany = async (req, res) => {
       },
       { file: cekFile, type: "cek", urlVar: "cekUrl", label: "Cek" },
       { file: bpjsFile, type: "bpjs", urlVar: "bpjsUrl", label: "BPJS" },
+      { file: npwpFile, type: "npwp", urlVar: "npwpUrl", label: "NPWP" },
+      { file: sptFile, type: "spt", urlVar: "sptUrl", label: "SPT" },
+      { file: pkpFile, type: "pkp", urlVar: "pkpUrl", label: "PKP" },
+      { file: kswpFile, type: "kswp", urlVar: "kswpUrl", label: "KSWP" },
     ];
 
     for (const doc of documentTypes) {
@@ -1109,6 +1130,10 @@ export const updateCompany = async (req, res) => {
           else if (doc.urlVar === "kontrakUrl") kontrakUrl = pdfUrl;
           else if (doc.urlVar === "cekUrl") cekUrl = pdfUrl;
           else if (doc.urlVar === "bpjsUrl") bpjsUrl = pdfUrl;
+          else if (doc.urlVar === "npwpUrl") npwpUrl = pdfUrl;
+          else if (doc.urlVar === "sptUrl") sptUrl = pdfUrl;
+          else if (doc.urlVar === "pkpUrl") pkpUrl = pdfUrl;
+          else if (doc.urlVar === "kswpUrl") kswpUrl = pdfUrl;
 
           console.log(`✅ Google Drive ${doc.label} updated:`, pdfUrl);
 
@@ -1857,6 +1882,292 @@ export const updateCompany = async (req, res) => {
                 console.error("❌ ERROR in BPJS spreadsheet operation:");
                 console.error("   Message:", bpjsError.message);
                 console.error("   Stack:", bpjsError.stack);
+              }
+            }
+
+            // NPWP Document Upload
+            else if (doc.type === "npwp") {
+              try {
+                console.log("🔵 Processing NPWP document upload...");
+                const npwpData = await googleSheetsService.getSheetData(
+                  "db_npwp_perusahaan"
+                );
+                const existingNpwp = npwpData.filter(
+                  (item) => item.id_perusahaan === id
+                );
+
+                const npwpHeaders = [
+                  "id_npwp_perusahaan",
+                  "id_perusahaan",
+                  "nomor_npwp",
+                  "nama_wajib_pajak",
+                  "alamat_npwp",
+                  "kpp",
+                  "tanggal_terdaftar",
+                  "npwp_perusahaan_url",
+                  "tanggal_input",
+                  "author",
+                ];
+
+                if (existingNpwp.length === 0) {
+                  const newNpwpId = `NPWP${String(npwpData.length + 1).padStart(
+                    3,
+                    "0"
+                  )}`;
+                  await googleSheetsService.addSheetData(
+                    "db_npwp_perusahaan",
+                    npwpHeaders,
+                    {
+                      id_npwp_perusahaan: newNpwpId,
+                      id_perusahaan: id,
+                      nomor_npwp: req.body.nomor_npwp || "",
+                      nama_wajib_pajak: req.body.nama_wp || "",
+                      alamat_npwp: req.body.alamat_npwp || "",
+                      kpp: req.body.kpp || "",
+                      tanggal_terdaftar: req.body.tanggal_terdaftar || "",
+                      npwp_perusahaan_url: pdfUrl,
+                      tanggal_input: tanggalInput,
+                      author: author,
+                    }
+                  );
+                  console.log("✅ NPWP record created successfully!");
+                } else {
+                  const firstNpwp = existingNpwp[0];
+                  await googleSheetsService.updateSheetData(
+                    "db_npwp_perusahaan",
+                    npwpHeaders,
+                    "id_npwp_perusahaan",
+                    firstNpwp.id_npwp_perusahaan,
+                    {
+                      nomor_npwp: req.body.nomor_npwp || firstNpwp.nomor_npwp,
+                      nama_wajib_pajak:
+                        req.body.nama_wp || firstNpwp.nama_wajib_pajak,
+                      alamat_npwp:
+                        req.body.alamat_npwp || firstNpwp.alamat_npwp,
+                      kpp: req.body.kpp || firstNpwp.kpp,
+                      tanggal_terdaftar:
+                        req.body.tanggal_terdaftar ||
+                        firstNpwp.tanggal_terdaftar,
+                      npwp_perusahaan_url: pdfUrl,
+                      tanggal_input: tanggalInput,
+                      author: author,
+                    }
+                  );
+                  console.log("✅ NPWP record updated successfully!");
+                }
+                npwpUrl = pdfUrl;
+              } catch (npwpError) {
+                console.error(
+                  "❌ ERROR in NPWP spreadsheet operation:",
+                  npwpError.message
+                );
+              }
+            }
+
+            // SPT Document Upload
+            else if (doc.type === "spt") {
+              try {
+                console.log("🔵 Processing SPT document upload...");
+                const sptData = await googleSheetsService.getSheetData(
+                  "db_spt"
+                );
+                const newSptId = `SPT${String(sptData.length + 1).padStart(
+                  3,
+                  "0"
+                )}`;
+
+                const sptHeaders = [
+                  "id_spt",
+                  "id_perusahaan",
+                  "tahun_pajak",
+                  "masa_pajak",
+                  "jenis_spt",
+                  "pembetulan_ke",
+                  "nominal",
+                  "tanggal_penyampaian",
+                  "nomor_tanda_terima",
+                  "nama_wp",
+                  "npwp",
+                  "nitku",
+                  "status_spt",
+                  "spt_url",
+                  "tanggal_input",
+                  "author",
+                ];
+
+                await googleSheetsService.addSheetData("db_spt", sptHeaders, {
+                  id_spt: newSptId,
+                  id_perusahaan: id,
+                  tahun_pajak: req.body.tahun_pajak || "",
+                  masa_pajak: req.body.masa_pajak || "",
+                  jenis_spt: req.body.jenis_spt || "",
+                  pembetulan_ke: req.body.pembetulan_ke || "0",
+                  nominal: req.body.nominal || "0",
+                  tanggal_penyampaian: req.body.tanggal_penyampaian || "",
+                  nomor_tanda_terima: req.body.nomor_tanda_terima || "",
+                  nama_wp: req.body.nama_wp_spt || "",
+                  npwp: req.body.npwp_spt || "",
+                  nitku: req.body.nitku || "",
+                  status_spt: req.body.status_spt || "Normal",
+                  spt_url: pdfUrl,
+                  tanggal_input: tanggalInput,
+                  author: author,
+                });
+                console.log("✅ SPT record created successfully!");
+                sptUrl = pdfUrl;
+              } catch (sptError) {
+                console.error(
+                  "❌ ERROR in SPT spreadsheet operation:",
+                  sptError.message
+                );
+              }
+            }
+
+            // PKP Document Upload
+            else if (doc.type === "pkp") {
+              try {
+                console.log("🔵 Processing PKP document upload...");
+                const pkpData = await googleSheetsService.getSheetData(
+                  "db_pkp"
+                );
+                const existingPkp = pkpData.filter(
+                  (item) => item.id_perusahaan === id
+                );
+
+                const pkpHeaders = [
+                  "id_pkp",
+                  "id_perusahaan",
+                  "nomor_pkp",
+                  "tanggal_pengukuhan",
+                  "nama_pkp",
+                  "alamat_pkp",
+                  "url_pkp",
+                  "tanggal_input",
+                  "author",
+                ];
+
+                if (existingPkp.length === 0) {
+                  const newPkpId = `PKP${String(pkpData.length + 1).padStart(
+                    3,
+                    "0"
+                  )}`;
+                  await googleSheetsService.addSheetData("db_pkp", pkpHeaders, {
+                    id_pkp: newPkpId,
+                    id_perusahaan: id,
+                    nomor_pkp: req.body.nomor_pkp || "",
+                    tanggal_pengukuhan: req.body.tanggal_pengukuhan || "",
+                    nama_pkp: req.body.nama_pkp || "",
+                    alamat_pkp: req.body.alamat_pkp || "",
+                    url_pkp: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author,
+                  });
+                  console.log("✅ PKP record created successfully!");
+                } else {
+                  const firstPkp = existingPkp[0];
+                  await googleSheetsService.updateSheetData(
+                    "db_pkp",
+                    pkpHeaders,
+                    "id_pkp",
+                    firstPkp.id_pkp,
+                    {
+                      nomor_pkp: req.body.nomor_pkp || firstPkp.nomor_pkp,
+                      tanggal_pengukuhan:
+                        req.body.tanggal_pengukuhan ||
+                        firstPkp.tanggal_pengukuhan,
+                      nama_pkp: req.body.nama_pkp || firstPkp.nama_pkp,
+                      alamat_pkp: req.body.alamat_pkp || firstPkp.alamat_pkp,
+                      url_pkp: pdfUrl,
+                      tanggal_input: tanggalInput,
+                      author: author,
+                    }
+                  );
+                  console.log("✅ PKP record updated successfully!");
+                }
+                pkpUrl = pdfUrl;
+              } catch (pkpError) {
+                console.error(
+                  "❌ ERROR in PKP spreadsheet operation:",
+                  pkpError.message
+                );
+              }
+            }
+
+            // KSWP Document Upload
+            else if (doc.type === "kswp") {
+              try {
+                console.log("🔵 Processing KSWP document upload...");
+                const kswpData = await googleSheetsService.getSheetData(
+                  "db_kswp"
+                );
+                const existingKswp = kswpData.filter(
+                  (item) => item.id_perusahaan === id
+                );
+
+                const kswpHeaders = [
+                  "id_kswp",
+                  "id_perusahaan",
+                  "nama_wp",
+                  "npwp",
+                  "tahun_kswp",
+                  "status_kswp",
+                  "tanggal_terbit",
+                  "kswp_url",
+                  "tanggal_input",
+                  "author",
+                ];
+
+                if (existingKswp.length === 0) {
+                  const newKswpId = `KSWP${String(kswpData.length + 1).padStart(
+                    3,
+                    "0"
+                  )}`;
+                  await googleSheetsService.addSheetData(
+                    "db_kswp",
+                    kswpHeaders,
+                    {
+                      id_kswp: newKswpId,
+                      id_perusahaan: id,
+                      nama_wp: req.body.nama_wp_kswp || "",
+                      npwp: req.body.npwp_kswp || "",
+                      tahun_kswp: req.body.tahun_kswp || "",
+                      status_kswp: req.body.status_kswp || "",
+                      tanggal_terbit: req.body.tanggal_terbit_kswp || "",
+                      kswp_url: pdfUrl,
+                      tanggal_input: tanggalInput,
+                      author: author,
+                    }
+                  );
+                  console.log("✅ KSWP record created successfully!");
+                } else {
+                  const firstKswp = existingKswp[0];
+                  await googleSheetsService.updateSheetData(
+                    "db_kswp",
+                    kswpHeaders,
+                    "id_kswp",
+                    firstKswp.id_kswp,
+                    {
+                      nama_wp: req.body.nama_wp_kswp || firstKswp.nama_wp,
+                      npwp: req.body.npwp_kswp || firstKswp.npwp,
+                      tahun_kswp: req.body.tahun_kswp || firstKswp.tahun_kswp,
+                      status_kswp:
+                        req.body.status_kswp || firstKswp.status_kswp,
+                      tanggal_terbit:
+                        req.body.tanggal_terbit_kswp ||
+                        firstKswp.tanggal_terbit,
+                      kswp_url: pdfUrl,
+                      tanggal_input: tanggalInput,
+                      author: author,
+                    }
+                  );
+                  console.log("✅ KSWP record updated successfully!");
+                }
+                kswpUrl = pdfUrl;
+              } catch (kswpError) {
+                console.error(
+                  "❌ ERROR in KSWP spreadsheet operation:",
+                  kswpError.message
+                );
               }
             }
           } catch (sheetError) {

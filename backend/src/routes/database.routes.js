@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 104857600, // 100MB default
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 83886080, // 80MB default
   },
   fileFilter: (req, file, cb) => {
     // List of document fields that accept PDF
@@ -36,6 +36,10 @@ const upload = multer({
       "daftar",
       "cek",
       "bpjs",
+      "npwp_perusahaan",
+      "skt_perusahaan",
+      "sppkp_perusahaan",
+      "spt_perusahaan",
       "file",
       "pdf",
     ];
@@ -105,6 +109,10 @@ router.put(
     { name: "kontrak", maxCount: 1 },
     { name: "cek", maxCount: 1 },
     { name: "bpjs", maxCount: 1 },
+    { name: "npwp_perusahaan", maxCount: 1 },
+    { name: "skt_perusahaan", maxCount: 1 },
+    { name: "sppkp_perusahaan", maxCount: 1 },
+    { name: "spt_perusahaan", maxCount: 1 },
   ]),
   companyController.updateCompany
 );
