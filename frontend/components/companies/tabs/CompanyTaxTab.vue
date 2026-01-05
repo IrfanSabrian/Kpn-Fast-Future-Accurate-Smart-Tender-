@@ -280,7 +280,16 @@
                 class="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer"
               >
                 <td class="px-4 py-2 font-bold">
-                  {{ item.tahun_pajak }}
+                  <div class="flex items-center gap-2">
+                    {{ item.tahun_pajak }}
+                    <span
+                      v-if="isYearExpired(item.tahun_pajak)"
+                      class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200"
+                      title="Tahun pajak sudah lewat"
+                    >
+                      ⚠ Expired
+                    </span>
+                  </div>
                 </td>
                 <td class="px-4 py-2">{{ item.jenis_spt }}</td>
                 <td class="px-4 py-2">
@@ -450,4 +459,12 @@ defineProps({
 });
 
 defineEmits(["open-modal", "delete-spt"]);
+
+// Helper function to check if tax year has expired
+const isYearExpired = (taxYear) => {
+  if (!taxYear) return false;
+  const currentYear = new Date().getFullYear();
+  const year = parseInt(taxYear);
+  return year < currentYear;
+};
 </script>

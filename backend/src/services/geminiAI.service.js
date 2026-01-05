@@ -402,21 +402,25 @@ Return ONLY valid JSON with this exact structure:
     await this.initialize();
 
     const prompt = `Analyze this Indonesian NPWP Perusahaan (Company Tax ID) document carefully and extract ALL information in JSON format.
-
+    
 IMPORTANT INSTRUCTIONS:
-- Extract EXACTLY as written in the document
-- Use UPPERCASE for values that are in uppercase
-- For NPWP number, use format: XX.XXX.XXX.X-XXX.XXX
-- For dates, MUST use format YYYY-MM-DD (e.g., "2024-12-09" for 9 Desember 2024)
-- If a field is not visible, use empty string ""
+- Extract EXACTLY as written in the document.
+- Use UPPERCASE for values that are in uppercase.
+- For NPWP number, use format: XX.XXX.XXX.X-XXX.XXX.
+- "alamat": This is CRITICAL. Scan the entire document for the address. 
+  - It usually follows "Alamat", "Tempat Kedudukan", or is located below the company name.
+  - It often contains keywords like "Jl.", "Jalan", "Gedung", "Ruko", "Kav", "No", "RT", "RW", "Kel", "Kec".
+  - Capture the FULL address string including Street, Number, RT/RW, Kelurahan, Kecamatan, City/Regency, and Postal Code. 
+  - Do NOT truncate. 
+- "tanggal_terdaftar": Extract the date (usually at the bottom) in YYYY-MM-DD format.
 
 Return ONLY valid JSON with this exact structure:
 {
   "nomor_npwp": "NPWP number (XX.XXX.XXX.X-XXX.XXX)",
   "nama_wp": "Company name as registered",
-  "alamat": "Full registered address",
+  "alamat": "Full registered address found in document",
   "kpp": "KPP name (e.g., KPP Pratama Jakarta Pusat)",
-  "tanggal_terdaftar": "Registration date (YYYY-MM-DD, e.g., 2024-12-09)"
+  "tanggal_terdaftar": "Registration date (YYYY-MM-DD)"
 }`;
 
     try {
@@ -425,6 +429,8 @@ Return ONLY valid JSON with this exact structure:
       const response = await result.response;
       const text = response.text();
 
+      console.log("[GEMINI AI DEBUG] Raw NPWP Response:", text);
+
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error(
@@ -432,7 +438,17 @@ Return ONLY valid JSON with this exact structure:
         );
       }
 
-      const parsedData = JSON.parse(jsonMatch[0]);
+      // Clean up potential markdown formatting
+      let jsonString = jsonMatch[0];
+      jsonString = jsonString.replace(/```json/g, "").replace(/```/g, "");
+
+      const parsedData = JSON.parse(jsonString);
+
+      console.log("[GEMINI AI DEBUG] Parsed NPWP Data:", parsedData);
+      console.log(
+        "[GEMINI AI DEBUG] Alamat value:",
+        parsedData.alamat || "(EMPTY/UNDEFINED)"
+      );
 
       const hasData = Object.values(parsedData).some(
         (value) => value && value.trim() !== ""
@@ -467,7 +483,13 @@ IMPORTANT INSTRUCTIONS:
 - Extract EXACTLY as written in the document
 - For dates, MUST use format YYYY-MM-DD (e.g., "2024-12-09" for 9 Desember 2024)
 - Nominal should be number only (no currency or separators)
-- If a field is not visible, use empty string ""
+- "nitku" (Nomor Identitas Tempat Kegiatan Usaha): Look carefully for this field! It may be labeled as:
+  - "NITKU"
+  - "Nomor Identitas Tempat Kegiatan Usaha"
+  - Usually a 16-digit number similar to NPWP format
+  - Often appears near the NPWP field or in the taxpayer information section
+  - IMPORTANT: Do not leave this field empty if you see any number labeled as NITKU
+- If a field is not visible or truly not present in the document, use empty string ""
 
 Return ONLY valid JSON with this exact structure:
 {
@@ -476,11 +498,11 @@ Return ONLY valid JSON with this exact structure:
   "jenis_spt": "SPT type (e.g., SPT Tahunan PPh Badan)",
   "pembetulan_ke": "Revision number (0 for normal)",
   "nominal": "Tax amount (number only)",
-  "tanggal_penyampaian": "Submission date (YYYY-MM-DD, e.g., 2024-12-09)",
+  "tanggal_penyampaian": "Submission date (YYYY-MM-DD)",
   "nomor_tanda_terima": "Receipt number",
   "nama_wp": "Taxpayer name",
   "npwp": "NPWP number",
-  "nitku": "NITKU if shown",
+  "nitku": "NITKU (16-digit number if shown)",
   "status_spt": "SPT status (e.g., Normal, Pembetulan)"
 }`;
 
@@ -514,14 +536,16 @@ Return ONLY valid JSON with this exact structure:
 IMPORTANT INSTRUCTIONS:
 - Extract EXACTLY as written in the document
 - For dates, MUST use format YYYY-MM-DD (e.g., "2024-12-09" for 9 Desember 2024)
+- "nomor_pkp": Extract the PKP registration number
+- "npwp": Extract the NPWP number (format XX.XXX.XXX.X-XXX.XXX)
+- "tanggal_pengukuhan": Extract the registration/confirmation date
 - If a field is not visible, use empty string ""
 
 Return ONLY valid JSON with this exact structure:
 {
   "nomor_pkp": "PKP registration number",
-  "tanggal_pengukuhan": "Registration date (YYYY-MM-DD, e.g., 2024-12-09)",
-  "nama_pkp": "Company name",
-  "alamat": "Full address"
+  "npwp": "NPWP number (XX.XXX.XXX.X-XXX.XXX)",
+  "tanggal_pengukuhan": "Registration date (YYYY-MM-DD)"
 }`;
 
     try {
@@ -598,7 +622,9 @@ Return ONLY valid JSON with this exact structure:
 
       switch (documentType.toLowerCase()) {
         case "npwp":
+          console.log("[GEMINI AI TAX] Routing to scanNPWPPerusahaan...");
           result = await this.scanNPWPPerusahaan(pdfBuffer);
+          console.log("[GEMINI AI TAX] scanNPWPPerusahaan returned:", result);
           break;
         case "spt":
           result = await this.scanSPT(pdfBuffer);

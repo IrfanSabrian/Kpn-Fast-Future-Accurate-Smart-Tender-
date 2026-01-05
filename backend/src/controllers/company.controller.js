@@ -1926,6 +1926,31 @@ export const updateCompany = async (req, res) => {
                   console.log("✅ NPWP record created successfully!");
                 } else {
                   const firstNpwp = existingNpwp[0];
+
+                  // Delete old PDF from Google Drive if exists
+                  if (firstNpwp.npwp_perusahaan_url) {
+                    try {
+                      const oldFileId =
+                        oauth2GoogleService.extractFileIdFromUrl(
+                          firstNpwp.npwp_perusahaan_url
+                        );
+                      if (oldFileId) {
+                        console.log(
+                          "🗑️  Deleting old NPWP file from Drive:",
+                          oldFileId
+                        );
+                        await oauth2GoogleService.deleteFile(oldFileId);
+                        console.log("✅ Old NPWP file deleted successfully");
+                      }
+                    } catch (deleteError) {
+                      console.warn(
+                        "⚠️  Failed to delete old NPWP file:",
+                        deleteError.message
+                      );
+                      // Continue even if delete fails
+                    }
+                  }
+
                   await googleSheetsService.updateSheetData(
                     "db_npwp_perusahaan",
                     npwpHeaders,
@@ -1964,10 +1989,9 @@ export const updateCompany = async (req, res) => {
                 const sptData = await googleSheetsService.getSheetData(
                   "db_spt"
                 );
-                const newSptId = `SPT${String(sptData.length + 1).padStart(
-                  3,
-                  "0"
-                )}`;
+                const existingSpt = sptData.filter(
+                  (item) => item.id_perusahaan === id
+                );
 
                 const sptHeaders = [
                   "id_spt",
@@ -1988,25 +2012,90 @@ export const updateCompany = async (req, res) => {
                   "author",
                 ];
 
-                await googleSheetsService.addSheetData("db_spt", sptHeaders, {
-                  id_spt: newSptId,
-                  id_perusahaan: id,
-                  tahun_pajak: req.body.tahun_pajak || "",
-                  masa_pajak: req.body.masa_pajak || "",
-                  jenis_spt: req.body.jenis_spt || "",
-                  pembetulan_ke: req.body.pembetulan_ke || "0",
-                  nominal: req.body.nominal || "0",
-                  tanggal_penyampaian: req.body.tanggal_penyampaian || "",
-                  nomor_tanda_terima: req.body.nomor_tanda_terima || "",
-                  nama_wp: req.body.nama_wp_spt || "",
-                  npwp: req.body.npwp_spt || "",
-                  nitku: req.body.nitku || "",
-                  status_spt: req.body.status_spt || "Normal",
-                  spt_url: pdfUrl,
-                  tanggal_input: tanggalInput,
-                  author: author,
-                });
-                console.log("✅ SPT record created successfully!");
+                if (existingSpt.length === 0) {
+                  // CREATE new SPT record
+                  const newSptId = `SPT${String(sptData.length + 1).padStart(
+                    3,
+                    "0"
+                  )}`;
+
+                  await googleSheetsService.addSheetData("db_spt", sptHeaders, {
+                    id_spt: newSptId,
+                    id_perusahaan: id,
+                    tahun_pajak: req.body.tahun_pajak || "",
+                    masa_pajak: req.body.masa_pajak || "",
+                    jenis_spt: req.body.jenis_spt || "",
+                    pembetulan_ke: req.body.pembetulan_ke || "0",
+                    nominal: req.body.nominal || "0",
+                    tanggal_penyampaian: req.body.tanggal_penyampaian || "",
+                    nomor_tanda_terima: req.body.nomor_tanda_terima || "",
+                    nama_wp: req.body.nama_wp || "",
+                    npwp: req.body.npwp || "",
+                    nitku: req.body.nitku || "",
+                    status_spt: req.body.status_spt || "Normal",
+                    spt_url: pdfUrl,
+                    tanggal_input: tanggalInput,
+                    author: author,
+                  });
+                  console.log("✅ SPT record created successfully!");
+                } else {
+                  // UPDATE existing SPT record
+                  const firstSpt = existingSpt[0];
+
+                  // Delete old PDF from Google Drive if exists
+                  if (firstSpt.spt_url) {
+                    try {
+                      const oldFileId =
+                        oauth2GoogleService.extractFileIdFromUrl(
+                          firstSpt.spt_url
+                        );
+                      if (oldFileId) {
+                        console.log(
+                          "🗑️  Deleting old SPT file from Drive:",
+                          oldFileId
+                        );
+                        await oauth2GoogleService.deleteFile(oldFileId);
+                        console.log("✅ Old SPT file deleted successfully");
+                      }
+                    } catch (deleteError) {
+                      console.warn(
+                        "⚠️  Failed to delete old SPT file:",
+                        deleteError.message
+                      );
+                      // Continue even if delete fails
+                    }
+                  }
+
+                  await googleSheetsService.updateSheetData(
+                    "db_spt",
+                    sptHeaders,
+                    "id_spt",
+                    firstSpt.id_spt,
+                    {
+                      tahun_pajak: req.body.tahun_pajak || firstSpt.tahun_pajak,
+                      masa_pajak: req.body.masa_pajak || firstSpt.masa_pajak,
+                      jenis_spt: req.body.jenis_spt || firstSpt.jenis_spt,
+                      pembetulan_ke:
+                        req.body.pembetulan_ke || firstSpt.pembetulan_ke,
+                      nominal: req.body.nominal || firstSpt.nominal,
+                      tanggal_penyampaian:
+                        req.body.tanggal_penyampaian ||
+                        firstSpt.tanggal_penyampaian,
+                      nomor_tanda_terima:
+                        req.body.nomor_tanda_terima ||
+                        firstSpt.nomor_tanda_terima,
+                      nama_wp: req.body.nama_wp || firstSpt.nama_wp,
+                      npwp: req.body.npwp || firstSpt.npwp,
+                      nitku: req.body.nitku || firstSpt.nitku,
+                      status_spt: req.body.status_spt || firstSpt.status_spt,
+                      spt_url: pdfUrl,
+                      tanggal_input: tanggalInput,
+                      author: author,
+                    }
+                  );
+                  console.log("✅ SPT record updated successfully!");
+                }
+
                 sptUrl = pdfUrl;
               } catch (sptError) {
                 console.error(
@@ -2031,9 +2120,8 @@ export const updateCompany = async (req, res) => {
                   "id_pkp",
                   "id_perusahaan",
                   "nomor_pkp",
+                  "npwp",
                   "tanggal_pengukuhan",
-                  "nama_pkp",
-                  "alamat_pkp",
                   "url_pkp",
                   "tanggal_input",
                   "author",
@@ -2048,9 +2136,8 @@ export const updateCompany = async (req, res) => {
                     id_pkp: newPkpId,
                     id_perusahaan: id,
                     nomor_pkp: req.body.nomor_pkp || "",
+                    npwp: req.body.npwp || "",
                     tanggal_pengukuhan: req.body.tanggal_pengukuhan || "",
-                    nama_pkp: req.body.nama_pkp || "",
-                    alamat_pkp: req.body.alamat_pkp || "",
                     url_pkp: pdfUrl,
                     tanggal_input: tanggalInput,
                     author: author,
@@ -2058,6 +2145,31 @@ export const updateCompany = async (req, res) => {
                   console.log("✅ PKP record created successfully!");
                 } else {
                   const firstPkp = existingPkp[0];
+
+                  // Delete old PDF from Google Drive if exists
+                  if (firstPkp.url_pkp) {
+                    try {
+                      const oldFileId =
+                        oauth2GoogleService.extractFileIdFromUrl(
+                          firstPkp.url_pkp
+                        );
+                      if (oldFileId) {
+                        console.log(
+                          "🗑️  Deleting old PKP file from Drive:",
+                          oldFileId
+                        );
+                        await oauth2GoogleService.deleteFile(oldFileId);
+                        console.log("✅ Old PKP file deleted successfully");
+                      }
+                    } catch (deleteError) {
+                      console.warn(
+                        "⚠️  Failed to delete old PKP file:",
+                        deleteError.message
+                      );
+                      // Continue even if delete fails
+                    }
+                  }
+
                   await googleSheetsService.updateSheetData(
                     "db_pkp",
                     pkpHeaders,
@@ -2065,11 +2177,10 @@ export const updateCompany = async (req, res) => {
                     firstPkp.id_pkp,
                     {
                       nomor_pkp: req.body.nomor_pkp || firstPkp.nomor_pkp,
+                      npwp: req.body.npwp || firstPkp.npwp,
                       tanggal_pengukuhan:
                         req.body.tanggal_pengukuhan ||
                         firstPkp.tanggal_pengukuhan,
-                      nama_pkp: req.body.nama_pkp || firstPkp.nama_pkp,
-                      alamat_pkp: req.body.alamat_pkp || firstPkp.alamat_pkp,
                       url_pkp: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
@@ -2134,20 +2245,44 @@ export const updateCompany = async (req, res) => {
                   console.log("✅ KSWP record created successfully!");
                 } else {
                   const firstKswp = existingKswp[0];
+
+                  // Delete old PDF from Google Drive if exists
+                  if (firstKswp.kswp_url) {
+                    try {
+                      const oldFileId =
+                        oauth2GoogleService.extractFileIdFromUrl(
+                          firstKswp.kswp_url
+                        );
+                      if (oldFileId) {
+                        console.log(
+                          "🗑️  Deleting old KSWP file from Drive:",
+                          oldFileId
+                        );
+                        await oauth2GoogleService.deleteFile(oldFileId);
+                        console.log("✅ Old KSWP file deleted successfully");
+                      }
+                    } catch (deleteError) {
+                      console.warn(
+                        "⚠️  Failed to delete old KSWP file:",
+                        deleteError.message
+                      );
+                      // Continue even if delete fails
+                    }
+                  }
+
                   await googleSheetsService.updateSheetData(
                     "db_kswp",
                     kswpHeaders,
                     "id_kswp",
                     firstKswp.id_kswp,
                     {
-                      nama_wp: req.body.nama_wp_kswp || firstKswp.nama_wp,
-                      npwp: req.body.npwp_kswp || firstKswp.npwp,
+                      nama_wp: req.body.nama_wp || firstKswp.nama_wp,
+                      npwp: req.body.npwp || firstKswp.npwp,
                       tahun_kswp: req.body.tahun_kswp || firstKswp.tahun_kswp,
                       status_kswp:
                         req.body.status_kswp || firstKswp.status_kswp,
                       tanggal_terbit:
-                        req.body.tanggal_terbit_kswp ||
-                        firstKswp.tanggal_terbit,
+                        req.body.tanggal_terbit || firstKswp.tanggal_terbit,
                       kswp_url: pdfUrl,
                       tanggal_input: tanggalInput,
                       author: author,
@@ -2202,6 +2337,58 @@ export const updateCompany = async (req, res) => {
         } catch (e) {
           /* ignore */
         }
+      }
+    }
+
+    // 3.5 Handle tax document data updates WITHOUT new PDF files
+    // This allows editing tax document metadata without re-uploading PDF
+    if (
+      !pkpFile &&
+      (req.body.nomor_pkp || req.body.npwp || req.body.tanggal_pengukuhan)
+    ) {
+      try {
+        console.log("📝 Updating PKP data without new PDF...");
+        const pkpData = await googleSheetsService.getSheetData("db_pkp");
+        const existingPkp = pkpData.filter((item) => item.id_perusahaan === id);
+
+        if (existingPkp.length > 0) {
+          const firstPkp = existingPkp[0];
+          const pkpHeaders = [
+            "id_pkp",
+            "id_perusahaan",
+            "nomor_pkp",
+            "npwp",
+            "tanggal_pengukuhan",
+            "url_pkp",
+            "tanggal_input",
+            "author",
+          ];
+
+          await googleSheetsService.updateSheetData(
+            "db_pkp",
+            pkpHeaders,
+            "id_pkp",
+            firstPkp.id_pkp,
+            {
+              nomor_pkp: req.body.nomor_pkp || firstPkp.nomor_pkp,
+              npwp: req.body.npwp || firstPkp.npwp,
+              tanggal_pengukuhan:
+                req.body.tanggal_pengukuhan || firstPkp.tanggal_pengukuhan,
+              // Keep existing URL and metadata
+              url_pkp: firstPkp.url_pkp,
+              tanggal_input: new Date().toISOString(),
+              author: req.body.author || firstPkp.author,
+            }
+          );
+          console.log("✅ PKP data updated successfully (no new PDF)");
+        } else {
+          console.log(
+            "⚠️  No existing PKP record found - skipping data-only update"
+          );
+        }
+      } catch (pkpDataError) {
+        console.error("❌ Error updating PKP data:", pkpDataError.message);
+        // Don't fail the entire request, just log the error
       }
     }
 

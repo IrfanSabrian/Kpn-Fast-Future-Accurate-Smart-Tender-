@@ -2162,6 +2162,13 @@
         showNpwpUploadModal = false;
         showNpwpValidation = false;
         selectedNpwp = null;
+        npwpUploadFormData = {
+          nomor_npwp: '',
+          nama_wp: '',
+          alamat_npwp: '',
+          kpp: '',
+          tanggal_terdaftar: '',
+        };
       "
       documentType="npwp"
       :companyName="company?.nama_perusahaan"
@@ -2177,13 +2184,70 @@
       :showValidation="showNpwpValidation"
       :isAllValidated="isAllNpwpValidated"
     >
-      <template #form-fields="{ disabled }">
-        <div class="space-y-3">
+      <template #form-fields="{ isViewOnly }">
+        <div v-if="isViewOnly" class="space-y-4">
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Nomor NPWP
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ npwpUploadFormData.nomor_npwp || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Nama Wajib Pajak
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ npwpUploadFormData.nama_wp || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Alamat
+              </div>
+              <div
+                class="font-medium text-slate-700 dark:text-slate-200 whitespace-pre-wrap"
+              >
+                {{ npwpUploadFormData.alamat_npwp || "-" }}
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <div
+                  class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+                >
+                  KPP
+                </div>
+                <div class="font-medium text-slate-700 dark:text-slate-200">
+                  {{ npwpUploadFormData.kpp || "-" }}
+                </div>
+              </div>
+              <div>
+                <div
+                  class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+                >
+                  Tanggal Terdaftar
+                </div>
+                <div class="font-medium text-slate-700 dark:text-slate-200">
+                  {{ formatDate(npwpUploadFormData.tanggal_terdaftar) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="space-y-3">
           <FormInput
             v-model="npwpUploadFormData.nomor_npwp"
             label="Nomor NPWP"
             placeholder="XX.XXX.XXX.X-XXX.XXX"
-            :disabled="disabled"
             :showValidation="showNpwpValidation"
             :locked="npwpFieldLocks.nomor_npwp"
             @update:locked="(val) => (npwpFieldLocks.nomor_npwp = val)"
@@ -2193,28 +2257,25 @@
             v-model="npwpUploadFormData.nama_wp"
             label="Nama Wajib Pajak"
             placeholder="Nama perusahaan"
-            :disabled="disabled"
             :showValidation="showNpwpValidation"
             :locked="npwpFieldLocks.nama_wp"
             @update:locked="(val) => (npwpFieldLocks.nama_wp = val)"
             required
           />
           <FormInput
-            v-model="npwpUploadFormData.alamat"
+            v-model="npwpUploadFormData.alamat_npwp"
             label="Alamat"
             type="textarea"
             :rows="3"
             placeholder="Alamat lengkap"
-            :disabled="disabled"
             :showValidation="showNpwpValidation"
-            :locked="npwpFieldLocks.alamat"
-            @update:locked="(val) => (npwpFieldLocks.alamat = val)"
+            :locked="npwpFieldLocks.alamat_npwp"
+            @update:locked="(val) => (npwpFieldLocks.alamat_npwp = val)"
           />
           <FormInput
             v-model="npwpUploadFormData.kpp"
             label="KPP"
             placeholder="KPP Pratama ..."
-            :disabled="disabled"
             :showValidation="showNpwpValidation"
             :locked="npwpFieldLocks.kpp"
             @update:locked="(val) => (npwpFieldLocks.kpp = val)"
@@ -2223,7 +2284,6 @@
             v-model="npwpUploadFormData.tanggal_terdaftar"
             label="Tanggal Terdaftar"
             type="date"
-            :disabled="disabled"
             :showValidation="showNpwpValidation"
             :locked="npwpFieldLocks.tanggal_terdaftar"
             @update:locked="(val) => (npwpFieldLocks.tanggal_terdaftar = val)"
@@ -2263,11 +2323,14 @@
       </template>
 
       <!-- Custom Footer -->
-      <template #footer-actions>
-        <div class="flex items-center justify-end gap-3 w-full">
+      <template #footer-actions="{ isEditing, cancelEdit }">
+        <div
+          v-if="isEditing"
+          class="flex items-center justify-end gap-3 w-full"
+        >
           <button
             @click="
-              showNpwpUploadModal = false;
+              cancelEdit();
               showNpwpValidation = false;
             "
             type="button"
@@ -2298,6 +2361,19 @@
         showSptUploadModal = false;
         showSptValidation = false;
         selectedSpt = null;
+        sptUploadFormData = {
+          tahun_pajak: '',
+          masa_pajak: '',
+          jenis_spt: '',
+          nominal: 0,
+          tanggal_penyampaian: '',
+          nomor_tanda_terima: '',
+          nama_wp: '',
+          npwp: '',
+          nitku: '',
+          status_spt: 'Normal',
+          pembetulan_ke: '0',
+        };
       "
       documentType="spt"
       :companyName="company?.nama_perusahaan"
@@ -2313,14 +2389,134 @@
       :showValidation="showSptValidation"
       :isAllValidated="isAllSptValidated"
     >
-      <template #form-fields="{ disabled }">
-        <div class="space-y-3">
+      <template #form-fields="{ isViewOnly }">
+        <div v-if="isViewOnly" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Tahun Pajak
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ sptUploadFormData.tahun_pajak || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Masa Pajak
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ sptUploadFormData.masa_pajak || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Jenis SPT
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ sptUploadFormData.jenis_spt || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Pembetulan Ke
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ sptUploadFormData.pembetulan_ke || "0" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Nominal
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ formatCurrency(sptUploadFormData.nominal) }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Tgl Penyampaian
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ formatDate(sptUploadFormData.tanggal_penyampaian) }}
+              </div>
+            </div>
+            <div class="col-span-2">
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Nomor Tanda Terima
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ sptUploadFormData.nomor_tanda_terima || "-" }}
+              </div>
+            </div>
+            <div class="col-span-2">
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Nama Wajib Pajak
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ sptUploadFormData.nama_wp || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                NPWP
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ sptUploadFormData.npwp || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                NITKU
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ sptUploadFormData.nitku || "-" }}
+              </div>
+            </div>
+            <div class="col-span-2">
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Status SPT
+              </div>
+              <span
+                class="px-2 py-1 rounded text-xs font-semibold"
+                :class="
+                  sptUploadFormData.status_spt === 'Kurang Bayar'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-green-100 text-green-700'
+                "
+              >
+                {{ sptUploadFormData.status_spt || "-" }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="space-y-3">
           <div class="grid grid-cols-2 gap-3">
             <FormInput
               v-model="sptUploadFormData.tahun_pajak"
               label="Tahun Pajak"
               placeholder="2023"
-              :disabled="disabled"
               :showValidation="showSptValidation"
               :locked="sptFieldLocks.tahun_pajak"
               @update:locked="(val) => (sptFieldLocks.tahun_pajak = val)"
@@ -2330,7 +2526,6 @@
               v-model="sptUploadFormData.masa_pajak"
               label="Masa Pajak"
               placeholder="Januari-Desember"
-              :disabled="disabled"
               :showValidation="showSptValidation"
               :locked="sptFieldLocks.masa_pajak"
               @update:locked="(val) => (sptFieldLocks.masa_pajak = val)"
@@ -2340,7 +2535,6 @@
             v-model="sptUploadFormData.jenis_spt"
             label="Jenis SPT"
             placeholder="SPT Tahunan PPh Badan"
-            :disabled="disabled"
             :showValidation="showSptValidation"
             :locked="sptFieldLocks.jenis_spt"
             @update:locked="(val) => (sptFieldLocks.jenis_spt = val)"
@@ -2351,7 +2545,6 @@
               label="Pembetulan Ke"
               placeholder="0"
               type="number"
-              :disabled="disabled"
               :showValidation="showSptValidation"
               :locked="sptFieldLocks.pembetulan_ke"
               @update:locked="(val) => (sptFieldLocks.pembetulan_ke = val)"
@@ -2361,7 +2554,6 @@
               label="Nominal"
               placeholder="0"
               type="number"
-              :disabled="disabled"
               :showValidation="showSptValidation"
               :locked="sptFieldLocks.nominal"
               @update:locked="(val) => (sptFieldLocks.nominal = val)"
@@ -2371,7 +2563,6 @@
             v-model="sptUploadFormData.tanggal_penyampaian"
             label="Tanggal Penyampaian"
             type="date"
-            :disabled="disabled"
             :showValidation="showSptValidation"
             :locked="sptFieldLocks.tanggal_penyampaian"
             @update:locked="(val) => (sptFieldLocks.tanggal_penyampaian = val)"
@@ -2380,7 +2571,6 @@
             v-model="sptUploadFormData.nomor_tanda_terima"
             label="Nomor Tanda Terima"
             placeholder="NTTE-..."
-            :disabled="disabled"
             :showValidation="showSptValidation"
             :locked="sptFieldLocks.nomor_tanda_terima"
             @update:locked="(val) => (sptFieldLocks.nomor_tanda_terima = val)"
@@ -2388,7 +2578,6 @@
           <FormInput
             v-model="sptUploadFormData.nama_wp"
             label="Nama Wajib Pajak"
-            :disabled="disabled"
             :showValidation="showSptValidation"
             :locked="sptFieldLocks.nama_wp"
             @update:locked="(val) => (sptFieldLocks.nama_wp = val)"
@@ -2397,7 +2586,6 @@
             <FormInput
               v-model="sptUploadFormData.npwp"
               label="NPWP"
-              :disabled="disabled"
               :showValidation="showSptValidation"
               :locked="sptFieldLocks.npwp"
               @update:locked="(val) => (sptFieldLocks.npwp = val)"
@@ -2405,7 +2593,6 @@
             <FormInput
               v-model="sptUploadFormData.nitku"
               label="NITKU"
-              :disabled="disabled"
               :showValidation="showSptValidation"
               :locked="sptFieldLocks.nitku"
               @update:locked="(val) => (sptFieldLocks.nitku = val)"
@@ -2415,7 +2602,6 @@
             v-model="sptUploadFormData.status_spt"
             label="Status SPT"
             placeholder="Normal"
-            :disabled="disabled"
             :showValidation="showSptValidation"
             :locked="sptFieldLocks.status_spt"
             @update:locked="(val) => (sptFieldLocks.status_spt = val)"
@@ -2455,11 +2641,11 @@
       </template>
 
       <!-- Footer Actions -->
-      <template #footer-actions>
-        <div class="flex items-center gap-2">
+      <template #footer-actions="{ isEditing, cancelEdit }">
+        <div v-if="isEditing" class="flex items-center gap-2">
           <button
             @click="
-              showSptUploadModal = false;
+              cancelEdit();
               showSptValidation = false;
             "
             class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
@@ -2492,6 +2678,11 @@
         showPkpUploadModal = false;
         showPkpValidation = false;
         selectedPkp = null;
+        pkpUploadFormData = {
+          nomor_pkp: '',
+          npwp: '',
+          tanggal_pengukuhan: '',
+        };
       "
       documentType="pkp"
       :companyName="company?.nama_perusahaan"
@@ -2507,46 +2698,66 @@
       :showValidation="showPkpValidation"
       :isAllValidated="isAllPkpValidated"
     >
-      <template #form-fields="{ disabled }">
-        <div class="space-y-3">
+      <template #form-fields="{ isViewOnly }">
+        <div v-if="isViewOnly" class="space-y-4">
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Nomor PKP
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ pkpUploadFormData.nomor_pkp || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                NPWP
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ pkpUploadFormData.npwp || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Tanggal Pengukuhan
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ formatDate(pkpUploadFormData.tanggal_pengukuhan) }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="space-y-3">
           <FormInput
             v-model="pkpUploadFormData.nomor_pkp"
             label="Nomor PKP"
             placeholder="Nomor pengukuhan"
-            :disabled="disabled"
             required
             :showValidation="showPkpValidation"
             :locked="pkpFieldLocks.nomor_pkp"
             @update:locked="(val) => (pkpFieldLocks.nomor_pkp = val)"
           />
           <FormInput
+            v-model="pkpUploadFormData.npwp"
+            label="NPWP"
+            placeholder="XX.XXX.XXX.X-XXX.XXX"
+            :showValidation="showPkpValidation"
+            :locked="pkpFieldLocks.npwp"
+            @update:locked="(val) => (pkpFieldLocks.npwp = val)"
+          />
+          <FormInput
             v-model="pkpUploadFormData.tanggal_pengukuhan"
             label="Tanggal Pengukuhan"
             type="date"
-            :disabled="disabled"
             :showValidation="showPkpValidation"
             :locked="pkpFieldLocks.tanggal_pengukuhan"
             @update:locked="(val) => (pkpFieldLocks.tanggal_pengukuhan = val)"
-          />
-          <FormInput
-            v-model="pkpUploadFormData.nama_pkp"
-            label="Nama PKP"
-            placeholder="Nama perusahaan"
-            :disabled="disabled"
-            :showValidation="showPkpValidation"
-            :locked="pkpFieldLocks.nama_pkp"
-            @update:locked="(val) => (pkpFieldLocks.nama_pkp = val)"
-          />
-          <FormInput
-            v-model="pkpUploadFormData.alamat_pkp"
-            label="Alamat"
-            type="textarea"
-            :rows="3"
-            placeholder="Alamat lengkap"
-            :disabled="disabled"
-            :showValidation="showPkpValidation"
-            :locked="pkpFieldLocks.alamat_pkp"
-            @update:locked="(val) => (pkpFieldLocks.alamat_pkp = val)"
           />
         </div>
       </template>
@@ -2583,11 +2794,11 @@
       </template>
 
       <!-- Footer Actions -->
-      <template #footer-actions>
-        <div class="flex items-center gap-2">
+      <template #footer-actions="{ isEditing, cancelEdit }">
+        <div v-if="isEditing" class="flex items-center gap-2">
           <button
             @click="
-              showPkpUploadModal = false;
+              cancelEdit();
               showPkpValidation = false;
             "
             class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
@@ -2620,6 +2831,13 @@
         showKswpUploadModal = false;
         showKswpValidation = false;
         selectedKswp = null;
+        kswpUploadFormData = {
+          nama_wp: '',
+          npwp: '',
+          tahun_kswp: '',
+          status_kswp: '',
+          tanggal_terbit: '',
+        };
       "
       documentType="kswp"
       :companyName="company?.nama_perusahaan"
@@ -2635,13 +2853,68 @@
       :showValidation="showKswpValidation"
       :isAllValidated="isAllKswpValidated"
     >
-      <template #form-fields="{ disabled }">
-        <div class="space-y-3">
+      <template #form-fields="{ isViewOnly }">
+        <div v-if="isViewOnly" class="space-y-4">
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                Nama Wajib Pajak
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ kswpUploadFormData.nama_wp || "-" }}
+              </div>
+            </div>
+            <div>
+              <div
+                class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+              >
+                NPWP
+              </div>
+              <div class="font-medium text-slate-700 dark:text-slate-200">
+                {{ kswpUploadFormData.npwp || "-" }}
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <div
+                  class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+                >
+                  Tahun KSWP
+                </div>
+                <div class="font-medium text-slate-700 dark:text-slate-200">
+                  {{ kswpUploadFormData.tahun_kswp || "-" }}
+                </div>
+              </div>
+              <div>
+                <div
+                  class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+                >
+                  Status
+                </div>
+                <div class="font-medium text-slate-700 dark:text-slate-200">
+                  {{ kswpUploadFormData.status_kswp || "-" }}
+                </div>
+              </div>
+              <div>
+                <div
+                  class="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500 mb-0.5"
+                >
+                  Tanggal Terbit
+                </div>
+                <div class="font-medium text-slate-700 dark:text-slate-200">
+                  {{ formatDate(kswpUploadFormData.tanggal_terbit) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="space-y-3">
           <FormInput
             v-model="kswpUploadFormData.nama_wp"
             label="Nama Wajib Pajak"
             placeholder="Nama perusahaan"
-            :disabled="disabled"
             required
             :showValidation="showKswpValidation"
             :locked="kswpFieldLocks.nama_wp"
@@ -2651,7 +2924,6 @@
             v-model="kswpUploadFormData.npwp"
             label="NPWP"
             placeholder="XX.XXX.XXX.X-XXX.XXX"
-            :disabled="disabled"
             :showValidation="showKswpValidation"
             :locked="kswpFieldLocks.npwp"
             @update:locked="(val) => (kswpFieldLocks.npwp = val)"
@@ -2660,7 +2932,6 @@
             v-model="kswpUploadFormData.tahun_kswp"
             label="Tahun KSWP"
             placeholder="2023"
-            :disabled="disabled"
             :showValidation="showKswpValidation"
             :locked="kswpFieldLocks.tahun_kswp"
             @update:locked="(val) => (kswpFieldLocks.tahun_kswp = val)"
@@ -2669,7 +2940,6 @@
             v-model="kswpUploadFormData.status_kswp"
             label="Status KSWP"
             placeholder="Patuh / Tidak Patuh"
-            :disabled="disabled"
             :showValidation="showKswpValidation"
             :locked="kswpFieldLocks.status_kswp"
             @update:locked="(val) => (kswpFieldLocks.status_kswp = val)"
@@ -2678,7 +2948,6 @@
             v-model="kswpUploadFormData.tanggal_terbit"
             label="Tanggal Terbit"
             type="date"
-            :disabled="disabled"
             :showValidation="showKswpValidation"
             :locked="kswpFieldLocks.tanggal_terbit"
             @update:locked="(val) => (kswpFieldLocks.tanggal_terbit = val)"
@@ -2718,11 +2987,11 @@
       </template>
 
       <!-- Footer Actions -->
-      <template #footer-actions>
-        <div class="flex items-center gap-2">
+      <template #footer-actions="{ isEditing, cancelEdit }">
+        <div v-if="isEditing" class="flex items-center gap-2">
           <button
             @click="
-              showKswpUploadModal = false;
+              cancelEdit();
               showKswpValidation = false;
             "
             class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
@@ -3171,7 +3440,7 @@ const showEditKontrakModal = ref(false);
 const npwpFieldLocks = ref({
   nomor_npwp: false,
   nama_wp: false,
-  alamat: false,
+  alamat_npwp: false,
   kpp: false,
   tanggal_terdaftar: false,
 });
@@ -3179,7 +3448,7 @@ const showNpwpValidation = ref(false); // Show validation after PDF upload
 const npwpUploadFormData = ref({
   nomor_npwp: "",
   nama_wp: "",
-  alamat: "",
+  alamat_npwp: "",
   kpp: "",
   tanggal_terdaftar: "",
 });
@@ -3222,16 +3491,14 @@ const sptUploadFormData = ref({
 // PKP Field Locks & Validation
 const pkpFieldLocks = ref({
   nomor_pkp: false,
+  npwp: false,
   tanggal_pengukuhan: false,
-  nama_pkp: false,
-  alamat_pkp: false,
 });
 const showPkpValidation = ref(false);
 const pkpUploadFormData = ref({
   nomor_pkp: "",
+  npwp: "",
   tanggal_pengukuhan: "",
-  nama_pkp: "",
-  alamat_pkp: "",
 });
 
 // KSWP Field Locks & Validation
@@ -3326,9 +3593,13 @@ const handleNpwpAIScan = (data) => {
   console.log("[NPWP] AI Scan Complete:", data);
 
   // Fill form dengan data dari AI
+  // Fill form dengan data dari AI
   Object.keys(data).forEach((key) => {
-    if (npwpUploadFormData.value.hasOwnProperty(key)) {
-      npwpUploadFormData.value[key] = data[key] || "";
+    // Mapping keys from AI response to form data
+    const formKey = key === "alamat" ? "alamat_npwp" : key;
+
+    if (npwpUploadFormData.value.hasOwnProperty(formKey)) {
+      npwpUploadFormData.value[formKey] = data[key] || "";
     }
   });
 
@@ -3521,11 +3792,40 @@ const saveNpwpDocument = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Gagal menyimpan dokumen");
+
+      // Enhanced error messages
+      let errorMessage = errorData.message || "Gagal menyimpan dokumen";
+
+      if (
+        errorMessage.includes("quota") ||
+        errorMessage.includes("rate limit")
+      ) {
+        errorMessage =
+          "Terlalu banyak permintaan ke Google Drive. Silakan tunggu beberapa saat dan coba lagi.";
+      } else if (
+        errorMessage.includes("database") ||
+        errorMessage.includes("sheet")
+      ) {
+        errorMessage =
+          "Terlalu banyak permintaan ke database. Silakan tunggu beberapa saat dan coba lagi.";
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("timeout")
+      ) {
+        errorMessage =
+          "Koneksi bermasalah atau timeout. Periksa koneksi internet Anda dan coba lagi.";
+      } else if (errorMessage.includes("file too large")) {
+        errorMessage = "Ukuran file terlalu besar. Maksimal 10MB.";
+      }
+
+      throw new Error(errorMessage);
     }
 
     // Show success toast (auto-hide after 3s)
     toast.success("Berhasil!", "Dokumen NPWP berhasil disimpan");
+
+    // Refresh company data to get updated tax documents
+    await fetchCompanyDetail();
 
     // Reset & close
     showNpwpUploadModal.value = false;
@@ -3536,7 +3836,7 @@ const saveNpwpDocument = async () => {
     npwpUploadFormData.value = {
       nomor_npwp: "",
       nama_wp: "",
-      alamat: "",
+      alamat_npwp: "",
       kpp: "",
       tanggal_terdaftar: "",
     };
@@ -3592,10 +3892,39 @@ const saveSptDocument = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Gagal menyimpan dokumen");
+
+      // Enhanced error messages
+      let errorMessage = errorData.message || "Gagal menyimpan dokumen";
+
+      if (
+        errorMessage.includes("quota") ||
+        errorMessage.includes("rate limit")
+      ) {
+        errorMessage =
+          "Terlalu banyak permintaan ke Google Drive. Silakan tunggu beberapa saat dan coba lagi.";
+      } else if (
+        errorMessage.includes("database") ||
+        errorMessage.includes("sheet")
+      ) {
+        errorMessage =
+          "Terlalu banyak permintaan ke database. Silakan tunggu beberapa saat dan coba lagi.";
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("timeout")
+      ) {
+        errorMessage =
+          "Koneksi bermasalah atau timeout. Periksa koneksi internet Anda dan coba lagi.";
+      } else if (errorMessage.includes("file too large")) {
+        errorMessage = "Ukuran file terlalu besar. Maksimal 10MB.";
+      }
+
+      throw new Error(errorMessage);
     }
 
     toast.success("Berhasil!", "Dokumen SPT berhasil disimpan");
+
+    // Refresh company data to get updated tax documents
+    await fetchCompanyDetail();
 
     showSptUploadModal.value = false;
     showSptValidation.value = false;
@@ -3641,7 +3970,7 @@ const savePkpDocument = async () => {
     const uploadToastId = toast.info("Mengunggah dokumen PKP...", 0);
 
     const formData = new FormData();
-    formData.append("pkp_perusahaan", selectedFile);
+    formData.append("sppkp_perusahaan", selectedFile); // Fixed: backend expects sppkp_perusahaan
 
     Object.keys(pkpUploadFormData.value).forEach((key) => {
       if (pkpUploadFormData.value[key]) {
@@ -3658,10 +3987,39 @@ const savePkpDocument = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Gagal menyimpan dokumen");
+
+      // Enhanced error messages
+      let errorMessage = errorData.message || "Gagal menyimpan dokumen";
+
+      if (
+        errorMessage.includes("quota") ||
+        errorMessage.includes("rate limit")
+      ) {
+        errorMessage =
+          "Terlalu banyak permintaan ke Google Drive. Silakan tunggu beberapa saat dan coba lagi.";
+      } else if (
+        errorMessage.includes("database") ||
+        errorMessage.includes("sheet")
+      ) {
+        errorMessage =
+          "Terlalu banyak permintaan ke database. Silakan tunggu beberapa saat dan coba lagi.";
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("timeout")
+      ) {
+        errorMessage =
+          "Koneksi bermasalah atau timeout. Periksa koneksi internet Anda dan coba lagi.";
+      } else if (errorMessage.includes("file too large")) {
+        errorMessage = "Ukuran file terlalu besar. Maksimal 10MB.";
+      }
+
+      throw new Error(errorMessage);
     }
 
     toast.success("Berhasil!", "Dokumen PKP berhasil disimpan");
+
+    // Refresh company data to get updated tax documents
+    await fetchCompanyDetail();
 
     showPkpUploadModal.value = false;
     showPkpValidation.value = false;
@@ -3670,13 +4028,15 @@ const savePkpDocument = async () => {
     );
     pkpUploadFormData.value = {
       nomor_pkp: "",
+      npwp: "",
       tanggal_pengukuhan: "",
-      nama_pkp: "",
-      alamat_pkp: "",
     };
   } catch (error) {
     console.error("Save PKP Error:", error);
-    toast.error("Gagal Menyimpan", error.message || "Terjadi kesalahan");
+    toast.error(
+      "Gagal Menyimpan",
+      error.message || "Terjadi kesalahan saat menyimpan"
+    );
   } finally {
     savingPkp.value = false;
   }
@@ -3717,10 +4077,39 @@ const saveKswpDocument = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Gagal menyimpan dokumen");
+
+      // Enhanced error messages
+      let errorMessage = errorData.message || "Gagal menyimpan dokumen";
+
+      if (
+        errorMessage.includes("quota") ||
+        errorMessage.includes("rate limit")
+      ) {
+        errorMessage =
+          "Terlalu banyak permintaan ke Google Drive. Silakan tunggu beberapa saat dan coba lagi.";
+      } else if (
+        errorMessage.includes("database") ||
+        errorMessage.includes("sheet")
+      ) {
+        errorMessage =
+          "Terlalu banyak permintaan ke database. Silakan tunggu beberapa saat dan coba lagi.";
+      } else if (
+        errorMessage.includes("network") ||
+        errorMessage.includes("timeout")
+      ) {
+        errorMessage =
+          "Koneksi bermasalah atau timeout. Periksa koneksi internet Anda dan coba lagi.";
+      } else if (errorMessage.includes("file too large")) {
+        errorMessage = "Ukuran file terlalu besar. Maksimal 10MB.";
+      }
+
+      throw new Error(errorMessage);
     }
 
     toast.success("Berhasil!", "Dokumen KSWP berhasil disimpan");
+
+    // Refresh company data to get updated tax documents
+    await fetchCompanyDetail();
 
     showKswpUploadModal.value = false;
     showKswpValidation.value = false;
@@ -4181,15 +4570,15 @@ const tabs = computed(() => [
     label: "Data Pajak",
     icon: "fas fa-wallet",
     hasData:
-      company.value?.documentCounts?.pajak > 0 ||
-      (subModules.value.npwp && subModules.value.npwp.length > 0) ||
-      !!selectedItems.value.npwp ||
-      (subModules.value.spt && subModules.value.spt.length > 0) ||
-      !!selectedItems.value.spt ||
-      (subModules.value.pkp && subModules.value.pkp.length > 0) ||
-      !!selectedItems.value.pkp ||
-      (subModules.value.kswp && subModules.value.kswp.length > 0) ||
-      !!selectedItems.value.kswp,
+      // All 4 tax documents must be present (AND condition)
+      ((subModules.value.npwp && subModules.value.npwp.length > 0) ||
+        !!selectedItems.value.npwp) &&
+      ((subModules.value.spt && subModules.value.spt.length > 0) ||
+        !!selectedItems.value.spt) &&
+      ((subModules.value.pkp && subModules.value.pkp.length > 0) ||
+        !!selectedItems.value.pkp) &&
+      ((subModules.value.kswp && subModules.value.kswp.length > 0) ||
+        !!selectedItems.value.kswp),
   },
   {
     id: "kontrak",
@@ -4243,6 +4632,22 @@ const formatDate = (dateString) => {
   } catch (e) {
     console.error("Error formatting date:", dateString, e);
     return dateString; // Return original if invalid
+  }
+};
+
+const formatCurrency = (amount) => {
+  if (!amount || amount === 0 || amount === "0") return "Rp 0";
+  try {
+    const num = typeof amount === "string" ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num);
+  } catch (e) {
+    console.error("Error formatting currency:", amount, e);
+    return `Rp ${amount}`;
   }
 };
 
@@ -4817,6 +5222,9 @@ const fetchCompanyDetail = async () => {
 
     // Fetch Pejabat for overview tab (moved from separate tab)
     await fetchPejabat();
+
+    // Fetch Pajak data to refresh tax documents
+    await fetchPajak();
   } catch (e) {
     console.error("Error fetching company:", e);
   } finally {
@@ -5181,12 +5589,11 @@ const openNpwpModal = (item) => {
 // Open PKP Modal
 const openPkpModal = (item) => {
   selectedPkp.value = item;
-  // Populate form data
+  // Populate form data with new structure (no nama_pkp, alamat_pkp)
   pkpUploadFormData.value = {
     nomor_pkp: item.nomor_pkp || "",
+    npwp: item.npwp || "",
     tanggal_pengukuhan: item.tanggal_pengukuhan || "",
-    nama_pkp: item.nama_pkp || "", // Assuming this field exists or needs mapping
-    alamat_pkp: item.alamat_pkp || "",
   };
   showPkpUploadModal.value = true;
 };

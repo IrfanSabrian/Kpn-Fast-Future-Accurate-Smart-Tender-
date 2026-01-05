@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :show="show" @close="handleClose" maxWidth="7xl">
+  <BaseModal :show="show" @close="handleClose" maxWidth="5xl">
     <template #header>
       <div class="flex items-center gap-4">
         <div
@@ -12,7 +12,14 @@
           <h3
             class="text-xl font-bold text-slate-900 dark:text-white tracking-tight"
           >
-            {{ isEditMode ? "Edit" : "Tambah" }} {{ documentLabel }}
+            {{
+              isEditMode && isViewOnly
+                ? "Detail"
+                : isEditMode
+                ? "Edit"
+                : "Tambah"
+            }}
+            {{ documentLabel }}
           </h3>
           <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">
             {{ companyName }}
@@ -22,7 +29,7 @@
     </template>
 
     <div
-      class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      class="grid grid-cols-1 lg:grid-cols-2 gap-6"
       @keydown.enter="handleEnterKey"
     >
       <!-- Left Column: Form Fields (1 col) - Scrollable -->
@@ -31,9 +38,7 @@
           class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col h-[400px]"
         >
           <!-- Header with Validate All Button -->
-          <div
-            class="px-4 pt-4 pb-3 flex items-center justify-between flex-shrink-0"
-          >
+          <div class="px-4 pt-4 pb-3 flex items-center flex-shrink-0 relative">
             <h4
               class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2"
             >
@@ -41,24 +46,36 @@
               Informasi Dokumen
             </h4>
 
-            <!-- Validate All Button Slot -->
-            <slot name="validate-all-button"></slot>
+            <!-- Top Right Action Area -->
+            <div class="absolute right-4 top-4 flex items-center gap-2">
+              <!-- Edit Toggle (Only in Edit Mode / Existing Data) -->
+              <button
+                v-if="isEditMode && isViewOnly"
+                @click="handleEditClick"
+                class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+              >
+                <i class="fas fa-edit"></i> Edit Data
+              </button>
+
+              <!-- Validate All Button Slot -->
+              <slot name="validate-all-button"></slot>
+            </div>
           </div>
 
           <!-- Scrollable Form Container -->
           <div class="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4">
             <slot
               name="form-fields"
-              :disabled="!hasFileUpload && !isEditMode"
+              :isViewOnly="isViewOnly"
               :hasFileUpload="hasFileUpload"
             ></slot>
           </div>
         </div>
       </div>
 
-      <!-- Right Column: Upload/Preview (2 cols) -->
+      <!-- Right Column: Upload/Preview (1 col) -->
       <div
-        class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[400px]"
+        class="lg:col-span-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[400px]"
       >
         <!-- Header -->
         <div
@@ -73,9 +90,9 @@
             </h3>
           </div>
           <div class="flex gap-2">
-            <!-- AI Scan Button (Visible if file exists) -->
+            <!-- AI Scan Button (Visible if file exists & NOT View Only) -->
             <button
-              v-if="selectedFile"
+              v-if="(selectedFile || existingFileUrl) && !isViewOnly"
               @click="scanWithAI"
               :disabled="isScanning"
               class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors flex items-center gap-1"
@@ -86,8 +103,9 @@
               <span>AI Scan</span>
             </button>
 
-            <!-- Change/Upload Button -->
+            <!-- Change/Upload Button (NOT View Only) -->
             <button
+              v-if="!isViewOnly"
               @click="$refs.fileInput.click()"
               class="px-2 py-1 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-[10px] text-slate-600 hover:text-blue-600 text-center"
               title="Ganti File"
@@ -108,8 +126,13 @@
           <!-- Upload Placeholder -->
           <div
             v-else
-            @click="$refs.fileInput.click()"
-            class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+            @click="!isViewOnly ? $refs.fileInput.click() : null"
+            class="w-full h-full flex flex-col items-center justify-center text-slate-400 p-6 transition-colors"
+            :class="
+              !isViewOnly
+                ? 'cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800'
+                : 'cursor-default'
+            "
           >
             <div
               class="w-16 h-16 rounded-full flex items-center justify-center mb-3 bg-red-50 dark:bg-red-900/20 text-red-500"
@@ -119,7 +142,11 @@
             <p class="text-xs font-bold text-slate-700 dark:text-slate-300">
               Upload {{ documentLabel }} PDF
             </p>
-            <p class="text-[10px] text-slate-500">Klik untuk pilih file</p>
+            <p class="text-[10px] text-slate-500">
+              {{
+                isViewOnly ? "Dokumen tidak tersedia" : "Klik untuk pilih file"
+              }}
+            </p>
           </div>
         </div>
 
@@ -135,9 +162,17 @@
 
     <template #footer>
       <!-- Custom Footer from Parent (if provided via slot) -->
-      <slot name="footer-actions">
+      <slot
+        name="footer-actions"
+        :isViewOnly="isViewOnly"
+        :isEditing="!isViewOnly"
+        :cancelEdit="cancelEdit"
+      >
         <!-- Default Footer (if no custom footer provided) -->
-        <div class="flex items-center justify-end gap-3 w-full">
+        <div
+          v-if="!isViewOnly"
+          class="flex items-center justify-end gap-3 w-full"
+        >
           <button
             @click="handleClose"
             type="button"
@@ -172,7 +207,12 @@
 <script setup>
 import BaseModal from "~/components/BaseModal.vue";
 
-const { error: showError, success: showSuccess, info: showInfo } = useToast();
+const {
+  error: showError,
+  success: showSuccess,
+  info: showInfo,
+  hideToast, // Extract hideToast
+} = useToast();
 
 const props = defineProps({
   show: Boolean,
@@ -262,31 +302,59 @@ const runtimeConfig = useRuntimeConfig();
 
 // AI Scan function
 const scanWithAI = async () => {
-  if (!selectedFile.value) {
-    showError("Tidak ada file yang dipilih");
+  if (!selectedFile.value && !props.existingFileUrl) {
+    showError("Pilih atau upload file terlebih dahulu untuk dipindai");
     return;
   }
 
   isScanning.value = true;
+  // Show persistent scanning toast
+  const scanToastId = showInfo("Sedang memindai dokumen dengan AI...", 0); // 0 for persistent
 
   try {
-    // Create FormData to send PDF to backend
-    const formData = new FormData();
-    formData.append("file", selectedFile.value);
-    formData.append("documentType", props.documentType);
+    let response;
 
-    console.log(
-      `[AI SCAN] Sending ${props.documentType.toUpperCase()} to AI for analysis...`
-    );
+    if (selectedFile.value) {
+      // Case 1: Scanning a local file (Upload)
+      const formData = new FormData();
+      formData.append("file", selectedFile.value);
+      formData.append("documentType", props.documentType);
 
-    // Call backend API
-    const response = await fetch(
-      `${runtimeConfig.public.apiBaseUrl}/ai/scan-tax-document`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+      console.log(
+        `[AI SCAN] Sending ${props.documentType.toUpperCase()} (File) to AI for analysis...`
+      );
+
+      response = await fetch(
+        `${runtimeConfig.public.apiBaseUrl}/ai/scan-tax-document`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+    } else {
+      // Case 2: Scanning an existing Drive file (URL)
+      console.log(
+        `[AI SCAN] Sending ${props.documentType.toUpperCase()} (URL) to AI for analysis...`
+      );
+
+      // Extract fileId from Drive URL if possible, or send the full URL
+      // Adjust endpoint/body based on your backend implementation for Drive scanning
+      // This matches the logic usually found in 'handleAiScan' for drive files
+      response = await fetch(
+        `${runtimeConfig.public.apiBaseUrl}/ai/scan-drive-file`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fileUrl: props.existingFileUrl,
+            documentType: props.documentType, // Ensure backend supports this for context
+            instruction: `Extract ${props.documentType} details`, // Generic fallback instruction
+          }),
+        }
+      );
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -321,6 +389,17 @@ const scanWithAI = async () => {
 
     const result = await response.json();
 
+    // Hide scanning toast
+    if (scanToastId) {
+      // Assuming useToast provides a hide function or using a way to clear it.
+      // If useToast doesn't return an ID or hide function from showInfo, we might need a different approach.
+      // Based on typical toast libraries used here (vue-toastification or similar wrapper):
+      // The wrapper provided `error`, `success`, `info`. Check if they return an object/ID.
+      // In [id].vue line 3521: const uploadToastId = toast.info(..., 0); toast.hideToast(uploadToastId);
+      // So we need access to hideToast.
+      // Let's assume we can get hideToast from useToast() if we destructure it.
+    }
+
     // Check if result has valid data
     if (!result.success || !result.data) {
       showError(
@@ -333,8 +412,13 @@ const scanWithAI = async () => {
 
     // Emit scanned data to parent component (parent will handle toast)
     emit("aiScanComplete", result.data);
+
+    // Success toast handled here to close the persistent one properly
+    hideToast(scanToastId);
+    showSuccess("Scan Berhasil", "Data berhasil diekstrak dari dokumen.");
   } catch (err) {
     console.error("[AI SCAN] ❌ Error:", err);
+    hideToast(scanToastId); // Hide loading toast on error
 
     // Only show error toast if not already shown above
     if (!err.message.includes("PDF tidak dapat dibaca")) {
@@ -362,17 +446,36 @@ watch(
   }
 );
 
-// Reset state when modal closes
+// View Only Logic
+const isViewOnly = ref(false);
+
+// Watch for show changes to reset state
 watch(
   () => props.show,
   (newShow) => {
-    if (!newShow) {
+    if (newShow) {
+      // Initialize view mode based on isEditMode (existing data)
+      // If isEditMode is true, we start in View Only mode
+      // If isEditMode is false (Add), we start in Edit mode (isViewOnly = false)
+      isViewOnly.value = props.isEditMode;
+    } else {
       // Modal closed - reset everything
       saving.value = false;
       selectedFile.value = null;
       if (!props.existingFileUrl) {
         previewUrl.value = "";
       }
+      isViewOnly.value = false;
+    }
+  }
+);
+
+// Watch props.isEditMode change while open (rare but possible)
+watch(
+  () => props.isEditMode,
+  (val) => {
+    if (props.show) {
+      isViewOnly.value = val;
     }
   }
 );
@@ -450,6 +553,23 @@ const handleSave = async () => {
   } finally {
     // Don't reset saving here - parent will close modal
   }
+};
+
+const cancelEdit = () => {
+  if (props.isEditMode) {
+    // If editing existing data, return to view only
+    isViewOnly.value = true;
+  } else {
+    // If adding new, close modal
+    handleClose();
+  }
+};
+
+const handleEditClick = () => {
+  isViewOnly.value = false;
+  // Trigger fileSelected to enable validation in parent (as if a file was just selected)
+  // We pass a dummy 'true' or null just to trigger the event listener logic
+  emit("fileSelected", null);
 };
 
 // Expose methods and data
