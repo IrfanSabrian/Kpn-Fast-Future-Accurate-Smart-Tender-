@@ -226,11 +226,19 @@
 
                 <button
                   @click.stop="validateAll"
-                  v-if="!isAllValidated"
-                  class="px-2 py-1.5 text-xs font-bold text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 rounded-lg transition-colors flex items-center gap-1 border border-green-200 dark:border-green-800"
+                  class="px-2 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 border"
+                  :class="
+                    isAllValidated
+                      ? 'text-white bg-green-500 border-green-600 hover:bg-green-600'
+                      : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                  "
                   title="Ceklis (Validasi) Semua Input"
                 >
-                  <i class="fas fa-check-double"></i> All
+                  <i
+                    class="fas"
+                    :class="isAllValidated ? 'fa-check' : 'fa-check-double'"
+                  ></i>
+                  {{ isAllValidated ? "Verified" : "All" }}
                 </button>
 
                 <button

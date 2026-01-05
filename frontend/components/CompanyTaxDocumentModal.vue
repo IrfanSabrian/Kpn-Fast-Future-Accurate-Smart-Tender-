@@ -25,17 +25,25 @@
       class="grid grid-cols-1 lg:grid-cols-3 gap-6"
       @keydown.enter="handleEnterKey"
     >
-      <!-- Left Column: Form Fields (2 cols) - Scrollable -->
-      <div class="lg:col-span-2">
+      <!-- Left Column: Form Fields (1 col) - Scrollable -->
+      <div class="lg:col-span-1">
         <div
           class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 flex flex-col h-[400px]"
         >
-          <h4
-            class="text-xs font-bold text-slate-900 dark:text-slate-100 px-4 pt-4 pb-3 flex items-center gap-2 flex-shrink-0"
+          <!-- Header with Validate All Button -->
+          <div
+            class="px-4 pt-4 pb-3 flex items-center justify-between flex-shrink-0"
           >
-            <span class="w-1 h-3 bg-blue-500 rounded-full"></span>
-            Informasi Dokumen
-          </h4>
+            <h4
+              class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2"
+            >
+              <span class="w-1 h-3 bg-blue-500 rounded-full"></span>
+              Informasi Dokumen
+            </h4>
+
+            <!-- Validate All Button Slot -->
+            <slot name="validate-all-button"></slot>
+          </div>
 
           <!-- Scrollable Form Container -->
           <div class="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4">
@@ -44,20 +52,13 @@
               :disabled="!hasFileUpload && !isEditMode"
               :hasFileUpload="hasFileUpload"
             ></slot>
-
-            <!-- Footer Actions Slot (for validation buttons) -->
-            <div
-              class="sticky bottom-0 z-10 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 py-3 mt-2"
-            >
-              <slot name="footer-actions"></slot>
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- Right Column: Upload/Preview (1 col) -->
+      <!-- Right Column: Upload/Preview (2 cols) -->
       <div
-        class="lg:col-span-1 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[400px]"
+        class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[400px]"
       >
         <!-- Header -->
         <div
@@ -133,26 +134,37 @@
     </div>
 
     <template #footer>
-      <div class="flex items-center justify-end gap-3 w-full">
-        <button
-          @click="handleClose"
-          type="button"
-          class="px-5 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-        >
-          Batal
-        </button>
-        <button
-          @click="handleSave"
-          :disabled="!canSave || saving"
-          type="button"
-          class="px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2 transform active:scale-95"
-          :class="buttonClasses"
-        >
-          <i v-if="saving" class="fas fa-spinner fa-spin"></i>
-          <i v-else class="fas fa-save"></i>
-          {{ saving ? "Menyimpan..." : "Simpan Dokumen" }}
-        </button>
-      </div>
+      <!-- Custom Footer from Parent (if provided via slot) -->
+      <slot name="footer-actions">
+        <!-- Default Footer (if no custom footer provided) -->
+        <div class="flex items-center justify-end gap-3 w-full">
+          <button
+            @click="handleClose"
+            type="button"
+            class="px-5 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            @click="handleSave"
+            :disabled="
+              !canSave || saving || (showValidation && !isAllValidated)
+            "
+            type="button"
+            class="px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none flex items-center gap-2 transform active:scale-95"
+            :class="buttonClasses"
+            :title="
+              showValidation && !isAllValidated
+                ? 'Validasi semua kolom terlebih dahulu'
+                : 'Simpan Dokumen'
+            "
+          >
+            <i v-if="saving" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ saving ? "Menyimpan..." : "Simpan Dokumen" }}
+          </button>
+        </div>
+      </slot>
     </template>
   </BaseModal>
 </template>
@@ -172,9 +184,24 @@ const props = defineProps({
   companyName: String,
   isEditMode: Boolean,
   existingFileUrl: String,
+  // New Validation Props
+  showValidation: {
+    type: Boolean,
+    default: false,
+  },
+  isAllValidated: {
+    type: Boolean,
+    default: true, // Default true so it doesn't block saving if validation feature isn't used
+  },
 });
 
-const emit = defineEmits(["close", "save", "aiScanComplete"]);
+const emit = defineEmits([
+  "close",
+  "save",
+  "aiScanComplete",
+  "validate-all",
+  "fileSelected",
+]);
 
 // Helper to prevent Enter key from submitting form (except Textarea)
 const handleEnterKey = (e) => {
@@ -242,12 +269,6 @@ const scanWithAI = async () => {
 
   isScanning.value = true;
 
-  // Show info toast that scanning has started
-  showInfo(
-    `Memindai dokumen ${props.documentType.toUpperCase()}...`,
-    "Mohon tunggu sebentar"
-  );
-
   try {
     // Create FormData to send PDF to backend
     const formData = new FormData();
@@ -310,18 +331,7 @@ const scanWithAI = async () => {
 
     console.log("[AI SCAN] ✅ Success:", result.data);
 
-    // Count extracted fields
-    const extractedFields = Object.keys(result.data).filter(
-      (key) => result.data[key] && result.data[key] !== ""
-    ).length;
-
-    // Show success toast with info about extracted fields
-    showSuccess(
-      `Data ${props.documentType.toUpperCase()} berhasil dipindai!`,
-      `${extractedFields} field terisi otomatis. Silakan periksa dan edit jika diperlukan.`
-    );
-
-    // Emit scanned data to parent component
+    // Emit scanned data to parent component (parent will handle toast)
     emit("aiScanComplete", result.data);
   } catch (err) {
     console.error("[AI SCAN] ❌ Error:", err);
@@ -402,6 +412,9 @@ const handleFileSelect = (event) => {
     previewUrl.value = e.target.result;
   };
   reader.readAsDataURL(file);
+
+  // Emit event to parent to enable validation buttons
+  emit("fileSelected", file);
 };
 
 const removeFile = () => {
@@ -439,8 +452,9 @@ const handleSave = async () => {
   }
 };
 
-// Expose methods
+// Expose methods and data
 defineExpose({
+  selectedFile,
   setSaving: (state) => {
     saving.value = state;
   },

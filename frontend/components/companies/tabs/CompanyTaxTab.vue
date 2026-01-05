@@ -23,17 +23,10 @@
               <i class="fas fa-file-pdf"></i> View
             </button>
             <button
-              v-if="taxData.npwp?.length > 0"
-              @click="$emit('open-modal', 'npwp', taxData.npwp[0])"
-              class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200 hover:bg-slate-200 transition-colors"
-              title="Edit Data NPWP"
-            >
-              <i class="fas fa-edit"></i> Edit
-            </button>
-            <button
+              v-if="!taxData.npwp?.length"
               @click="$emit('open-modal', 'npwp', null)"
               class="w-6 h-6 rounded bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors"
-              title="Tambah/Update NPWP"
+              title="Tambah NPWP"
             >
               <i class="fas fa-plus text-xs"></i>
             </button>
@@ -146,18 +139,12 @@
             >
               <i class="fas fa-file-pdf"></i> View
             </button>
+            <!-- Hide Add button if PKP data exists -->
             <button
-              v-if="taxData.pkp?.length > 0"
-              @click="$emit('open-modal', 'pkp', taxData.pkp[0])"
-              class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200 hover:bg-slate-200 transition-colors"
-              title="Edit Data PKP"
-            >
-              <i class="fas fa-edit"></i> Edit
-            </button>
-            <button
+              v-if="!taxData.pkp?.length"
               @click="$emit('open-modal', 'pkp', null)"
               class="w-6 h-6 rounded bg-orange-50 hover:bg-orange-100 text-orange-600 flex items-center justify-center transition-colors"
-              title="Tambah/Update PKP"
+              title="Tambah PKP"
             >
               <i class="fas fa-plus text-xs"></i>
             </button>
@@ -367,18 +354,12 @@
             >
               <i class="fas fa-file-pdf"></i> View
             </button>
+            <!-- Hide Add button if KSWP data exists -->
             <button
-              v-if="taxData.kswp?.length > 0"
-              @click="$emit('open-modal', 'kswp', taxData.kswp[0])"
-              class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200 hover:bg-slate-200 transition-colors"
-              title="Edit Data KSWP"
-            >
-              <i class="fas fa-edit"></i> Edit
-            </button>
-            <button
+              v-if="!taxData.kswp?.length"
               @click="$emit('open-modal', 'kswp', null)"
               class="w-6 h-6 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors"
-              title="Tambah/Update KSWP"
+              title="Tambah KSWP"
             >
               <i class="fas fa-plus text-xs"></i>
             </button>

@@ -46,8 +46,12 @@ class GeminiAIService {
     }
 
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    console.log("✅ Gemini AI Service initialized (model: gemini-2.5-flash)");
+    this.model = this.genAI.getGenerativeModel({
+      model: "gemini-2.5-flash-lite",
+    });
+    console.log(
+      "✅ Gemini AI Service initialized (model: gemini-2.5-flash-lite)"
+    );
   }
 
   /**

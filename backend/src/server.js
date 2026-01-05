@@ -82,7 +82,7 @@ app.get("/", (req, res) => {
           ? "configured"
           : "not configured",
         type: "Google Gemini AI",
-        model: "gemini-2.5-flash",
+        model: "gemini-2.5-flash-lite",
         features: [
           "KTP Scanning",
           "NPWP Scanning",
@@ -148,7 +148,7 @@ app.get("/api", (req, res) => {
           ? "configured"
           : "not configured",
         type: "Google Gemini AI",
-        model: "gemini-2.5-flash",
+        model: "gemini-2.5-flash-lite",
         features: [
           "KTP Scanning",
           "NPWP Scanning",
@@ -238,7 +238,7 @@ async function verifyGeminiAPI() {
   try {
     await geminiAIService.initialize();
     console.log(cleanLog("✅ Gemini AI API: VERIFIED & READY"));
-    console.log(`   Model: gemini-2.5-flash`);
+    console.log(`   Model: gemini-2.5-flash-lite`);
     return true;
   } catch (error) {
     if (!process.env.GOOGLE_GEMINI_API_KEY) {

@@ -1784,369 +1784,6 @@
       </div>
     </main>
 
-    <!-- SPT Detail Modal -->
-    <BaseModal
-      :show="showSptModal"
-      @close="showSptModal = false"
-      maxWidth="5xl"
-    >
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center"
-          >
-            <i class="fas fa-file-invoice"></i>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-              Detail SPT
-            </h3>
-            <p v-if="selectedSpt" class="text-xs text-slate-500 mt-0.5">
-              Tahun {{ selectedSpt.tahun_pajak }} - {{ selectedSpt.masa_pajak }}
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <div
-        v-if="selectedSpt"
-        class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[70vh]"
-      >
-        <!-- Left: Data Detail -->
-        <div class="space-y-4 overflow-y-auto pr-2">
-          <div
-            class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-xl border border-purple-100 dark:border-purple-800"
-          >
-            <div
-              class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase mb-2"
-            >
-              Informasi Wajib Pajak
-            </div>
-            <div class="space-y-2">
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">Nama WP</span>
-                <span class="font-semibold text-slate-800 dark:text-white">{{
-                  selectedSpt.nama_wp
-                }}</span>
-              </div>
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">NPWP</span>
-                <span
-                  class="font-mono font-bold text-slate-800 dark:text-white"
-                  >{{ selectedSpt.npwp }}</span
-                >
-              </div>
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">NITKU</span>
-                <span class="font-mono text-slate-700 dark:text-slate-200">{{
-                  selectedSpt.nitku
-                }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700"
-          >
-            <div
-              class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-2"
-            >
-              Detail SPT
-            </div>
-            <div class="space-y-2">
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">Tahun Pajak</span>
-                <span class="font-bold text-slate-800 dark:text-white">{{
-                  selectedSpt.tahun_pajak
-                }}</span>
-              </div>
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">Masa Pajak</span>
-                <span class="font-semibold text-slate-800 dark:text-white">{{
-                  selectedSpt.masa_pajak
-                }}</span>
-              </div>
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">Jenis SPT</span>
-                <span class="font-mono text-slate-800 dark:text-white">{{
-                  selectedSpt.jenis_spt
-                }}</span>
-              </div>
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">Pembetulan Ke</span>
-                <span class="text-slate-800 dark:text-white">{{
-                  selectedSpt.pembetulan_ke
-                }}</span>
-              </div>
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">Status</span>
-                <span
-                  class="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-100 text-green-700 border border-green-200"
-                  >{{ selectedSpt.status_spt }}</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800"
-          >
-            <div
-              class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase mb-2"
-            >
-              Nominal & Penyampaian
-            </div>
-            <div class="space-y-2">
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">Nominal</span>
-                <span
-                  class="font-mono font-bold text-lg text-emerald-700 dark:text-emerald-400"
-                  >Rp
-                  {{
-                    Number(selectedSpt.nominal).toLocaleString("id-ID")
-                  }}</span
-                >
-              </div>
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">Tgl Penyampaian</span>
-                <span class="font-semibold text-slate-800 dark:text-white">{{
-                  selectedSpt.tanggal_penyampaian
-                }}</span>
-              </div>
-              <div class="grid grid-cols-[120px_1fr] gap-2 text-xs">
-                <span class="font-bold text-slate-500">No Tanda Terima</span>
-                <span class="font-mono text-slate-700 dark:text-slate-200">{{
-                  selectedSpt.nomor_tanda_terima
-                }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: PDF Preview -->
-        <div
-          class="bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col"
-        >
-          <div
-            class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center"
-          >
-            <div class="text-xs font-bold text-slate-700 dark:text-slate-200">
-              Dokumen SPT
-            </div>
-            <a
-              v-if="selectedSpt.spt_url"
-              :href="selectedSpt.spt_url"
-              target="_blank"
-              class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors"
-            >
-              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-            </a>
-          </div>
-          <div class="flex-1 relative min-h-[400px]">
-            <iframe
-              v-if="selectedSpt.spt_url"
-              :key="selectedSpt.id_spt"
-              :src="getPreviewUrl(selectedSpt.spt_url)"
-              class="w-full h-full absolute inset-0 border-none"
-            ></iframe>
-            <div
-              v-else
-              class="w-full h-full flex flex-col items-center justify-center text-slate-400"
-            >
-              <i class="fas fa-file-pdf text-4xl mb-4 opacity-20"></i>
-              <p class="text-sm">Dokumen tidak tersedia</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </BaseModal>
-
-    <!-- NPWP Modal -->
-    <BaseModal
-      :show="showNpwpModal"
-      @close="showNpwpModal = false"
-      maxWidth="5xl"
-    >
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"
-          >
-            <i class="fas fa-id-card"></i>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-              Dokumen NPWP Perusahaan
-            </h3>
-            <p v-if="selectedNpwp" class="text-xs text-slate-500 mt-0.5">
-              {{ selectedNpwp.nomor_npwp }}
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <div v-if="selectedNpwp" class="w-full h-[60vh]">
-        <div
-          class="bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full"
-        >
-          <div
-            class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center"
-          >
-            <div class="text-xs font-bold text-slate-700 dark:text-slate-200">
-              Preview Dokumen NPWP
-            </div>
-            <a
-              v-if="selectedNpwp.npwp_perusahaan_url"
-              :href="selectedNpwp.npwp_perusahaan_url"
-              target="_blank"
-              class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 hover:bg-blue-100 transition-colors"
-            >
-              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-            </a>
-          </div>
-          <div class="flex-1 relative">
-            <iframe
-              v-if="selectedNpwp.npwp_perusahaan_url"
-              :key="selectedNpwp.id_npwp_perusahaan"
-              :src="getPreviewUrl(selectedNpwp.npwp_perusahaan_url)"
-              class="w-full h-full absolute inset-0 border-none"
-            ></iframe>
-            <div
-              v-else
-              class="w-full h-full flex flex-col items-center justify-center text-slate-400"
-            >
-              <i class="fas fa-file-pdf text-4xl mb-4 opacity-20"></i>
-              <p class="text-sm">Dokumen tidak tersedia</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </BaseModal>
-
-    <!-- PKP Modal -->
-    <BaseModal
-      :show="showPkpModal"
-      @close="showPkpModal = false"
-      maxWidth="5xl"
-    >
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center"
-          >
-            <i class="fas fa-stamp"></i>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-              Dokumen PKP
-            </h3>
-            <p v-if="selectedPkp" class="text-xs text-slate-500 mt-0.5">
-              {{ selectedPkp.nomor_pkp }}
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <div v-if="selectedPkp" class="w-full h-[60vh]">
-        <div
-          class="bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full"
-        >
-          <div
-            class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center"
-          >
-            <div class="text-xs font-bold text-slate-700 dark:text-slate-200">
-              Preview Dokumen PKP
-            </div>
-            <a
-              v-if="selectedPkp.url_pkp"
-              :href="selectedPkp.url_pkp"
-              target="_blank"
-              class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 hover:bg-orange-100 transition-colors"
-            >
-              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-            </a>
-          </div>
-          <div class="flex-1 relative">
-            <iframe
-              v-if="selectedPkp.url_pkp"
-              :key="selectedPkp.id_pkp"
-              :src="getPreviewUrl(selectedPkp.url_pkp)"
-              class="w-full h-full absolute inset-0 border-none"
-            ></iframe>
-            <div
-              v-else
-              class="w-full h-full flex flex-col items-center justify-center text-slate-400"
-            >
-              <i class="fas fa-file-pdf text-4xl mb-4 opacity-20"></i>
-              <p class="text-sm">Dokumen tidak tersedia</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </BaseModal>
-
-    <!-- KSWP Modal -->
-    <BaseModal
-      :show="showKswpModal"
-      @close="showKswpModal = false"
-      maxWidth="5xl"
-    >
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"
-          >
-            <i class="fas fa-check-double"></i>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-              Dokumen KSWP
-            </h3>
-            <p v-if="selectedKswp" class="text-xs text-slate-500 mt-0.5">
-              {{ selectedKswp.nama_wp }}
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <div v-if="selectedKswp" class="w-full h-[60vh]">
-        <div
-          class="bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full"
-        >
-          <div
-            class="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center"
-          >
-            <div class="text-xs font-bold text-slate-700 dark:text-slate-200">
-              Preview Dokumen KSWP
-            </div>
-            <a
-              v-if="selectedKswp.kswp_url"
-              :href="selectedKswp.kswp_url"
-              target="_blank"
-              class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 hover:bg-emerald-100 transition-colors"
-            >
-              <i class="fas fa-external-link-alt mr-1"></i> Buka Tab Baru
-            </a>
-          </div>
-          <div class="flex-1 relative">
-            <iframe
-              v-if="selectedKswp.kswp_url"
-              :key="selectedKswp.id_kswp"
-              :src="getPreviewUrl(selectedKswp.kswp_url)"
-              class="w-full h-full absolute inset-0 border-none"
-            ></iframe>
-            <div
-              v-else
-              class="w-full h-full flex flex-col items-center justify-center text-slate-400"
-            >
-              <i class="fas fa-file-pdf text-4xl mb-4 opacity-20"></i>
-              <p class="text-sm">Dokumen tidak tersedia</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </BaseModal>
-
     <!-- Edit Contact & Kop Modal -->
     <BaseModal
       :show="showContactModal"
@@ -2519,13 +2156,26 @@
 
     <!-- Tax Document Upload Modals -->
     <CompanyTaxDocumentModal
+      ref="npwpModalRef"
       :show="showNpwpUploadModal"
-      @close="showNpwpUploadModal = false"
+      @close="
+        showNpwpUploadModal = false;
+        showNpwpValidation = false;
+        selectedNpwp = null;
+      "
       documentType="npwp"
       :companyName="company?.nama_perusahaan"
-      :isEditMode="false"
-      @save="saveNpwpDocument"
+      :isEditMode="!!selectedNpwp"
+      :existingFileUrl="selectedNpwp?.npwp_perusahaan_url"
       @aiScanComplete="handleNpwpAIScan"
+      @fileSelected="
+        () => {
+          console.log('[NPWP] File selected, enabling validation');
+          showNpwpValidation = true;
+        }
+      "
+      :showValidation="showNpwpValidation"
+      :isAllValidated="isAllNpwpValidated"
     >
       <template #form-fields="{ disabled }">
         <div class="space-y-3">
@@ -2581,9 +2231,9 @@
         </div>
       </template>
 
-      <!-- Footer Actions -->
-      <template #footer-actions>
-        <div class="flex items-center justify-end gap-2">
+      <!-- Validate All Button in Header -->
+      <template #validate-all-button>
+        <div class="flex items-center gap-2">
           <span
             v-if="showNpwpValidation && !isAllNpwpValidated"
             class="text-[10px] text-orange-500 font-medium animate-pulse"
@@ -2593,25 +2243,75 @@
           </span>
 
           <button
-            v-if="showNpwpValidation && !isAllNpwpValidated"
+            v-if="showNpwpValidation"
             @click="validateAllNpwpFields"
-            class="px-2 py-1.5 text-xs font-bold text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 rounded-lg transition-colors flex items-center gap-1 border border-green-200 dark:border-green-800"
-            title="Ceklis (Validasi) Semua Input"
+            class="px-2 py-1 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 border"
+            :class="
+              isAllNpwpValidated
+                ? 'text-white bg-green-500 border-green-600 hover:bg-green-600'
+                : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+            "
+            title="Validasi Semua Input Sekaligus"
           >
-            <i class="fas fa-check-double"></i> Ceklis Semua
+            <i
+              class="fas"
+              :class="isAllNpwpValidated ? 'fa-check' : 'fa-check-double'"
+            ></i>
+            {{ isAllNpwpValidated ? "Verified" : "All" }}
+          </button>
+        </div>
+      </template>
+
+      <!-- Custom Footer -->
+      <template #footer-actions>
+        <div class="flex items-center justify-end gap-3 w-full">
+          <button
+            @click="
+              showNpwpUploadModal = false;
+              showNpwpValidation = false;
+            "
+            type="button"
+            class="px-5 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            @click="saveNpwpDocument"
+            :disabled="
+              savingNpwp || (showNpwpValidation && !isAllNpwpValidated)
+            "
+            type="button"
+            class="px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500"
+          >
+            <i v-if="savingNpwp" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ savingNpwp ? "Menyimpan..." : "Simpan Dokumen" }}
           </button>
         </div>
       </template>
     </CompanyTaxDocumentModal>
 
     <CompanyTaxDocumentModal
+      ref="sptModalRef"
       :show="showSptUploadModal"
-      @close="showSptUploadModal = false"
+      @close="
+        showSptUploadModal = false;
+        showSptValidation = false;
+        selectedSpt = null;
+      "
       documentType="spt"
       :companyName="company?.nama_perusahaan"
-      :isEditMode="false"
-      @save="saveSptDocument"
+      :isEditMode="!!selectedSpt"
+      :existingFileUrl="selectedSpt?.spt_url"
       @aiScanComplete="handleSptAIScan"
+      @fileSelected="
+        () => {
+          console.log('[SPT] File selected, enabling validation');
+          showSptValidation = true;
+        }
+      "
+      :showValidation="showSptValidation"
+      :isAllValidated="isAllSptValidated"
     >
       <template #form-fields="{ disabled }">
         <div class="space-y-3">
@@ -2621,6 +2321,9 @@
               label="Tahun Pajak"
               placeholder="2023"
               :disabled="disabled"
+              :showValidation="showSptValidation"
+              :locked="sptFieldLocks.tahun_pajak"
+              @update:locked="(val) => (sptFieldLocks.tahun_pajak = val)"
               required
             />
             <FormInput
@@ -2628,6 +2331,9 @@
               label="Masa Pajak"
               placeholder="Januari-Desember"
               :disabled="disabled"
+              :showValidation="showSptValidation"
+              :locked="sptFieldLocks.masa_pajak"
+              @update:locked="(val) => (sptFieldLocks.masa_pajak = val)"
             />
           </div>
           <FormInput
@@ -2635,6 +2341,9 @@
             label="Jenis SPT"
             placeholder="SPT Tahunan PPh Badan"
             :disabled="disabled"
+            :showValidation="showSptValidation"
+            :locked="sptFieldLocks.jenis_spt"
+            @update:locked="(val) => (sptFieldLocks.jenis_spt = val)"
           />
           <div class="grid grid-cols-2 gap-3">
             <FormInput
@@ -2643,6 +2352,9 @@
               placeholder="0"
               type="number"
               :disabled="disabled"
+              :showValidation="showSptValidation"
+              :locked="sptFieldLocks.pembetulan_ke"
+              @update:locked="(val) => (sptFieldLocks.pembetulan_ke = val)"
             />
             <FormInput
               v-model="sptUploadFormData.nominal"
@@ -2650,6 +2362,9 @@
               placeholder="0"
               type="number"
               :disabled="disabled"
+              :showValidation="showSptValidation"
+              :locked="sptFieldLocks.nominal"
+              @update:locked="(val) => (sptFieldLocks.nominal = val)"
             />
           </div>
           <FormInput
@@ -2657,28 +2372,43 @@
             label="Tanggal Penyampaian"
             type="date"
             :disabled="disabled"
+            :showValidation="showSptValidation"
+            :locked="sptFieldLocks.tanggal_penyampaian"
+            @update:locked="(val) => (sptFieldLocks.tanggal_penyampaian = val)"
           />
           <FormInput
             v-model="sptUploadFormData.nomor_tanda_terima"
             label="Nomor Tanda Terima"
             placeholder="NTTE-..."
             :disabled="disabled"
+            :showValidation="showSptValidation"
+            :locked="sptFieldLocks.nomor_tanda_terima"
+            @update:locked="(val) => (sptFieldLocks.nomor_tanda_terima = val)"
           />
           <FormInput
             v-model="sptUploadFormData.nama_wp"
             label="Nama Wajib Pajak"
             :disabled="disabled"
+            :showValidation="showSptValidation"
+            :locked="sptFieldLocks.nama_wp"
+            @update:locked="(val) => (sptFieldLocks.nama_wp = val)"
           />
           <div class="grid grid-cols-2 gap-3">
             <FormInput
               v-model="sptUploadFormData.npwp"
               label="NPWP"
               :disabled="disabled"
+              :showValidation="showSptValidation"
+              :locked="sptFieldLocks.npwp"
+              @update:locked="(val) => (sptFieldLocks.npwp = val)"
             />
             <FormInput
               v-model="sptUploadFormData.nitku"
               label="NITKU"
               :disabled="disabled"
+              :showValidation="showSptValidation"
+              :locked="sptFieldLocks.nitku"
+              @update:locked="(val) => (sptFieldLocks.nitku = val)"
             />
           </div>
           <FormInput
@@ -2686,19 +2416,96 @@
             label="Status SPT"
             placeholder="Normal"
             :disabled="disabled"
+            :showValidation="showSptValidation"
+            :locked="sptFieldLocks.status_spt"
+            @update:locked="(val) => (sptFieldLocks.status_spt = val)"
           />
+        </div>
+      </template>
+
+      <!-- Validate All Button in Header -->
+      <template #validate-all-button>
+        <div class="flex items-center gap-2">
+          <span
+            v-if="showSptValidation && !isAllSptValidated"
+            class="text-[10px] text-orange-500 font-medium animate-pulse"
+          >
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            Ceklis semua data!
+          </span>
+
+          <button
+            v-if="showSptValidation"
+            @click="validateAllSptFields"
+            class="px-2 py-1 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 border"
+            :class="
+              isAllSptValidated
+                ? 'text-white bg-green-500 border-green-600 hover:bg-green-600'
+                : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+            "
+            title="Validasi Semua Input Sekaligus"
+          >
+            <i
+              class="fas"
+              :class="isAllSptValidated ? 'fa-check' : 'fa-check-double'"
+            ></i>
+            {{ isAllSptValidated ? "Verified" : "All" }}
+          </button>
+        </div>
+      </template>
+
+      <!-- Footer Actions -->
+      <template #footer-actions>
+        <div class="flex items-center gap-2">
+          <button
+            @click="
+              showSptUploadModal = false;
+              showSptValidation = false;
+            "
+            class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            Batal
+          </button>
+
+          <button
+            @click="saveSptDocument"
+            :disabled="savingSpt || (showSptValidation && !isAllSptValidated)"
+            class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-400"
+            :title="
+              showSptValidation && !isAllSptValidated
+                ? 'Validasi semua kolom terlebih dahulu'
+                : 'Simpan Dokumen'
+            "
+          >
+            <i v-if="savingSpt" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ savingSpt ? "Menyimpan..." : "Simpan" }}
+          </button>
         </div>
       </template>
     </CompanyTaxDocumentModal>
 
     <CompanyTaxDocumentModal
+      ref="pkpModalRef"
       :show="showPkpUploadModal"
-      @close="showPkpUploadModal = false"
+      @close="
+        showPkpUploadModal = false;
+        showPkpValidation = false;
+        selectedPkp = null;
+      "
       documentType="pkp"
       :companyName="company?.nama_perusahaan"
-      :isEditMode="false"
-      @save="savePkpDocument"
+      :isEditMode="!!selectedPkp"
+      :existingFileUrl="selectedPkp?.url_pkp"
       @aiScanComplete="handlePkpAIScan"
+      @fileSelected="
+        () => {
+          console.log('[PKP] File selected, enabling validation');
+          showPkpValidation = true;
+        }
+      "
+      :showValidation="showPkpValidation"
+      :isAllValidated="isAllPkpValidated"
     >
       <template #form-fields="{ disabled }">
         <div class="space-y-3">
@@ -2708,39 +2515,125 @@
             placeholder="Nomor pengukuhan"
             :disabled="disabled"
             required
+            :showValidation="showPkpValidation"
+            :locked="pkpFieldLocks.nomor_pkp"
+            @update:locked="(val) => (pkpFieldLocks.nomor_pkp = val)"
           />
           <FormInput
             v-model="pkpUploadFormData.tanggal_pengukuhan"
             label="Tanggal Pengukuhan"
             type="date"
             :disabled="disabled"
+            :showValidation="showPkpValidation"
+            :locked="pkpFieldLocks.tanggal_pengukuhan"
+            @update:locked="(val) => (pkpFieldLocks.tanggal_pengukuhan = val)"
           />
           <FormInput
             v-model="pkpUploadFormData.nama_pkp"
             label="Nama PKP"
             placeholder="Nama perusahaan"
             :disabled="disabled"
+            :showValidation="showPkpValidation"
+            :locked="pkpFieldLocks.nama_pkp"
+            @update:locked="(val) => (pkpFieldLocks.nama_pkp = val)"
           />
           <FormInput
-            v-model="pkpUploadFormData.alamat"
+            v-model="pkpUploadFormData.alamat_pkp"
             label="Alamat"
             type="textarea"
             :rows="3"
             placeholder="Alamat lengkap"
             :disabled="disabled"
+            :showValidation="showPkpValidation"
+            :locked="pkpFieldLocks.alamat_pkp"
+            @update:locked="(val) => (pkpFieldLocks.alamat_pkp = val)"
           />
+        </div>
+      </template>
+
+      <!-- Validate All Button in Header -->
+      <template #validate-all-button>
+        <div class="flex items-center gap-2">
+          <span
+            v-if="showPkpValidation && !isAllPkpValidated"
+            class="text-[10px] text-orange-500 font-medium animate-pulse"
+          >
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            Ceklis semua data!
+          </span>
+
+          <button
+            v-if="showPkpValidation"
+            @click="validateAllPkpFields"
+            class="px-2 py-1 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 border"
+            :class="
+              isAllPkpValidated
+                ? 'text-white bg-green-500 border-green-600 hover:bg-green-600'
+                : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+            "
+            title="Validasi Semua Input Sekaligus"
+          >
+            <i
+              class="fas"
+              :class="isAllPkpValidated ? 'fa-check' : 'fa-check-double'"
+            ></i>
+            {{ isAllPkpValidated ? "Verified" : "All" }}
+          </button>
+        </div>
+      </template>
+
+      <!-- Footer Actions -->
+      <template #footer-actions>
+        <div class="flex items-center gap-2">
+          <button
+            @click="
+              showPkpUploadModal = false;
+              showPkpValidation = false;
+            "
+            class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            Batal
+          </button>
+
+          <button
+            @click="savePkpDocument"
+            :disabled="savingPkp || (showPkpValidation && !isAllPkpValidated)"
+            class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-400"
+            :title="
+              showPkpValidation && !isAllPkpValidated
+                ? 'Validasi semua kolom terlebih dahulu'
+                : 'Simpan Dokumen'
+            "
+          >
+            <i v-if="savingPkp" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ savingPkp ? "Menyimpan..." : "Simpan" }}
+          </button>
         </div>
       </template>
     </CompanyTaxDocumentModal>
 
     <CompanyTaxDocumentModal
+      ref="kswpModalRef"
       :show="showKswpUploadModal"
-      @close="showKswpUploadModal = false"
+      @close="
+        showKswpUploadModal = false;
+        showKswpValidation = false;
+        selectedKswp = null;
+      "
       documentType="kswp"
       :companyName="company?.nama_perusahaan"
-      :isEditMode="false"
-      @save="saveKswpDocument"
+      :isEditMode="!!selectedKswp"
+      :existingFileUrl="selectedKswp?.kswp_url"
       @aiScanComplete="handleKswpAIScan"
+      @fileSelected="
+        () => {
+          console.log('[KSWP] File selected, enabling validation');
+          showKswpValidation = true;
+        }
+      "
+      :showValidation="showKswpValidation"
+      :isAllValidated="isAllKswpValidated"
     >
       <template #form-fields="{ disabled }">
         <div class="space-y-3">
@@ -2750,31 +2643,109 @@
             placeholder="Nama perusahaan"
             :disabled="disabled"
             required
+            :showValidation="showKswpValidation"
+            :locked="kswpFieldLocks.nama_wp"
+            @update:locked="(val) => (kswpFieldLocks.nama_wp = val)"
           />
           <FormInput
             v-model="kswpUploadFormData.npwp"
             label="NPWP"
             placeholder="XX.XXX.XXX.X-XXX.XXX"
             :disabled="disabled"
+            :showValidation="showKswpValidation"
+            :locked="kswpFieldLocks.npwp"
+            @update:locked="(val) => (kswpFieldLocks.npwp = val)"
           />
           <FormInput
             v-model="kswpUploadFormData.tahun_kswp"
             label="Tahun KSWP"
             placeholder="2023"
             :disabled="disabled"
+            :showValidation="showKswpValidation"
+            :locked="kswpFieldLocks.tahun_kswp"
+            @update:locked="(val) => (kswpFieldLocks.tahun_kswp = val)"
           />
           <FormInput
             v-model="kswpUploadFormData.status_kswp"
             label="Status KSWP"
             placeholder="Patuh / Tidak Patuh"
             :disabled="disabled"
+            :showValidation="showKswpValidation"
+            :locked="kswpFieldLocks.status_kswp"
+            @update:locked="(val) => (kswpFieldLocks.status_kswp = val)"
           />
           <FormInput
             v-model="kswpUploadFormData.tanggal_terbit"
             label="Tanggal Terbit"
             type="date"
             :disabled="disabled"
+            :showValidation="showKswpValidation"
+            :locked="kswpFieldLocks.tanggal_terbit"
+            @update:locked="(val) => (kswpFieldLocks.tanggal_terbit = val)"
           />
+        </div>
+      </template>
+
+      <!-- Validate All Button in Header -->
+      <template #validate-all-button>
+        <div class="flex items-center gap-2">
+          <span
+            v-if="showKswpValidation && !isAllKswpValidated"
+            class="text-[10px] text-orange-500 font-medium animate-pulse"
+          >
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            Ceklis semua data!
+          </span>
+
+          <button
+            v-if="showKswpValidation"
+            @click="validateAllKswpFields"
+            class="px-2 py-1 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 border"
+            :class="
+              isAllKswpValidated
+                ? 'text-white bg-green-500 border-green-600 hover:bg-green-600'
+                : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+            "
+            title="Validasi Semua Input Sekaligus"
+          >
+            <i
+              class="fas"
+              :class="isAllKswpValidated ? 'fa-check' : 'fa-check-double'"
+            ></i>
+            {{ isAllKswpValidated ? "Verified" : "All" }}
+          </button>
+        </div>
+      </template>
+
+      <!-- Footer Actions -->
+      <template #footer-actions>
+        <div class="flex items-center gap-2">
+          <button
+            @click="
+              showKswpUploadModal = false;
+              showKswpValidation = false;
+            "
+            class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            Batal
+          </button>
+
+          <button
+            @click="saveKswpDocument"
+            :disabled="
+              savingKswp || (showKswpValidation && !isAllKswpValidated)
+            "
+            class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-400"
+            :title="
+              showKswpValidation && !isAllKswpValidated
+                ? 'Validasi semua kolom terlebih dahulu'
+                : 'Simpan Dokumen'
+            "
+          >
+            <i v-if="savingKswp" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-save"></i>
+            {{ savingKswp ? "Menyimpan..." : "Simpan" }}
+          </button>
         </div>
       </template>
     </CompanyTaxDocumentModal>
@@ -3204,7 +3175,7 @@ const npwpFieldLocks = ref({
   kpp: false,
   tanggal_terdaftar: false,
 });
-const showNpwpValidation = ref(true); // Changed to true for immediate testing
+const showNpwpValidation = ref(false); // Show validation after PDF upload
 const npwpUploadFormData = ref({
   nomor_npwp: "",
   nama_wp: "",
@@ -3213,6 +3184,15 @@ const npwpUploadFormData = ref({
   tanggal_terdaftar: "",
 });
 const showNpwpUploadModal = ref(false);
+const showSptUploadModal = ref(false);
+const showPkpUploadModal = ref(false);
+const showKswpUploadModal = ref(false);
+
+// Modal refs to access selectedFile
+const npwpModalRef = ref(null);
+const sptModalRef = ref(null);
+const pkpModalRef = ref(null);
+const kswpModalRef = ref(null);
 
 // SPT Field Locks & Validation
 const sptFieldLocks = ref({
@@ -3357,9 +3337,6 @@ const handleNpwpAIScan = (data) => {
     npwpFieldLocks.value[key] = false;
   });
 
-  // Enable validation buttons
-  showNpwpValidation.value = true;
-
   const filledCount = Object.keys(data).filter(
     (k) => data[k] && data[k] !== ""
   ).length;
@@ -3384,7 +3361,6 @@ const handleSptAIScan = (data) => {
     sptFieldLocks.value[key] = false;
   });
 
-  showSptValidation.value = true;
   const filledCount = Object.keys(data).filter(
     (k) => data[k] && data[k] !== ""
   ).length;
@@ -3409,7 +3385,6 @@ const handlePkpAIScan = (data) => {
     pkpFieldLocks.value[key] = false;
   });
 
-  showPkpValidation.value = true;
   const filledCount = Object.keys(data).filter(
     (k) => data[k] && data[k] !== ""
   ).length;
@@ -3434,7 +3409,6 @@ const handleKswpAIScan = (data) => {
     kswpFieldLocks.value[key] = false;
   });
 
-  showKswpValidation.value = true;
   const filledCount = Object.keys(data).filter(
     (k) => data[k] && data[k] !== ""
   ).length;
@@ -3495,6 +3469,281 @@ const isAllKswpValidated = computed(() => {
     (key) => kswpFieldLocks.value[key]
   );
 });
+
+// NPWP save state
+const savingNpwp = ref(false);
+const savingSpt = ref(false);
+const savingPkp = ref(false);
+const savingKswp = ref(false);
+
+// Save NPWP Document
+const saveNpwpDocument = async () => {
+  if (savingNpwp.value) return; // Prevent double-click
+
+  try {
+    // Get selected file from modal
+    const selectedFile = npwpModalRef.value?.selectedFile;
+    if (!selectedFile) {
+      toast.error(
+        "Tidak ada file yang dipilih",
+        "Silakan pilih file PDF terlebih dahulu"
+      );
+      return;
+    }
+
+    savingNpwp.value = true;
+
+    // Show persistent toast (duration 0 means it stays until manually hidden)
+    const uploadToastId = toast.info(
+      "Mengunggah dokumen ke Google Drive...",
+      0
+    );
+
+    const formData = new FormData();
+
+    // Append PDF file
+    formData.append("npwp_perusahaan", selectedFile);
+
+    // Append form data
+    Object.keys(npwpUploadFormData.value).forEach((key) => {
+      if (npwpUploadFormData.value[key]) {
+        formData.append(key, npwpUploadFormData.value[key]);
+      }
+    });
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    // Hide upload toast
+    toast.hideToast(uploadToastId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Gagal menyimpan dokumen");
+    }
+
+    // Show success toast (auto-hide after 3s)
+    toast.success("Berhasil!", "Dokumen NPWP berhasil disimpan");
+
+    // Reset & close
+    showNpwpUploadModal.value = false;
+    showNpwpValidation.value = false;
+    Object.keys(npwpFieldLocks.value).forEach((key) => {
+      npwpFieldLocks.value[key] = false;
+    });
+    npwpUploadFormData.value = {
+      nomor_npwp: "",
+      nama_wp: "",
+      alamat: "",
+      kpp: "",
+      tanggal_terdaftar: "",
+    };
+  } catch (error) {
+    console.error("Save NPWP Error:", error);
+    toast.error(
+      "Gagal Menyimpan",
+      error.message || "Terjadi kesalahan saat menyimpan"
+    );
+  } finally {
+    savingNpwp.value = false;
+  }
+};
+
+// Save SPT Document
+const saveSptDocument = async () => {
+  if (savingSpt.value) return;
+
+  try {
+    const selectedFile = sptModalRef.value?.selectedFile;
+    if (!selectedFile) {
+      toast.error(
+        "Tidak ada file yang dipilih",
+        "Silakan pilih file PDF terlebih dahulu"
+      );
+      return;
+    }
+
+    savingSpt.value = true;
+    const uploadToastId = toast.info("Mengunggah dokumen SPT...", 0);
+
+    const formData = new FormData();
+
+    // Append PDF file with correct field name for backend
+    formData.append("spt_perusahaan", selectedFile);
+
+    // Append form data
+    Object.keys(sptUploadFormData.value).forEach((key) => {
+      if (
+        sptUploadFormData.value[key] !== null &&
+        sptUploadFormData.value[key] !== undefined
+      ) {
+        formData.append(key, sptUploadFormData.value[key]);
+      }
+    });
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    toast.hideToast(uploadToastId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Gagal menyimpan dokumen");
+    }
+
+    toast.success("Berhasil!", "Dokumen SPT berhasil disimpan");
+
+    showSptUploadModal.value = false;
+    showSptValidation.value = false;
+    Object.keys(sptFieldLocks.value).forEach(
+      (key) => (sptFieldLocks.value[key] = false)
+    );
+    sptUploadFormData.value = {
+      tahun_pajak: "",
+      masa_pajak: "",
+      jenis_spt: "",
+      pembetulan_ke: "0",
+      nominal: 0,
+      tanggal_penyampaian: "",
+      nomor_tanda_terima: "",
+      nama_wp: "",
+      npwp: "",
+      nitku: "",
+      status_spt: "Normal",
+    };
+  } catch (error) {
+    console.error("Save SPT Error:", error);
+    toast.error("Gagal Menyimpan", error.message || "Terjadi kesalahan");
+  } finally {
+    savingSpt.value = false;
+  }
+};
+
+// Save PKP Document
+const savePkpDocument = async () => {
+  if (savingPkp.value) return;
+
+  try {
+    const selectedFile = pkpModalRef.value?.selectedFile;
+    if (!selectedFile) {
+      toast.error(
+        "Tidak ada file yang dipilih",
+        "Silakan pilih file PDF terlebih dahulu"
+      );
+      return;
+    }
+
+    savingPkp.value = true;
+    const uploadToastId = toast.info("Mengunggah dokumen PKP...", 0);
+
+    const formData = new FormData();
+    formData.append("pkp_perusahaan", selectedFile);
+
+    Object.keys(pkpUploadFormData.value).forEach((key) => {
+      if (pkpUploadFormData.value[key]) {
+        formData.append(key, pkpUploadFormData.value[key]);
+      }
+    });
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    toast.hideToast(uploadToastId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Gagal menyimpan dokumen");
+    }
+
+    toast.success("Berhasil!", "Dokumen PKP berhasil disimpan");
+
+    showPkpUploadModal.value = false;
+    showPkpValidation.value = false;
+    Object.keys(pkpFieldLocks.value).forEach(
+      (key) => (pkpFieldLocks.value[key] = false)
+    );
+    pkpUploadFormData.value = {
+      nomor_pkp: "",
+      tanggal_pengukuhan: "",
+      nama_pkp: "",
+      alamat_pkp: "",
+    };
+  } catch (error) {
+    console.error("Save PKP Error:", error);
+    toast.error("Gagal Menyimpan", error.message || "Terjadi kesalahan");
+  } finally {
+    savingPkp.value = false;
+  }
+};
+
+// Save KSWP Document
+const saveKswpDocument = async () => {
+  if (savingKswp.value) return;
+
+  try {
+    const selectedFile = kswpModalRef.value?.selectedFile;
+    if (!selectedFile) {
+      toast.error(
+        "Tidak ada file yang dipilih",
+        "Silakan pilih file PDF terlebih dahulu"
+      );
+      return;
+    }
+
+    savingKswp.value = true;
+    const uploadToastId = toast.info("Mengunggah dokumen KSWP...", 0);
+
+    const formData = new FormData();
+    formData.append("kswp_perusahaan", selectedFile);
+
+    Object.keys(kswpUploadFormData.value).forEach((key) => {
+      if (kswpUploadFormData.value[key]) {
+        formData.append(key, kswpUploadFormData.value[key]);
+      }
+    });
+
+    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    toast.hideToast(uploadToastId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Gagal menyimpan dokumen");
+    }
+
+    toast.success("Berhasil!", "Dokumen KSWP berhasil disimpan");
+
+    showKswpUploadModal.value = false;
+    showKswpValidation.value = false;
+    Object.keys(kswpFieldLocks.value).forEach(
+      (key) => (kswpFieldLocks.value[key] = false)
+    );
+    kswpUploadFormData.value = {
+      nama_wp: "",
+      npwp: "",
+      tahun_kswp: "",
+      status_kswp: "",
+      tanggal_terbit: "",
+    };
+  } catch (error) {
+    console.error("Save KSWP Error:", error);
+    toast.error(
+      "Gagal Menyimpan",
+      error.message || "Terjadi kesalahan saat menyimpan"
+    );
+  } finally {
+    savingKswp.value = false;
+  }
+};
 
 // Form data for Daftar Pengalaman modal
 const daftarPengalamanFormData = ref({
@@ -4898,25 +5147,62 @@ const openAddModal = (tab) => {
 // Open SPT Modal
 const openSptModal = (item) => {
   selectedSpt.value = item;
-  showSptModal.value = true;
+  // Populate form data
+  sptUploadFormData.value = {
+    tahun_pajak: item.tahun_pajak || "",
+    masa_pajak: item.masa_pajak || "",
+    jenis_spt: item.jenis_spt || "",
+    nominal: item.nominal || 0,
+    tanggal_penyampaian: item.tanggal_penyampaian || "",
+    nomor_tanda_terima: item.nomor_tanda_terima || "",
+    nama_wp: item.nama_wp || "",
+    npwp: item.npwp || "",
+    nitku: item.nitku || "",
+    status_spt: item.status_spt || "Normal",
+    pembetulan_ke: item.pembetulan_ke || "0",
+  };
+  showSptUploadModal.value = true;
 };
 
 // Open NPWP Modal
 const openNpwpModal = (item) => {
   selectedNpwp.value = item;
-  showNpwpModal.value = true;
+  // Populate form data
+  npwpUploadFormData.value = {
+    nomor_npwp: item.nomor_npwp || "",
+    nama_wp: item.nama_wajib_pajak || "",
+    alamat: item.alamat_npwp || "",
+    kpp: item.kpp || "",
+    tanggal_terdaftar: item.tanggal_terdaftar || "",
+  };
+  showNpwpUploadModal.value = true;
 };
 
 // Open PKP Modal
 const openPkpModal = (item) => {
   selectedPkp.value = item;
-  showPkpModal.value = true;
+  // Populate form data
+  pkpUploadFormData.value = {
+    nomor_pkp: item.nomor_pkp || "",
+    tanggal_pengukuhan: item.tanggal_pengukuhan || "",
+    nama_pkp: item.nama_pkp || "", // Assuming this field exists or needs mapping
+    alamat_pkp: item.alamat_pkp || "",
+  };
+  showPkpUploadModal.value = true;
 };
 
 // Open KSWP Modal
 const openKswpModal = (item) => {
   selectedKswp.value = item;
-  showKswpModal.value = true;
+  // Populate form data
+  kswpUploadFormData.value = {
+    nama_wp: item.nama_wp || "",
+    npwp: item.npwp || "",
+    tahun_kswp: item.tahun_kswp || "",
+    status_kswp: item.status_kswp || "",
+    tanggal_terbit: item.tanggal_terbit || "",
+  };
+  showKswpUploadModal.value = true;
 };
 
 // Unified Handler for CompanyTaxTab
@@ -5566,229 +5852,12 @@ const clearContactData = async () => {
 // AI Scan Handlers are defined earlier in the file (around line 3251-3407)
 // with full validation, field locking, and toast notifications
 
-// Save Tax Document Handlers
-const saveNpwpDocument = async (file) => {
-  if (!file) {
-    toast.error("File tidak tersedia");
-    return;
-  }
+// Save Tax Document Handlers are defined earlier (around line 3640)
 
-  try {
-    const formData = new FormData();
-    formData.append("npwp_perusahaan", file);
-    formData.append("nomor_npwp", npwpUploadFormData.value.nomor_npwp || "");
-    formData.append("nama_wp", npwpUploadFormData.value.nama_wp || "");
-    formData.append("alamat_npwp", npwpUploadFormData.value.alamat || "");
-    formData.append("kpp", npwpUploadFormData.value.kpp || "");
-    formData.append(
-      "tanggal_terdaftar",
-      npwpUploadFormData.value.tanggal_terdaftar || ""
-    );
-    formData.append("nama_perusahaan", company.value.nama_perusahaan);
-    formData.append("status", company.value.status || "Pusat");
-    formData.append("tahun_berdiri", company.value.tahun_berdiri || "");
-    formData.append("email", company.value.email || "");
-    formData.append("no_telp", company.value.no_telp || "");
-    formData.append("alamat", company.value.alamat || "");
+// AI Scan Handlers are defined earlier in the file (around line 3251-3407)
+// with full validation, field locking, and toast notifications
 
-    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
-      method: "PUT",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Gagal menyimpan NPWP");
-    }
-
-    toast.success("Dokumen NPWP berhasil disimpan!");
-    await fetchPajak();
-    await fetchCompanyDetail();
-    showNpwpUploadModal.value = false;
-    npwpUploadFormData.value = {
-      nomor_npwp: "",
-      nama_wp: "",
-      alamat: "",
-      kpp: "",
-      tanggal_terdaftar: "",
-    };
-  } catch (error) {
-    console.error("❌ Error saving NPWP:", error);
-    toast.error("Gagal menyimpan NPWP: " + error.message);
-  }
-};
-
-const saveSptDocument = async (file) => {
-  if (!file) {
-    toast.error("File tidak tersedia");
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("spt_perusahaan", file);
-    formData.append("tahun_pajak", sptUploadFormData.value.tahun_pajak || "");
-    formData.append("masa_pajak", sptUploadFormData.value.masa_pajak || "");
-    formData.append("jenis_spt", sptUploadFormData.value.jenis_spt || "");
-    formData.append(
-      "pembetulan_ke",
-      sptUploadFormData.value.pembetulan_ke || "0"
-    );
-    formData.append("nominal", sptUploadFormData.value.nominal || "0");
-    formData.append(
-      "tanggal_penyampaian",
-      sptUploadFormData.value.tanggal_penyampaian || ""
-    );
-    formData.append(
-      "nomor_tanda_terima",
-      sptUploadFormData.value.nomor_tanda_terima || ""
-    );
-    formData.append("nama_wp_spt", sptUploadFormData.value.nama_wp || "");
-    formData.append("npwp_spt", sptUploadFormData.value.npwp || "");
-    formData.append("nitku", sptUploadFormData.value.nitku || "");
-    formData.append(
-      "status_spt",
-      sptUploadFormData.value.status_spt || "Normal"
-    );
-    formData.append("nama_perusahaan", company.value.nama_perusahaan);
-    formData.append("status", company.value.status || "Pusat");
-    formData.append("tahun_berdiri", company.value.tahun_berdiri || "");
-    formData.append("email", company.value.email || "");
-    formData.append("no_telp", company.value.no_telp || "");
-    formData.append("alamat", company.value.alamat || "");
-
-    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
-      method: "PUT",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Gagal menyimpan SPT");
-    }
-
-    toast.success("Dokumen SPT berhasil disimpan!");
-    await fetchPajak();
-    await fetchCompanyDetail();
-    showSptUploadModal.value = false;
-    sptUploadFormData.value = {
-      tahun_pajak: "",
-      masa_pajak: "",
-      jenis_spt: "",
-      pembetulan_ke: "0",
-      nominal: 0,
-      tanggal_penyampaian: "",
-      nomor_tanda_terima: "",
-      nama_wp: "",
-      npwp: "",
-      nitku: "",
-      status_spt: "Normal",
-    };
-  } catch (error) {
-    console.error("❌ Error saving SPT:", error);
-    toast.error("Gagal menyimpan SPT: " + error.message);
-  }
-};
-
-const savePkpDocument = async (file) => {
-  if (!file) {
-    toast.error("File tidak tersedia");
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("sppkp_perusahaan", file);
-    formData.append("nomor_pkp", pkpUploadFormData.value.nomor_pkp || "");
-    formData.append(
-      "tanggal_pengukuhan",
-      pkpUploadFormData.value.tanggal_pengukuhan || ""
-    );
-    formData.append("nama_pkp", pkpUploadFormData.value.nama_pkp || "");
-    formData.append("alamat_pkp", pkpUploadFormData.value.alamat || "");
-    formData.append("nama_perusahaan", company.value.nama_perusahaan);
-    formData.append("status", company.value.status || "Pusat");
-    formData.append("tahun_berdiri", company.value.tahun_berdiri || "");
-    formData.append("email", company.value.email || "");
-    formData.append("no_telp", company.value.no_telp || "");
-    formData.append("alamat", company.value.alamat || "");
-
-    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
-      method: "PUT",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Gagal menyimpan PKP");
-    }
-
-    toast.success("Dokumen PKP berhasil disimpan!");
-    await fetchPajak();
-    await fetchCompanyDetail();
-    showPkpUploadModal.value = false;
-    pkpUploadFormData.value = {
-      nomor_pkp: "",
-      tanggal_pengukuhan: "",
-      nama_pkp: "",
-      alamat: "",
-    };
-  } catch (error) {
-    console.error("❌ Error saving PKP:", error);
-    toast.error("Gagal menyimpan PKP: " + error.message);
-  }
-};
-
-const saveKswpDocument = async (file) => {
-  if (!file) {
-    toast.error("File tidak tersedia");
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("skt_perusahaan", file);
-    formData.append("nama_wp_kswp", kswpUploadFormData.value.nama_wp || "");
-    formData.append("npwp_kswp", kswpUploadFormData.value.npwp || "");
-    formData.append("tahun_kswp", kswpUploadFormData.value.tahun_kswp || "");
-    formData.append("status_kswp", kswpUploadFormData.value.status_kswp || "");
-    formData.append(
-      "tanggal_terbit_kswp",
-      kswpUploadFormData.value.tanggal_terbit || ""
-    );
-    formData.append("nama_perusahaan", company.value.nama_perusahaan);
-    formData.append("status", company.value.status || "Pusat");
-    formData.append("tahun_berdiri", company.value.tahun_berdiri || "");
-    formData.append("email", company.value.email || "");
-    formData.append("no_telp", company.value.no_telp || "");
-    formData.append("alamat", company.value.alamat || "");
-
-    const response = await fetch(`${apiBaseUrl}/companies/${companyId}`, {
-      method: "PUT",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Gagal menyimpan KSWP");
-    }
-
-    toast.success("Dokumen KSWP berhasil disimpan!");
-    await fetchPajak();
-    await fetchCompanyDetail();
-    showKswpUploadModal.value = false;
-    kswpUploadFormData.value = {
-      nama_wp: "",
-      npwp: "",
-      tahun_kswp: "",
-      status_kswp: "",
-      tanggal_terbit: "",
-    };
-  } catch (error) {
-    console.error("❌ Error saving KSWP:", error);
-    toast.error("Gagal menyimpan KSWP: " + error.message);
-  }
-};
+// Save Tax Document Handlers are defined earlier (around line 3518)
 
 // Navigate to personnel detail
 const navigateToPersonnel = (id) => {

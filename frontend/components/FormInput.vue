@@ -76,7 +76,7 @@
 
       <!-- Validation Lock Button (Right side) -->
       <button
-        v-if="showValidation && modelValue && modelValue !== ''"
+        v-if="showValidation"
         type="button"
         @click="toggleLock"
         class="w-7 h-7 flex items-center justify-center rounded-lg transition-all shrink-0 mt-0.5 border"

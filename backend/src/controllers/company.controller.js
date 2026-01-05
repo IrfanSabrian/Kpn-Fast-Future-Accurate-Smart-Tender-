@@ -787,10 +787,10 @@ async function uploadDocumentToDrive(
     kta: { index: "5", name: "Kartu Tanda Anggota" },
     sertifikat: { index: "6", name: "Sertifikat Standar" },
     // Index 7: Data Perpajakan (Combined folder for NPWP, SKT, SPPKP, SPT)
-    npwp: { index: "7", name: "NPWP" },
-    spt: { index: "7", name: "SPT Tahunan" },
-    pkp: { index: "7", name: "PKP" },
-    kswp: { index: "7", name: "KSWP" },
+    npwp: { index: "7", name: "Data Perpajakan", filePrefix: "NPWP" },
+    spt: { index: "7", name: "Data Perpajakan", filePrefix: "SPT Tahunan" },
+    pkp: { index: "7", name: "Data Perpajakan", filePrefix: "PKP" },
+    kswp: { index: "7", name: "Data Perpajakan", filePrefix: "KSWP" },
     pajak: { index: "7", name: "Data Perpajakan" },
     kontrak: { index: "8", name: "Kontrak Pengalaman" },
     cek: { index: "9", name: "Surat Referensi Bank" },
@@ -806,15 +806,8 @@ async function uploadDocumentToDrive(
   const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
   const subfolderName = `${companyIndex}.${config.index} ${config.name}`;
 
-  // Custom naming for Tax documents (since they share one folder but have different files)
-  // But wait, the current logic assumes 'documentType' maps 1:1 to folder AND filename prefix.
-  // For 'pajak', we might are getting specific subtypes (npwp, spt, etc)?
-  // If the input is just 'pajak', we use generic name?
-  // Let's stick to standard pattern first. If user uploads "pajak", it becomes "Data Perpajakan [Nama].pdf".
-  // Ideally, frontend sends specific types like 'npwp', 'spt'.
-  // However, request only asked to "add index 7 data pajak".
-
-  const fileName = `${config.name} ${namaPerusahaan}.pdf`;
+  const filePrefix = config.filePrefix || config.name;
+  const fileName = `${filePrefix} ${namaPerusahaan}.pdf`;
   const folderPath = [companyFolderName, subfolderName];
 
   // Read file as buffer
@@ -2213,14 +2206,15 @@ export const updateCompany = async (req, res) => {
     }
 
     // 4. Update Data in Sheets
-    const updateData = {
+    // 4. Update Data in Sheets
+    const updateDataRaw = {
       nama_perusahaan,
       no_telp,
       email,
       tahun_berdiri,
       status,
       alamat: req.body.alamat,
-      // Only include URLs if they changed (though putting them all is safe)
+      // URL variables are initialized with existing values, so they are safe
       logo_cloud: logoCloudUrl,
       logo_perusahaan: logoDriveUrl,
       kop_perusahaan: kopDriveUrl,
@@ -2233,7 +2227,17 @@ export const updateCompany = async (req, res) => {
       kontrak_url: kontrakUrl,
       cek_url: cekUrl,
       url_bpjs: bpjsUrl,
+      // Add missing tax URLs
+      npwp_perusahaan_url: npwpUrl,
+      spt_url: sptUrl,
+      url_pkp: pkpUrl,
+      kswp_url: kswpUrl,
     };
+
+    // Remove keys with undefined values to prevent overwriting existing data with blank/undefined
+    const updateData = Object.fromEntries(
+      Object.entries(updateDataRaw).filter(([_, v]) => v !== undefined)
+    );
 
     console.log("💾 Saving updates to database...");
     console.log("📊 Update data:", JSON.stringify(updateData, null, 2));

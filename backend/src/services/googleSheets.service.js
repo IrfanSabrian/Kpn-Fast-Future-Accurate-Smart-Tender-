@@ -22,41 +22,6 @@ class GoogleSheetsService {
     this.auth = null;
     this.sheets = null;
     this.initialized = false;
-
-    // Simple in-memory cache
-    this.cache = new Map();
-    this.cacheTTL = 30000; // 30 seconds cache
-  }
-
-  /**
-   * Get from cache or execute function
-   */
-  async getOrCache(key, fetchFn) {
-    const cached = this.cache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
-      console.log(`📦 Cache HIT: ${key}`);
-      return cached.data;
-    }
-
-    console.log(`🔄 Cache MISS: ${key}, fetching...`);
-    const data = await fetchFn();
-    this.cache.set(key, { data, timestamp: Date.now() });
-    return data;
-  }
-
-  /**
-   * Invalidate cache for a key or pattern
-   */
-  invalidateCache(pattern) {
-    if (pattern) {
-      for (const key of this.cache.keys()) {
-        if (key.includes(pattern)) {
-          this.cache.delete(key);
-        }
-      }
-    } else {
-      this.cache.clear();
-    }
   }
 
   /**
@@ -232,9 +197,6 @@ class GoogleSheetsService {
           values: [values],
         },
       });
-
-      // Invalidate cache
-      this.invalidateCache("db_profil_perusahaan");
 
       return {
         success: true,
@@ -635,9 +597,6 @@ class GoogleSheetsService {
           }
         }
       }
-
-      // Invalidate cache
-      this.invalidateCache("db_profil_perusahaan");
 
       return result;
     } catch (error) {
@@ -1623,39 +1582,35 @@ class GoogleSheetsService {
    * @returns {Array} List  of data objects
    */
   async getSheetData(sheetName) {
-    return this.getOrCache(`sheet:${sheetName}`, async () => {
-      await this.initialize();
+    await this.initialize();
 
-      try {
-        const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
-        const response = await this.sheets.spreadsheets.values.get({
-          spreadsheetId,
-          range: `${sheetName}!A1:Z1000`,
-        });
+    try {
+      const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${sheetName}!A1:Z1000`,
+      });
 
-        const rows = response.data.values;
-        if (!rows || rows.length < 2) {
-          return [];
-        }
-
-        const headers = rows[0];
-        const dataRows = rows
-          .slice(1)
-          .filter((row) => row && row.length > 0 && row[0]);
-
-        return dataRows.map((row) => {
-          const obj = {};
-          headers.forEach((header, index) => {
-            obj[header] = row[index] || "";
-          });
-          return obj;
-        });
-      } catch (error) {
-        throw new Error(
-          `Failed to get data from ${sheetName}: ${error.message}`
-        );
+      const rows = response.data.values;
+      if (!rows || rows.length < 2) {
+        return [];
       }
-    });
+
+      const headers = rows[0];
+      const dataRows = rows
+        .slice(1)
+        .filter((row) => row && row.length > 0 && row[0]);
+
+      return dataRows.map((row) => {
+        const obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || "";
+        });
+        return obj;
+      });
+    } catch (error) {
+      throw new Error(`Failed to get data from ${sheetName}: ${error.message}`);
+    }
   }
 
   /**
