@@ -219,193 +219,183 @@
       </main>
     </div>
 
-    <!-- Profile Modal (View Only) -->
+    <!-- UNIFIED PROFILE & SETTINGS MODAL -->
     <div
       v-if="showProfileModal"
       class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 flex items-center justify-center p-4 transition-all duration-300"
       @click="showProfileModal = false"
     >
+      <!-- Modal Container: Always 2-column wide layout (max-w-4xl) -->
       <div
-        class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full relative overflow-hidden group border border-slate-200 dark:border-slate-800"
+        class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl relative overflow-hidden group border border-slate-200 dark:border-slate-800 transition-all duration-300 flex flex-col lg:flex-row h-auto max-h-[90vh] lg:h-[580px] w-full max-w-lg lg:max-w-4xl"
         @click.stop
       >
-        <!-- Top Gradient Line -->
-        <div
-          class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500"
-        ></div>
-
-        <!-- CLOSE BUTTON -->
+        <!-- CLOSE BUTTON (Absolute Top Right) -->
         <button
           @click="showProfileModal = false"
-          class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-200 transition-colors z-10"
+          class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-600 dark:hover:text-slate-200 transition-colors z-50"
         >
           <i class="fas fa-times text-sm"></i>
         </button>
 
-        <div class="p-8 pb-6 text-center relative">
-          <!-- Profile Picture -->
+        <!-- LEFT COLUMN: User Profile -->
+        <div
+          class="relative flex-shrink-0 w-full lg:w-[320px] bg-white dark:bg-slate-900 z-10 flex flex-col h-auto lg:h-full border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800"
+        >
+          <!-- Top Gradient Line -->
           <div
-            class="w-24 h-24 rounded-full flex items-center justify-center p-1 mx-auto mb-4 shadow-lg ring-4"
-            :class="
-              isConnected
-                ? 'bg-gradient-to-br from-blue-500 to-cyan-500 ring-blue-50 dark:ring-blue-900/20'
-                : 'bg-slate-200 dark:bg-slate-700 ring-slate-100 dark:ring-slate-800'
-            "
+            class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500"
+          ></div>
+
+          <div
+            class="p-8 pb-6 text-center relative flex-1 flex flex-col justify-center"
           >
+            <!-- Profile Picture -->
             <div
-              class="w-full h-full rounded-full overflow-hidden bg-white dark:bg-slate-800 relative"
+              class="w-24 h-24 rounded-full flex items-center justify-center p-1 mx-auto mb-4 shadow-lg ring-4"
+              :class="
+                isConnected
+                  ? 'bg-gradient-to-br from-blue-500 to-cyan-500 ring-blue-50 dark:ring-blue-900/20'
+                  : 'bg-slate-200 dark:bg-slate-700 ring-slate-100 dark:ring-slate-800'
+              "
             >
-              <img
-                v-if="isConnected && userProfile.picture"
-                :src="userProfile.picture"
-                :alt="userProfile.name"
-                class="w-full h-full object-cover"
-                crossorigin="anonymous"
-                referrerpolicy="no-referrer"
-              />
               <div
-                v-else
-                class="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400"
+                class="w-full h-full rounded-full overflow-hidden bg-white dark:bg-slate-800 relative"
               >
-                <span class="text-2xl font-bold">{{
-                  getInitials(userProfile.name)
-                }}</span>
+                <img
+                  v-if="isConnected && userProfile.picture"
+                  :src="userProfile.picture"
+                  :alt="userProfile.name"
+                  class="w-full h-full object-cover"
+                  crossorigin="anonymous"
+                  referrerpolicy="no-referrer"
+                />
+                <div
+                  v-else
+                  class="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400"
+                >
+                  <span class="text-2xl font-bold">{{
+                    getInitials(userProfile.name)
+                  }}</span>
+                </div>
+              </div>
+              <!-- Verified/Status Badge -->
+              <div
+                class="absolute bottom-8 right-[calc(50%-40px)] w-6 h-6 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center text-white text-[10px] shadow-sm transform translate-x-1/2 translate-y-1/2"
+                :class="isConnected ? 'bg-emerald-500' : 'bg-slate-400'"
+              >
+                <i
+                  class="fas"
+                  :class="isConnected ? 'fa-check' : 'fa-minus'"
+                ></i>
               </div>
             </div>
-            <!-- Verified/Status Badge -->
-            <div
-              class="absolute bottom-8 right-[calc(50%-40px)] w-6 h-6 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center text-white text-[10px] shadow-sm transform translate-x-1/2 translate-y-1/2"
-              :class="isConnected ? 'bg-emerald-500' : 'bg-slate-400'"
+
+            <h3
+              class="text-xl font-black text-slate-800 dark:text-white tracking-tight mb-1"
             >
-              <i class="fas" :class="isConnected ? 'fa-check' : 'fa-minus'"></i>
+              {{ userProfile.name }}
+            </h3>
+            <p
+              class="text-xs font-mono px-3 py-1 rounded-full inline-block mb-4"
+              :class="
+                isConnected
+                  ? 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800'
+                  : 'text-slate-400 bg-slate-100 dark:bg-slate-800/50'
+              "
+            >
+              {{ userProfile.email }}
+            </p>
+
+            <div class="flex justify-center gap-2 mb-2">
+              <span
+                class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg uppercase tracking-wider"
+                :class="
+                  isConnected
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                "
+              >
+                <i class="fas fa-shield-alt"></i>
+                {{ userProfile.role }}
+              </span>
             </div>
           </div>
 
-          <h3
-            class="text-xl font-black text-slate-800 dark:text-white tracking-tight mb-1"
+          <!-- Info Grid -->
+          <div
+            class="grid grid-cols-2 border-t border-slate-100 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800 bg-slate-50/50 dark:bg-slate-900/50"
           >
-            {{ userProfile.name }}
-          </h3>
-          <p
-            class="text-xs font-mono px-3 py-1 rounded-full inline-block mb-4"
-            :class="
-              isConnected
-                ? 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800'
-                : 'text-slate-400 bg-slate-100 dark:bg-slate-800/50'
-            "
-          >
-            {{ userProfile.email }}
-          </p>
+            <div class="p-4 text-center">
+              <div
+                class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1"
+              >
+                Status
+              </div>
+              <div
+                class="text-sm font-bold flex items-center justify-center gap-1"
+                :class="
+                  isConnected
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-slate-500'
+                "
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full animate-pulse"
+                  :class="isConnected ? 'bg-emerald-500' : 'bg-slate-400'"
+                ></span>
+                {{ isConnected ? "Active" : "Not Connected" }}
+              </div>
+            </div>
+            <!-- SYNC INFO -->
+            <div class="p-4 text-center">
+              <div
+                class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1"
+              >
+                Last Sync
+              </div>
+              <div class="text-xs font-bold text-slate-600 dark:text-slate-300">
+                {{ syncTimeText }}
+              </div>
+            </div>
+          </div>
 
-          <div class="flex justify-center gap-2 mb-2">
-            <span
-              class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg uppercase tracking-wider"
-              :class="
-                isConnected
-                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-              "
+          <!-- Actions (Login/Logout Only) -->
+          <div class="p-6 pt-4">
+            <!-- Button: Connect (If not connected) -->
+            <button
+              v-if="!isConnected"
+              @click="connectGoogle"
+              class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 group shadow-md shadow-blue-500/20 text-sm"
             >
-              <i class="fas fa-shield-alt"></i>
-              {{ userProfile.role }}
-            </span>
+              <i
+                class="fab fa-google group-hover:scale-110 transition-transform"
+              ></i>
+              <span>Connect Google</span>
+            </button>
+
+            <!-- Button: Logout (If connected) -->
+            <button
+              v-else
+              @click="logoutGoogle"
+              class="w-full py-3 px-4 bg-white dark:bg-slate-800 text-red-500 border border-red-200 dark:border-red-900/30 rounded-xl font-bold hover:bg-red-50 dark:hover:bg-red-900/10 transition-all flex items-center justify-center gap-2 group shadow-sm text-sm"
+            >
+              <i
+                class="fas fa-sign-out-alt group-hover:-translate-x-1 transition-transform"
+              ></i>
+              <span>Logout</span>
+            </button>
           </div>
         </div>
 
-        <!-- Info Grid -->
+        <!-- RIGHT COLUMN: AI Settings Panel (Always Visible) -->
         <div
-          class="grid grid-cols-2 border-t border-slate-100 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800 bg-slate-50/50 dark:bg-slate-900/50"
+          class="flex-1 bg-slate-50 dark:bg-slate-950 flex flex-col h-full overflow-hidden"
         >
-          <div class="p-4 text-center">
-            <div
-              class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1"
-            >
-              Status
-            </div>
-            <div
-              class="text-sm font-bold flex items-center justify-center gap-1"
-              :class="
-                isConnected
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-slate-500'
-              "
-            >
-              <span
-                class="w-1.5 h-1.5 rounded-full animate-pulse"
-                :class="isConnected ? 'bg-emerald-500' : 'bg-slate-400'"
-              ></span>
-              {{ isConnected ? "Active" : "Not Connected" }}
-            </div>
-          </div>
-          <div class="p-4 text-center">
-            <div
-              class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1"
-            >
-              Account
-            </div>
-            <div class="text-sm font-bold text-slate-700 dark:text-slate-300">
-              {{ isConnected ? "Google" : "Local Guest" }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="p-6 pt-4">
-          <!-- Button: Connect (If not connected) -->
-          <button
-            v-if="!isConnected"
-            @click="connectGoogle"
-            class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 group shadow-md shadow-blue-500/20"
-          >
-            <i
-              class="fab fa-google group-hover:scale-110 transition-transform"
-            ></i>
-            <span>Hubungkan Akun Google</span>
-          </button>
-
-          <!-- Button: Logout (If connected) -->
-          <button
-            v-else
-            @click="logoutGoogle"
-            class="w-full py-3.5 px-4 bg-white dark:bg-slate-800 text-red-500 border border-red-200 dark:border-red-900/30 rounded-xl font-bold hover:bg-red-50 dark:hover:bg-red-900/10 transition-all flex items-center justify-center gap-2 group shadow-sm"
-          >
-            <i
-              class="fas fa-sign-out-alt group-hover:-translate-x-1 transition-transform"
-            ></i>
-            <span>Logout Akun Google</span>
-          </button>
-
-          <!-- Gemini Settings Button -->
-          <NuxtLink
-            to="/settings/gemini"
-            @click="showProfileModal = false"
-            class="w-full mt-3 py-3 px-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 group"
-          >
-            <i
-              class="fas fa-cog group-hover:rotate-90 transition-transform text-slate-400"
-            ></i>
-            <span>Pengaturan API Key</span>
-          </NuxtLink>
-
-          <!-- Footer Info -->
-          <div v-if="isConnected" class="mt-5 text-center">
-            <div
-              class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"
-            >
-              <span
-                class="text-[10px] uppercase font-bold text-slate-400 tracking-wider"
-                >SYNC</span
-              >
-              <span
-                class="text-xs font-bold text-slate-600 dark:text-slate-300"
-                >{{ syncTimeText }}</span
-              >
-            </div>
-          </div>
-
-          <p v-else class="text-[10px] text-center text-slate-400 mt-4 px-4">
-            Hubungkan akun untuk mengakses fitur cloud.
-          </p>
+          <AISettingsPanel
+            @close="showProfileModal = false"
+            @saved="handleAISaved"
+          />
         </div>
       </div>
     </div>
@@ -413,7 +403,7 @@
     <!-- Logout Confirmation Modal -->
     <div
       v-if="showLogoutConfirm"
-      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       @click="showLogoutConfirm = false"
     >
       <div
@@ -463,6 +453,7 @@
 <script setup>
 import { useTheme } from "~/composables/useTheme";
 import ToastNotification from "~/components/ToastNotification.vue";
+import AISettingsPanel from "~/components/AISettingsPanel.vue";
 
 // Require authentication for all dashboard pages
 definePageMeta({
@@ -493,8 +484,8 @@ const handleNavClick = () => {
   }
 };
 
-// Toast ref
-const toast = ref(null);
+// Toast composable
+const toast = useToast();
 
 // Default State
 const DEFAULT_PROFILE = {
@@ -610,12 +601,11 @@ const connectGoogle = async () => {
       );
 
       if (!popup) {
-        toast.value?.addToast({
-          type: "warning",
-          title: "Popup Diblokir",
-          message: "Izinkan popup untuk situs ini agar bisa login.",
-          duration: 5000,
-        });
+        toast.warning(
+          "Popup Diblokir",
+          "Izinkan popup untuk situs ini agar bisa login.",
+          5000
+        );
         return;
       }
 
@@ -647,12 +637,11 @@ const connectGoogle = async () => {
               }
 
               // Show success toast
-              toast.value?.addToast({
-                type: "success",
-                title: "Berhasil Terhubung",
-                message: "Akun Google Anda telah terhubung",
-                duration: 3000,
-              });
+              toast.success(
+                "Berhasil Terhubung",
+                "Akun Google Anda telah terhubung",
+                3000
+              );
 
               // Reload after short delay
               setTimeout(() => {
@@ -688,12 +677,11 @@ const connectGoogle = async () => {
       throw new Error(result.message || "No auth URL returned");
     }
   } catch (error) {
-    toast.value?.addToast({
-      type: "error",
-      title: "Gagal Menghubungkan",
-      message: error.message || "Tidak dapat terhubung ke Google",
-      duration: 5000,
-    });
+    toast.error(
+      "Gagal Menghubungkan",
+      error.message || "Tidak dapat terhubung ke Google",
+      5000
+    );
   }
 };
 
@@ -717,12 +705,11 @@ const confirmLogout = async () => {
       isConnected.value = false;
 
       // Show success toast
-      toast.value?.addToast({
-        type: "success",
-        title: "Berhasil Logout",
-        message: "Anda telah keluar dari akun Google",
-        duration: 3000,
-      });
+      toast.success(
+        "Berhasil Logout",
+        "Anda telah keluar dari akun Google",
+        3000
+      );
 
       window.dispatchEvent(new CustomEvent("oauth-completed"));
 
@@ -732,12 +719,53 @@ const confirmLogout = async () => {
       }, 1000);
     }
   } catch (error) {
-    toast.value?.addToast({
-      type: "error",
-      title: "Gagal Logout",
-      message: error.message || "Terjadi kesalahan saat logout",
-      duration: 5000,
-    });
+    toast.error(
+      "Gagal Logout",
+      error.message || "Terjadi kesalahan saat logout",
+      5000
+    );
+  }
+};
+
+// Track loading toast ID
+let loadingToastId = null;
+
+// Handle AI Settings Save Callback
+const handleAISaved = ({ provider, success, error, message, isLoading }) => {
+  // Loading state (testing in progress)
+  if (isLoading) {
+    // Remove previous loading toast if exists
+    if (loadingToastId) {
+      toast.removeToast(loadingToastId);
+    }
+    // Create new loading toast and track ID (0 = won't auto-hide)
+    loadingToastId = toast.info(
+      "Testing API Connection",
+      message || `Testing ${provider} connection...`,
+      0
+    );
+    return;
+  }
+
+  // Remove loading toast when result arrives
+  if (loadingToastId) {
+    toast.removeToast(loadingToastId);
+    loadingToastId = null;
+  }
+
+  // Success or Error state
+  if (success) {
+    toast.success(
+      "Connection Successful",
+      message || `API Key ${provider} berhasil diperbarui!`,
+      4000
+    );
+  } else {
+    toast.error(
+      "Connection Failed",
+      error || "Terjadi kesalahan saat menyimpan",
+      6000
+    );
   }
 };
 

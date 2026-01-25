@@ -19,6 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
+    "@mistralai/mistralai": "^1.11.0",
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.8.0",
     "compression": "^1.7.4",
@@ -29,11 +30,13 @@
     "google-auth-library": "^10.5.0",
     "google-spreadsheet": "^5.0.2",
     "googleapis": "^128.0.0",
+    "groq-sdk": "^0.37.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "pdf-parse": "^1.1.1",
+    "pdf-to-png-converter": "^3.11.0",
     "pg": "^8.11.3",
     "xlsx": "^0.18.5"
   },

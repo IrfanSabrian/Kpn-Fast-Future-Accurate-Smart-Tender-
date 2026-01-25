@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import aiScannerService from "../services/aiScanner.service.js";
 import geminiAIService from "../services/geminiAI.service.js";
 import oauth2GoogleService from "../services/oauth2Google.service.js";
 
@@ -27,7 +28,7 @@ const upload = multer({
 
 /**
  * POST /api/ai/scan-document
- * Scan PDF document and extract fields using Gemini AI
+ * Scan PDF document using Multi-AI Strategy (Groq -> Gemini)
  *
  * @body {File} file - PDF file to scan
  * @body {String} documentType - Type of document (ktp, npwp, ijazah, cv)
@@ -57,7 +58,7 @@ router.post("/scan-document", upload.single("file"), async (req, res) => {
       return res.status(400).json({
         success: false,
         message: `Invalid documentType. Must be one of: ${validTypes.join(
-          ", "
+          ", ",
         )}`,
       });
     }
@@ -65,19 +66,24 @@ router.post("/scan-document", upload.single("file"), async (req, res) => {
     console.log(
       `[AI SCAN] Received request to scan ${documentType.toUpperCase()}, file size: ${(
         req.file.size / 1024
-      ).toFixed(2)}KB`
+      ).toFixed(2)}KB`,
     );
 
-    // Scan document with Gemini AI
-    const extractedData = await geminiAIService.scanDocument(
+    // Scan document with Multi-AI Strategy
+    const result = await aiScannerService.scanDocument(
       req.file.buffer,
-      documentType
+      documentType,
+    );
+
+    console.log(
+      `   🎉 [SUCCESS] Provider used: ${result.provider.toUpperCase()}`,
     );
 
     res.json({
       success: true,
       message: `${documentType.toUpperCase()} scanned successfully`,
-      data: extractedData,
+      data: result.data,
+      provider: result.provider,
     });
   } catch (error) {
     console.error("[AI SCAN] Error:", error);
@@ -123,7 +129,7 @@ router.post("/scan-tax-document", upload.single("file"), async (req, res) => {
       return res.status(400).json({
         success: false,
         message: `Invalid documentType. Must be one of: ${validTypes.join(
-          ", "
+          ", ",
         )}`,
       });
     }
@@ -131,14 +137,15 @@ router.post("/scan-tax-document", upload.single("file"), async (req, res) => {
     console.log(
       `[AI TAX SCAN] Received request to scan ${documentType.toUpperCase()}, file size: ${(
         req.file.size / 1024
-      ).toFixed(2)}KB`
+      ).toFixed(2)}KB`,
     );
 
-    // Scan tax document with Gemini AI
-    const extractedData = await geminiAIService.scanTaxDocument(
+    // Scan tax document with AI Scanner (Mistral)
+    const result = await aiScannerService.scanDocument(
       req.file.buffer,
-      documentType
+      documentType,
     );
+    const extractedData = result.data;
 
     res.json({
       success: true,
@@ -183,43 +190,34 @@ router.post("/scan-drive-file", async (req, res) => {
     }
 
     console.log(
-      `[AI DRIVE SCAN] Downloading file ${fileId} for type ${documentType}...`
+      `[AI DRIVE SCAN] Downloading file ${fileId} for type ${documentType}...`,
     );
     const buffer = await oauth2GoogleService.downloadFile(fileId);
 
+    const scanStartTime = Date.now();
     let data;
-    // Route to appropriate scanner based on category/type
-    // Route to appropriate scanner based on category/type
-    if (category === "tax") {
-      data = await geminiAIService.scanTaxDocument(buffer, documentType);
-    } else if (category === "company") {
-      data = await geminiAIService.scanCompanyDocument(buffer, documentType);
-    } else if (category === "personnel") {
-      // Explicit personnel category
-      data = await geminiAIService.scanDocument(buffer, documentType);
-    } else {
-      // Default logic / Auto-detection
-      const taxTypes = ["spt", "pkp", "kswp"]; // Removed npwp from here to avoid conflict
+    // Use Mistral for everything as requested
+    console.log(`[AI DRIVE SCAN] Routing to Mistral AI for ${documentType}...`);
 
-      if (documentType.toLowerCase() === "npwp") {
-        // Ambiguous case. If not specified, default to Personnel?
-        // Or check if it looks like company?
-        // For now, let's assume 'scanDocument' (Personnel) because 'scan-tax-document' exists for companies.
-        data = await geminiAIService.scanDocument(buffer, documentType);
-      } else if (taxTypes.includes(documentType.toLowerCase())) {
-        data = await geminiAIService.scanTaxDocument(buffer, documentType);
-      } else if (["akta", "nib", "sbu"].includes(documentType.toLowerCase())) {
-        data = await geminiAIService.scanCompanyDocument(buffer, documentType);
-      } else {
-        // Personnel default
-        data = await geminiAIService.scanDocument(buffer, documentType);
-      }
-    }
+    const scanResult = await aiScannerService.scanDocument(
+      buffer,
+      documentType,
+    );
+
+    data = scanResult.data;
+    provider = scanResult.provider;
+
+    const scanTime = Date.now() - scanStartTime;
+    console.log(
+      `[AI DRIVE SCAN] Completed in ${scanTime}ms using ${provider.toUpperCase()}`,
+    );
 
     res.json({
       success: true,
       message: `${documentType.toUpperCase()} scanned successfully`,
       data: data,
+      provider: provider,
+      scanTime: scanTime,
     });
   } catch (error) {
     console.error("[AI DRIVE SCAN] Error:", error);
@@ -249,7 +247,7 @@ router.post("/scan-generic", upload.single("file"), async (req, res) => {
     // Reuse scanCompanyDocument which now supports 'kontrak_pengalaman'
     const data = await geminiAIService.scanCompanyDocument(
       req.file.buffer,
-      documentType
+      documentType,
     );
 
     res.json({ success: true, data });

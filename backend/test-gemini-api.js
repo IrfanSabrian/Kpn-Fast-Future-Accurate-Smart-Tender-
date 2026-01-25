@@ -9,13 +9,24 @@ dotenv.config();
 async function testGeminiAPI() {
   console.log("🔍 Testing Gemini API Key...\n");
 
-  // Get API key from .env
-  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  // Get API key from api-settings.json
+  const configPath = "./config/api-settings.json";
+  let apiKey = "";
+
+  try {
+    const fs = await import("fs");
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+      apiKey = config.gemini_api_key;
+    }
+  } catch (e) {
+    console.error("Error reading config:", e.message);
+  }
 
   if (!apiKey) {
-    console.error("❌ ERROR: GOOGLE_GEMINI_API_KEY not found in .env file");
-    console.log("\nPlease add to backend/.env:");
-    console.log("GOOGLE_GEMINI_API_KEY=your_api_key_here");
+    console.error(
+      "❌ ERROR: gemini_api_key not found in config/api-settings.json",
+    );
     process.exit(1);
   }
 
@@ -53,10 +64,10 @@ async function testGeminiAPI() {
     console.error("\n🔧 Solutions:");
     console.error("1. Get new API key: https://aistudio.google.com/app/apikey");
     console.error(
-      "2. Enable API: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com"
+      "2. Enable API: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com",
     );
     console.error(
-      "3. Check quota: https://console.cloud.google.com/apis/dashboard"
+      "3. Check quota: https://console.cloud.google.com/apis/dashboard",
     );
 
     process.exit(1);

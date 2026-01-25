@@ -24,7 +24,7 @@ class GeminiAIService {
     try {
       const configPath = path.join(
         path.dirname(fileURLToPath(import.meta.url)),
-        "../../config/api-settings.json"
+        "../../config/api-settings.json",
       );
 
       const fs = await import("fs");
@@ -41,7 +41,7 @@ class GeminiAIService {
 
     if (!apiKey) {
       throw new Error(
-        "GOOGLE_GEMINI_API_KEY tidak ditemukan di environment variables atau settings"
+        "gemini_api_key tidak ditemukan di backend/config/api-settings.json",
       );
     }
 
@@ -50,7 +50,7 @@ class GeminiAIService {
       model: "gemini-2.5-flash-lite",
     });
     console.log(
-      "✅ Gemini AI Service initialized (model: gemini-2.5-flash-lite)"
+      "✅ Gemini AI Service initialized (model: gemini-2.5-flash-lite)",
     );
   }
 
@@ -64,6 +64,27 @@ class GeminiAIService {
         mimeType,
       },
     };
+  }
+
+  async testConnection() {
+    await this.initialize();
+
+    if (!this.model) {
+      throw new Error("Gemini API key not configured");
+    }
+
+    try {
+      // Simple test: generate minimal content
+      const result = await this.model.generateContent("Test");
+
+      if (result && result.response) {
+        return { success: true, message: "Gemini API connection successful" };
+      }
+
+      throw new Error("Invalid response from Gemini API");
+    } catch (error) {
+      throw new Error(`Gemini test failed: ${error.message}`);
+    }
   }
 
   /**
@@ -113,7 +134,7 @@ Return ONLY valid JSON with this exact structure:
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error(
-          "AI tidak dapat menemukan data KTP yang valid di dokumen. Pastikan PDF berisi KTP yang jelas dan terbaca."
+          "AI tidak dapat menemukan data KTP yang valid di dokumen. Pastikan PDF berisi KTP yang jelas dan terbaca.",
         );
       }
 
@@ -121,11 +142,11 @@ Return ONLY valid JSON with this exact structure:
 
       // Validate that we got some actual data (not all empty)
       const hasData = Object.values(parsedData).some(
-        (value) => value && value.trim() !== ""
+        (value) => value && value.trim() !== "",
       );
       if (!hasData) {
         throw new Error(
-          "Dokumen tidak dapat dibaca atau bukan KTP yang valid. Silakan gunakan scan/foto yang lebih jelas."
+          "Dokumen tidak dapat dibaca atau bukan KTP yang valid. Silakan gunakan scan/foto yang lebih jelas.",
         );
       }
 
@@ -138,7 +159,7 @@ Return ONLY valid JSON with this exact structure:
         throw error;
       }
       throw new Error(
-        `Gagal memproses KTP: ${error.message}. Kemungkinan file rusak atau bukan dokumen KTP.`
+        `Gagal memproses KTP: ${error.message}. Kemungkinan file rusak atau bukan dokumen KTP.`,
       );
     }
   }
@@ -190,18 +211,18 @@ Return ONLY valid JSON with this exact structure:
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error(
-          "AI tidak dapat menemukan data NPWP yang valid di dokumen. Pastikan PDF berisi NPWP yang jelas dan terbaca."
+          "AI tidak dapat menemukan data NPWP yang valid di dokumen. Pastikan PDF berisi NPWP yang jelas dan terbaca.",
         );
       }
 
       const parsedData = JSON.parse(jsonMatch[0]);
 
       const hasData = Object.values(parsedData).some(
-        (value) => value && value.trim() !== ""
+        (value) => value && value.trim() !== "",
       );
       if (!hasData) {
         throw new Error(
-          "Dokumen tidak dapat dibaca atau bukan NPWP yang valid. Silakan gunakan scan/foto yang lebih jelas."
+          "Dokumen tidak dapat dibaca atau bukan NPWP yang valid. Silakan gunakan scan/foto yang lebih jelas.",
         );
       }
 
@@ -214,7 +235,7 @@ Return ONLY valid JSON with this exact structure:
         throw error;
       }
       throw new Error(
-        `Gagal memproses NPWP: ${error.message}. Kemungkinan file rusak atau bukan dokumen NPWP.`
+        `Gagal memproses NPWP: ${error.message}. Kemungkinan file rusak atau bukan dokumen NPWP.`,
       );
     }
   }
@@ -335,7 +356,7 @@ Return ONLY valid JSON with this exact structure:
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error(
-          "AI tidak dapat menemukan data STNK yang valid. Pastikan dokumen terbaca."
+          "AI tidak dapat menemukan data STNK yang valid. Pastikan dokumen terbaca.",
         );
       }
 
@@ -355,44 +376,7 @@ Return ONLY valid JSON with this exact structure:
    * Main scan function - routes to appropriate scanner based on document type
    */
   async scanDocument(pdfBuffer, documentType) {
-    console.log(
-      `[GEMINI AI] Scanning ${documentType.toUpperCase()} document...`
-    );
-
-    try {
-      let result;
-
-      switch (documentType.toLowerCase()) {
-        case "ktp":
-          result = await this.scanKTP(pdfBuffer);
-          break;
-        case "npwp":
-          result = await this.scanNPWP(pdfBuffer);
-          break;
-        case "ijazah":
-          result = await this.scanIjazah(pdfBuffer);
-          break;
-        case "cv":
-          result = await this.scanCV(pdfBuffer);
-          break;
-        case "stnk":
-          result = await this.scanSTNK(pdfBuffer);
-          break;
-        default:
-          throw new Error(`Unsupported document type: ${documentType}`);
-      }
-
-      console.log(
-        `[GEMINI AI] ✅ Successfully scanned ${documentType.toUpperCase()}`
-      );
-      return result;
-    } catch (error) {
-      console.error(
-        `[GEMINI AI] ❌ Error scanning ${documentType}:`,
-        error.message
-      );
-      throw error;
-    }
+    throw new Error("Gemini Scanning disabled. Please use Mistral AI Scanner.");
   }
 
   /**
@@ -434,7 +418,7 @@ Return ONLY valid JSON with this exact structure:
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error(
-          "AI tidak dapat menemukan data NPWP yang valid di dokumen. Pastikan PDF berisi NPWP perusahaan yang jelas dan terbaca."
+          "AI tidak dapat menemukan data NPWP yang valid di dokumen. Pastikan PDF berisi NPWP perusahaan yang jelas dan terbaca.",
         );
       }
 
@@ -447,15 +431,15 @@ Return ONLY valid JSON with this exact structure:
       console.log("[GEMINI AI DEBUG] Parsed NPWP Data:", parsedData);
       console.log(
         "[GEMINI AI DEBUG] Alamat value:",
-        parsedData.alamat || "(EMPTY/UNDEFINED)"
+        parsedData.alamat || "(EMPTY/UNDEFINED)",
       );
 
       const hasData = Object.values(parsedData).some(
-        (value) => value && value.trim() !== ""
+        (value) => value && value.trim() !== "",
       );
       if (!hasData) {
         throw new Error(
-          "Dokumen tidak dapat dibaca atau bukan NPWP yang valid. Silakan gunakan scan/foto yang lebih jelas."
+          "Dokumen tidak dapat dibaca atau bukan NPWP yang valid. Silakan gunakan scan/foto yang lebih jelas.",
         );
       }
 
@@ -515,7 +499,7 @@ Return ONLY valid JSON with this exact structure:
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error(
-          "AI tidak dapat menemukan data SPT yang valid di dokumen."
+          "AI tidak dapat menemukan data SPT yang valid di dokumen.",
         );
       }
 
@@ -557,7 +541,7 @@ Return ONLY valid JSON with this exact structure:
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error(
-          "AI tidak dapat menemukan data PKP yang valid di dokumen."
+          "AI tidak dapat menemukan data PKP yang valid di dokumen.",
         );
       }
 
@@ -599,7 +583,7 @@ Return ONLY valid JSON with this exact structure:
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error(
-          "AI tidak dapat menemukan data KSWP yang valid di dokumen."
+          "AI tidak dapat menemukan data KSWP yang valid di dokumen.",
         );
       }
 
@@ -613,43 +597,9 @@ Return ONLY valid JSON with this exact structure:
    * Main scan function for tax documents - routes to appropriate scanner
    */
   async scanTaxDocument(pdfBuffer, documentType) {
-    console.log(
-      `[GEMINI AI TAX] Scanning ${documentType.toUpperCase()} document...`
+    throw new Error(
+      "Gemini Tax Scanning disabled. Please use Mistral AI Scanner.",
     );
-
-    try {
-      let result;
-
-      switch (documentType.toLowerCase()) {
-        case "npwp":
-          console.log("[GEMINI AI TAX] Routing to scanNPWPPerusahaan...");
-          result = await this.scanNPWPPerusahaan(pdfBuffer);
-          console.log("[GEMINI AI TAX] scanNPWPPerusahaan returned:", result);
-          break;
-        case "spt":
-          result = await this.scanSPT(pdfBuffer);
-          break;
-        case "pkp":
-          result = await this.scanPKP(pdfBuffer);
-          break;
-        case "kswp":
-          result = await this.scanKSWP(pdfBuffer);
-          break;
-        default:
-          throw new Error(`Unsupported tax document type: ${documentType}`);
-      }
-
-      console.log(
-        `[GEMINI AI TAX] ✅ Successfully scanned ${documentType.toUpperCase()}`
-      );
-      return result;
-    } catch (error) {
-      console.error(
-        `[GEMINI AI TAX] ❌ Error scanning ${documentType}:`,
-        error.message
-      );
-      throw error;
-    }
   }
   /**
    * Scan Akta Perusahaan document
@@ -923,42 +873,9 @@ JSON Structure:
    * Scan Company Document (Akta, NIB, etc.)
    */
   async scanCompanyDocument(pdfBuffer, documentType) {
-    console.log(
-      `[GEMINI AI COMPANY] Scanning ${documentType.toUpperCase()}...`
+    throw new Error(
+      "Gemini Company Scanning disabled. Please use Mistral AI Scanner.",
     );
-    try {
-      let result;
-      switch (documentType.toLowerCase()) {
-        case "akta":
-          result = await this.scanAkta(pdfBuffer);
-          break;
-        case "nib":
-          result = await this.scanNIB(pdfBuffer);
-          break;
-        case "sbu":
-          result = await this.scanSBU(pdfBuffer);
-          break;
-        case "kta":
-          result = await this.scanKTA(pdfBuffer);
-          break;
-        case "kontrak":
-        case "kontrak_pengalaman":
-          result = await this.scanKontrakPengalaman(pdfBuffer);
-          break;
-        default:
-          throw new Error(`Unsupported company document type: ${documentType}`);
-      }
-      console.log(
-        `[GEMINI AI COMPANY] ✅ Successfully scanned ${documentType.toUpperCase()}`
-      );
-      return result;
-    } catch (e) {
-      console.error(
-        `[GEMINI AI COMPANY] ❌ Error scanning ${documentType}:`,
-        e.message
-      );
-      throw e;
-    }
   }
 }
 

@@ -170,9 +170,9 @@
                     <div
                       v-for="(item, index) in subModules.kontrak"
                       :key="item.id_kontrak"
-                      class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 cursor-pointer relative group transition-all hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md"
+                      class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 cursor-pointer relative group transition-all hover:shadow-md"
                       :class="{
-                        'ring-2 ring-blue-500 border-transparent':
+                        'border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/10':
                           selectedPengalamanList?.id_kontrak ===
                           item.id_kontrak,
                       }"
@@ -594,7 +594,7 @@
                                   {{
                                     selectedPengalamanDetail.nilai_kontrak
                                       ? `Rp ${Number(
-                                          selectedPengalamanDetail.nilai_kontrak
+                                          selectedPengalamanDetail.nilai_kontrak,
                                         ).toLocaleString("id-ID")}`
                                       : "-"
                                   }}
@@ -611,7 +611,7 @@
                                 >
                                   {{
                                     formatDate(
-                                      selectedPengalamanDetail.tanggal_kontrak
+                                      selectedPengalamanDetail.tanggal_kontrak,
                                     )
                                   }}
                                 </div>
@@ -627,7 +627,7 @@
                                 >
                                   {{
                                     formatDate(
-                                      selectedPengalamanDetail.tanggal_selesai_kontrak
+                                      selectedPengalamanDetail.tanggal_selesai_kontrak,
                                     )
                                   }}
                                 </div>
@@ -658,7 +658,7 @@
                                 >
                                   {{
                                     formatDate(
-                                      selectedPengalamanDetail.tanggal_ba_serah_terima
+                                      selectedPengalamanDetail.tanggal_ba_serah_terima,
                                     )
                                   }}
                                 </div>
@@ -3575,7 +3575,7 @@ const deletePengalaman = async (id) => {
       `${apiBaseUrl}/companies/${companyId}/pengalaman/${id}`,
       {
         method: "DELETE",
-      }
+      },
     );
 
     if (!res.ok) throw new Error("Gagal menghapus data");
@@ -3609,11 +3609,11 @@ const handleNpwpAIScan = (data) => {
   });
 
   const filledCount = Object.keys(data).filter(
-    (k) => data[k] && data[k] !== ""
+    (k) => data[k] && data[k] !== "",
   ).length;
   toast.success(
     "Data NPWP Berhasil Dipindai",
-    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`
+    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`,
   );
 };
 
@@ -3633,11 +3633,11 @@ const handleSptAIScan = (data) => {
   });
 
   const filledCount = Object.keys(data).filter(
-    (k) => data[k] && data[k] !== ""
+    (k) => data[k] && data[k] !== "",
   ).length;
   toast.success(
     "Data SPT Berhasil Dipindai",
-    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`
+    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`,
   );
 };
 
@@ -3657,11 +3657,11 @@ const handlePkpAIScan = (data) => {
   });
 
   const filledCount = Object.keys(data).filter(
-    (k) => data[k] && data[k] !== ""
+    (k) => data[k] && data[k] !== "",
   ).length;
   toast.success(
     "Data PKP Berhasil Dipindai",
-    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`
+    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`,
   );
 };
 
@@ -3681,11 +3681,11 @@ const handleKswpAIScan = (data) => {
   });
 
   const filledCount = Object.keys(data).filter(
-    (k) => data[k] && data[k] !== ""
+    (k) => data[k] && data[k] !== "",
   ).length;
   toast.success(
     "Data KSWP Berhasil Dipindai",
-    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`
+    `${filledCount} field terisi otomatis. Silakan periksa dan validasi data.`,
   );
 };
 
@@ -3698,7 +3698,7 @@ const validateAllNpwpFields = () => {
 
 const isAllNpwpValidated = computed(() => {
   return Object.keys(npwpFieldLocks.value).every(
-    (key) => npwpFieldLocks.value[key]
+    (key) => npwpFieldLocks.value[key],
   );
 });
 
@@ -3711,7 +3711,7 @@ const validateAllSptFields = () => {
 
 const isAllSptValidated = computed(() => {
   return Object.keys(sptFieldLocks.value).every(
-    (key) => sptFieldLocks.value[key]
+    (key) => sptFieldLocks.value[key],
   );
 });
 
@@ -3724,7 +3724,7 @@ const validateAllPkpFields = () => {
 
 const isAllPkpValidated = computed(() => {
   return Object.keys(pkpFieldLocks.value).every(
-    (key) => pkpFieldLocks.value[key]
+    (key) => pkpFieldLocks.value[key],
   );
 });
 
@@ -3737,7 +3737,7 @@ const validateAllKswpFields = () => {
 
 const isAllKswpValidated = computed(() => {
   return Object.keys(kswpFieldLocks.value).every(
-    (key) => kswpFieldLocks.value[key]
+    (key) => kswpFieldLocks.value[key],
   );
 });
 
@@ -3757,7 +3757,7 @@ const saveNpwpDocument = async () => {
     if (!selectedFile) {
       toast.error(
         "Tidak ada file yang dipilih",
-        "Silakan pilih file PDF terlebih dahulu"
+        "Silakan pilih file PDF terlebih dahulu",
       );
       return;
     }
@@ -3767,7 +3767,7 @@ const saveNpwpDocument = async () => {
     // Show persistent toast (duration 0 means it stays until manually hidden)
     const uploadToastId = toast.info(
       "Mengunggah dokumen ke Google Drive...",
-      0
+      0,
     );
 
     const formData = new FormData();
@@ -3844,7 +3844,7 @@ const saveNpwpDocument = async () => {
     console.error("Save NPWP Error:", error);
     toast.error(
       "Gagal Menyimpan",
-      error.message || "Terjadi kesalahan saat menyimpan"
+      error.message || "Terjadi kesalahan saat menyimpan",
     );
   } finally {
     savingNpwp.value = false;
@@ -3860,7 +3860,7 @@ const saveSptDocument = async () => {
     if (!selectedFile) {
       toast.error(
         "Tidak ada file yang dipilih",
-        "Silakan pilih file PDF terlebih dahulu"
+        "Silakan pilih file PDF terlebih dahulu",
       );
       return;
     }
@@ -3929,7 +3929,7 @@ const saveSptDocument = async () => {
     showSptUploadModal.value = false;
     showSptValidation.value = false;
     Object.keys(sptFieldLocks.value).forEach(
-      (key) => (sptFieldLocks.value[key] = false)
+      (key) => (sptFieldLocks.value[key] = false),
     );
     sptUploadFormData.value = {
       tahun_pajak: "",
@@ -3961,7 +3961,7 @@ const savePkpDocument = async () => {
     if (!selectedFile) {
       toast.error(
         "Tidak ada file yang dipilih",
-        "Silakan pilih file PDF terlebih dahulu"
+        "Silakan pilih file PDF terlebih dahulu",
       );
       return;
     }
@@ -4024,7 +4024,7 @@ const savePkpDocument = async () => {
     showPkpUploadModal.value = false;
     showPkpValidation.value = false;
     Object.keys(pkpFieldLocks.value).forEach(
-      (key) => (pkpFieldLocks.value[key] = false)
+      (key) => (pkpFieldLocks.value[key] = false),
     );
     pkpUploadFormData.value = {
       nomor_pkp: "",
@@ -4035,7 +4035,7 @@ const savePkpDocument = async () => {
     console.error("Save PKP Error:", error);
     toast.error(
       "Gagal Menyimpan",
-      error.message || "Terjadi kesalahan saat menyimpan"
+      error.message || "Terjadi kesalahan saat menyimpan",
     );
   } finally {
     savingPkp.value = false;
@@ -4051,7 +4051,7 @@ const saveKswpDocument = async () => {
     if (!selectedFile) {
       toast.error(
         "Tidak ada file yang dipilih",
-        "Silakan pilih file PDF terlebih dahulu"
+        "Silakan pilih file PDF terlebih dahulu",
       );
       return;
     }
@@ -4114,7 +4114,7 @@ const saveKswpDocument = async () => {
     showKswpUploadModal.value = false;
     showKswpValidation.value = false;
     Object.keys(kswpFieldLocks.value).forEach(
-      (key) => (kswpFieldLocks.value[key] = false)
+      (key) => (kswpFieldLocks.value[key] = false),
     );
     kswpUploadFormData.value = {
       nama_wp: "",
@@ -4127,7 +4127,7 @@ const saveKswpDocument = async () => {
     console.error("Save KSWP Error:", error);
     toast.error(
       "Gagal Menyimpan",
-      error.message || "Terjadi kesalahan saat menyimpan"
+      error.message || "Terjadi kesalahan saat menyimpan",
     );
   } finally {
     savingKswp.value = false;
@@ -4201,7 +4201,7 @@ const handleAiScanLocalDaftar = async () => {
 
       toast.hideToast(scanToastId);
       toast.success(
-        "Data berhasil diekstrak dari PDF. Silakan validasi sebelum menyimpan."
+        "Data berhasil diekstrak dari PDF. Silakan validasi sebelum menyimpan.",
       );
     }
   } catch (error) {
@@ -4241,7 +4241,7 @@ const saveDaftarPengalaman = async () => {
         body: JSON.stringify({
           ...daftarPengalamanFormData.value,
         }),
-      }
+      },
     );
 
     if (!createRes.ok) {
@@ -4253,13 +4253,13 @@ const saveDaftarPengalaman = async () => {
     const createResult = await createRes.json();
     console.log(
       "Create pengalaman response RAW:",
-      JSON.stringify(createResult, null, 2)
+      JSON.stringify(createResult, null, 2),
     );
     console.log("createResult.success:", createResult.success);
     console.log("createResult.data:", createResult.data);
     console.log(
       "createResult.data?.id_kontrak:",
-      createResult.data?.id_kontrak
+      createResult.data?.id_kontrak,
     );
 
     // Try to extract ID from various possible structures
@@ -4271,7 +4271,7 @@ const saveDaftarPengalaman = async () => {
       console.error("   typeof createResult.data:", typeof createResult.data);
       console.error("   Object.keys(createResult):", Object.keys(createResult));
       throw new Error(
-        "Gagal mendapatkan ID pengalaman dari server. Silakan coba lagi."
+        "Gagal mendapatkan ID pengalaman dari server. Silakan coba lagi.",
       );
     }
 
@@ -4285,7 +4285,7 @@ const saveDaftarPengalaman = async () => {
       {
         method: "POST",
         body: uploadFormData,
-      }
+      },
     );
 
     if (!uploadRes.ok) {
@@ -4454,7 +4454,7 @@ const saveKontrakInline = async () => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(kontrakFormData.value),
-      }
+      },
     );
 
     if (!res.ok) {
@@ -4471,7 +4471,7 @@ const saveKontrakInline = async () => {
     // Update selected detail
     if (selectedPengalamanDetail.value) {
       const updatedItem = subModules.value.kontrak.find(
-        (item) => item.id_kontrak === selectedPengalamanDetail.value.id_kontrak
+        (item) => item.id_kontrak === selectedPengalamanDetail.value.id_kontrak,
       );
       if (updatedItem) {
         selectedPengalamanDetail.value = updatedItem;
@@ -4852,7 +4852,7 @@ const handleUploadSave = async (tabId) => {
 
     const uploadRes = await fetch(
       `${apiBaseUrl}/companies/${companyId}/${tabId}/upload`,
-      { method: "POST", body: uploadFormData }
+      { method: "POST", body: uploadFormData },
     );
 
     if (!uploadRes.ok) throw new Error("Gagal mengunggah ke Drive");
@@ -4916,7 +4916,7 @@ const handleUploadSave = async (tabId) => {
         if (tabId === "kontrak") endpoint = "pengalaman";
 
         url = `${apiBaseUrl}/companies/${companyId}/${endpoint}/${encodeURIComponent(
-          itemId
+          itemId,
         )}`;
         body = { [urlKey]: fileUrl };
       } else {
@@ -4974,7 +4974,7 @@ const handleUploadSave = async (tabId) => {
         ) {
           const updatedItem = subModules.value.kontrak.find(
             (item) =>
-              item.id_kontrak === selectedPengalamanDetail.value.id_kontrak
+              item.id_kontrak === selectedPengalamanDetail.value.id_kontrak,
           );
           if (updatedItem) {
             selectedPengalamanDetail.value = updatedItem;
@@ -5036,7 +5036,7 @@ const handleUpdateItem = async (module, data) => {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const result = await res.json();
@@ -5128,7 +5128,7 @@ watch(
       editKbliList.value = newVal.map((k) => k.kode_kbli).filter(Boolean);
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const handleAiScan = async (module, data) => {
@@ -5241,7 +5241,7 @@ const fetchKBLI = async () => {
       console.log(
         "✅ KBLI Data loaded:",
         subModules.value.kbli.length,
-        "items"
+        "items",
       );
     }
   } catch (e) {
@@ -5260,7 +5260,7 @@ const fetchAkta = async () => {
       console.log(
         "✅ Akta Data loaded:",
         subModules.value.akta.length,
-        "items"
+        "items",
       );
     }
   } catch (e) {
@@ -5277,7 +5277,7 @@ const fetchPejabat = async () => {
       console.log(
         "✅ Pejabat Data loaded:",
         subModules.value.pejabat.length,
-        "items"
+        "items",
       );
     }
   } catch (e) {
@@ -5300,12 +5300,12 @@ const fetchNIB = async () => {
         console.log(
           "✅ NIB Data loaded:",
           subModules.value.nib.length,
-          "items"
+          "items",
         );
         console.log("📋 First NIB item:", subModules.value.nib[0]);
         console.log(
           "🔗 NIB URL from first item:",
-          subModules.value.nib[0]?.nib_url
+          subModules.value.nib[0]?.nib_url,
         );
       } else {
         console.warn("⚠️ NIB Data loaded but EMPTY");
@@ -5314,7 +5314,7 @@ const fetchNIB = async () => {
       console.log(
         "✅ KBLI Data loaded from NIB:",
         subModules.value.kbli.length,
-        "items"
+        "items",
       );
     } else {
       console.error("❌ Failed to fetch NIB data:", res.status, res.statusText);
@@ -5365,7 +5365,7 @@ const fetchSertifikat = async () => {
       console.log(
         "✅ Sertifikat Data loaded:",
         subModules.value.sertifikat.length,
-        "items"
+        "items",
       );
     }
   } catch (e) {
@@ -5406,7 +5406,7 @@ const fetchPajak = async () => {
         "SPT:",
         subModules.value.spt.length,
         "PKP:",
-        subModules.value.pkp.length
+        subModules.value.pkp.length,
       );
     }
   } catch (e) {
@@ -5428,7 +5428,7 @@ const fetchPengalaman = async () => {
       console.log(
         "✅ Pengalaman Data loaded:",
         subModules.value.kontrak.length,
-        "items"
+        "items",
       );
     }
   } catch (e) {
@@ -5462,7 +5462,7 @@ const fetchBPJS = async () => {
       console.log(
         "✅ BPJS Data loaded:",
         subModules.value.bpjs.length,
-        "items"
+        "items",
       );
     }
   } catch (e) {
@@ -5544,7 +5544,7 @@ watch(
       loadingTab.value = false;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // Placeholder Actions
@@ -5795,7 +5795,7 @@ const saveCompanyProfile = async () => {
   // Show persistent toast
   const uploadToastId = toast.info(
     "Sedang mengupload Company Profile ke Google Drive...",
-    0
+    0,
   );
 
   try {
@@ -5875,7 +5875,7 @@ const fetchPersonilList = async () => {
       console.log(
         "✅ Personil list loaded:",
         personilList.value.length,
-        "items"
+        "items",
       );
     } else {
       console.error("Failed to fetch personnel:", res.status, res.statusText);
@@ -5920,12 +5920,12 @@ const closeAddPejabatModal = () => {
 const availablePersonilList = computed(() => {
   // Get list of id_personel yang sudah menjadi pejabat
   const existingPejabatIds = (subModules.value.pejabat || []).map(
-    (p) => p.id_personel
+    (p) => p.id_personel,
   );
 
   // Filter personil yang belum ada di daftar pejabat
   return personilList.value.filter(
-    (person) => !existingPejabatIds.includes(person.id_personel)
+    (person) => !existingPejabatIds.includes(person.id_personel),
   );
 });
 
@@ -6088,7 +6088,7 @@ const saveDocument = async (documentType) => {
       for (const detail of result.uploadDetails) {
         toast.info(
           `Upload Drive Berhasil:\n${detail.fullPath || detail.fileName}`,
-          3000
+          3000,
         );
       }
     }
@@ -6225,7 +6225,7 @@ const saveContactData = async () => {
 const clearContactData = async () => {
   if (
     !confirm(
-      "Yakin ingin menghapus semua data kontak (Email, No. Telepon, Alamat) perusahaan ini?"
+      "Yakin ingin menghapus semua data kontak (Email, No. Telepon, Alamat) perusahaan ini?",
     )
   )
     return;
@@ -6313,7 +6313,9 @@ onMounted(() => {
 /* Tab Transitions */
 .tab-fade-enter-active,
 .tab-fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .tab-fade-enter-from {

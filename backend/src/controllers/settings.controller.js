@@ -1,44 +1,64 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import geminiAIService from "../services/geminiAI.service.js";
+import groqAIService from "../services/groqAI.service.js";
+import mistralAIService from "../services/mistralAI.service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const configPath = path.join(__dirname, "../../config/api-settings.json");
 
-export const getGeminiKey = async (req, res) => {
-  try {
-    let key = "";
+const PROVIDER_KEYS = {
+  gemini: "gemini_api_key",
+  groq: "groq_api_key",
+  mistral: "mistral_api_key",
+};
 
-    // Check config file
+const PROVIDER_SERVICES = {
+  gemini: geminiAIService,
+  groq: groqAIService,
+  mistral: mistralAIService,
+};
+
+export const getAiKeys = async (req, res) => {
+  try {
+    let config = {};
+
     if (fs.existsSync(configPath)) {
-      const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-      if (config.gemini_api_key) {
-        key = config.gemini_api_key;
-      }
+      config = JSON.parse(fs.readFileSync(configPath, "utf8"));
     }
 
-    // Mask the key
-    const maskedKey = key
-      ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}`
-      : "";
+    const keysStatus = {};
 
-    res.json({
-      hasKey: !!key,
-      maskedKey: maskedKey,
-      isEnv: false, // Env variable support removed
+    Object.keys(PROVIDER_KEYS).forEach((provider) => {
+      const configKey = PROVIDER_KEYS[provider];
+      const keyValue = config[configKey] || "";
+
+      keysStatus[provider] = {
+        exists: !!keyValue,
+        masked: keyValue
+          ? `${keyValue.substring(0, 4)}...${keyValue.substring(
+              keyValue.length - 4,
+            )}`
+          : "",
+      };
     });
+
+    res.json({ keys: keysStatus });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-import geminiAIService from "../services/geminiAI.service.js";
-
-export const updateGeminiKey = async (req, res) => {
+export const updateAiKeys = async (req, res) => {
   try {
-    const { apiKey } = req.body;
+    const { provider, apiKey } = req.body;
+
+    if (!PROVIDER_KEYS[provider]) {
+      return res.status(400).json({ error: "Invalid provider" });
+    }
 
     // Ensure directory exists
     const dir = path.dirname(configPath);
@@ -51,15 +71,53 @@ export const updateGeminiKey = async (req, res) => {
       config = JSON.parse(fs.readFileSync(configPath, "utf8"));
     }
 
-    config.gemini_api_key = apiKey || "";
+    const configKey = PROVIDER_KEYS[provider];
+    config[configKey] = apiKey || "";
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-    // Reload service
-    await geminiAIService.forceReload();
+    // Force reload for all services
+    if (PROVIDER_SERVICES[provider]) {
+      await PROVIDER_SERVICES[provider].forceReload();
+    }
 
-    res.json({ message: "API Key updated successfully" });
+    res.json({ message: `${provider} API Key updated successfully` });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+export const testAiKey = async (req, res) => {
+  try {
+    const { provider } = req.body;
+
+    if (!PROVIDER_KEYS[provider]) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid provider",
+      });
+    }
+
+    const service = PROVIDER_SERVICES[provider];
+    if (!service) {
+      return res.status(400).json({
+        success: false,
+        error: "Service not available",
+      });
+    }
+
+    // Call testConnection method
+    const result = await service.testConnection();
+
+    res.json({
+      success: true,
+      message: `${provider} API connection successful`,
+      ...result,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
   }
 };

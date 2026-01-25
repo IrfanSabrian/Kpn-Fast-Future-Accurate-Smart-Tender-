@@ -58,7 +58,7 @@
           v-for="item in items"
           :key="item[idKey]"
           @click="$emit('select-item', item)"
-          class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 transition-all group flex flex-col max-h-full border-slate-200 dark:border-slate-700"
+          class="bg-white dark:bg-slate-800 rounded-xl p-6 transition-all group flex flex-col max-h-full border-slate-200 dark:border-slate-700"
         >
           <!-- Header (Always visible) -->
           <div
@@ -209,10 +209,18 @@
             >
               <button
                 @click.stop="triggerAiScan"
-                class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 mr-auto"
+                :disabled="isScanning"
+                class="px-3 py-1.5 text-xs font-bold text-white rounded-lg shadow-sm transition-colors flex items-center gap-1 mr-auto"
+                :class="
+                  isScanning
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-500'
+                "
                 title="Scan data dari dokumen PDF dengan AI"
               >
-                <i class="fas fa-magic"></i> Scan AI
+                <i v-if="isScanning" class="fas fa-spinner fa-spin"></i>
+                <i v-else class="fas fa-magic"></i>
+                {{ isScanning ? "Scanning..." : "Scan AI" }}
               </button>
 
               <div class="flex items-center gap-2">
@@ -325,6 +333,7 @@ const isEditing = ref(false);
 const editingId = ref(null);
 const editFormData = ref({});
 const validatedFields = ref({});
+const isScanning = ref(false); // State untuk disable button saat scanning
 
 const startEditing = (item) => {
   isEditing.value = true;
@@ -392,12 +401,18 @@ const formatGender = (genderStr) => {
 };
 
 const triggerAiScan = async () => {
+  // Prevent double click
+  if (isScanning.value) {
+    return;
+  }
+
   // Check pending file or existing URL
   if (!props.pendingFile && !props.selectedUrl) {
     error("Silakan upload dokumen terlebih dahulu untuk discan.");
     return;
   }
 
+  isScanning.value = true;
   const toastId = loadingScan();
 
   try {
@@ -443,16 +458,18 @@ const triggerAiScan = async () => {
     console.log("[Ai Scan] Received data:", data);
 
     // Key Mapping for NPWP (Fix mismatch)
-    // AI returns: nomor_npwp, nama_wp, alamat, kpp
-    // Frontend expects: nomor_npwp_personel, nama_npwp_personel, alamat_npwp_personel, kpp_npwp_personel
     if (props.documentType === "npwp") {
       const npwpMapping = {
         nomor_npwp: "nomor_npwp_personel",
+        nomor_npwp_personel: "nomor_npwp_personel",
         nama_wp: "nama_npwp_personel",
-        nama: "nama_npwp_personel", // Fallback
+        nama_npwp_personel: "nama_npwp_personel",
         alamat: "alamat_npwp_personel",
+        alamat_npwp_personel: "alamat_npwp_personel",
         kpp: "kpp_npwp_personel",
+        kpp_npwp_personel: "kpp_npwp_personel",
         nik: "nik_npwp_personel",
+        nik_npwp_personel: "nik_npwp_personel",
       };
 
       const mappedData = {};
@@ -460,16 +477,43 @@ const triggerAiScan = async () => {
         if (npwpMapping[key]) {
           mappedData[npwpMapping[key]] = value;
         } else {
-          mappedData[key] = value; // Keep others as is
+          mappedData[key] = value;
         }
       }
-
-      // Ensure mapped keys exist even if source was missing (optional, but good for completeness)
-      // If 'nomor_npwp' was missing in data, mappedData won't have it either, preventing overwrite of existing valid data with undefined?
-      // No, we want to respect AI. If AI didn't find it, maybe don't overwrite? Or overwrite with empty?
-      // Let's stick to mapping what exists.
-
       console.log("[Ai Scan] Mapped NPWP data:", mappedData);
+      data = mappedData;
+    }
+
+    // Key Mapping for KTP (Fix mismatch: AI returns _personel suffix, frontend expects simple keys)
+    if (props.documentType === "ktp") {
+      const ktpMapping = {
+        nik_personel: "nik",
+        nama_personel: "nama_ktp",
+        tempat_lahir_personel: "tempat_lahir_ktp",
+        tanggal_lahir_personel: "tanggal_lahir_ktp",
+        jenis_kelamin_personel: "jenis_kelamin",
+        alamat_personel: "alamat_ktp",
+        rt_rw_personel: "rt_rw",
+        kel_desa_personel: "kelurahan_desa",
+        kecamatan_personel: "kecamatan",
+        agama_personel: "agama",
+        status_perkawinan_personel: "status_perkawinan",
+        pekerjaan_personel: "pekerjaan",
+        kewarganegaraan_personel: "kewarganegaraan",
+        berlaku_hingga_personel: "berlaku_hingga",
+        tanggal_terbit_personel: "tanggal_terbit_ktp",
+      };
+
+      const mappedData = {};
+      for (const [key, value] of Object.entries(data)) {
+        if (ktpMapping[key]) {
+          mappedData[ktpMapping[key]] = value;
+        } else {
+          // Keep original key too just in case
+          mappedData[key] = value;
+        }
+      }
+      console.log("[Ai Scan] Mapped KTP data:", mappedData);
       data = mappedData;
     }
 
@@ -525,12 +569,14 @@ const triggerAiScan = async () => {
     successScan(
       `Data ${
         props.documentType ? props.documentType.toUpperCase() : ""
-      } berhasil diekstrak. Silakan validasi.`
+      } berhasil diekstrak. Silakan validasi.`,
     );
   } catch (e) {
     console.error("[Ai Scan Error]", e);
     hideToast(toastId);
     errorScan(e.message);
+  } finally {
+    isScanning.value = false; // Reset state
   }
 };
 
@@ -565,7 +611,7 @@ const isAllValidated = computed(() => {
 defineExpose({ updateEditData, startEditing, cancelEditing, saveEditing });
 
 const selectedId = computed(() =>
-  props.selectedItem ? props.selectedItem[props.idKey] : null
+  props.selectedItem ? props.selectedItem[props.idKey] : null,
 );
 
 const iconBgClass = computed(() => {
