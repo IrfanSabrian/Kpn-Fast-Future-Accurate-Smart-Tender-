@@ -244,7 +244,7 @@ async function verifyGeminiAPI() {
     if (!process.env.GOOGLE_GEMINI_API_KEY) {
       console.log(cleanLog("⚠️  Gemini API Key: NOT CONFIGURED"));
       console.log(
-        "   Set GOOGLE_GEMINI_API_KEY in .env or Settings to enable AI document scanning"
+        "   Set GOOGLE_GEMINI_API_KEY in .env or Settings to enable AI document scanning",
       );
     } else {
       console.log(cleanLog("❌ Gemini AI API: VERIFICATION FAILED"));
@@ -260,6 +260,18 @@ app.listen(PORT, async () => {
   console.log(cleanLog(`🚀 KPN FAST Backend running on port ${PORT}`));
   console.log(cleanLog(`📍 Environment: ${process.env.NODE_ENV}`));
   console.log(cleanLog(`🌐 API URL: http://localhost:${PORT}`));
+
+  // Ensure uploads directory exists
+  try {
+    const fs = await import("fs/promises");
+    const uploadDir = path.join(__dirname, "../uploads");
+    await fs.mkdir(uploadDir, { recursive: true });
+    console.log(cleanLog(`✅ Uploads directory confirmed: ${uploadDir}`));
+  } catch (err) {
+    console.error(
+      cleanLog(`❌ Failed to create uploads directory: ${err.message}`),
+    );
+  }
 
   // Verify Gemini API on startup
   await verifyGeminiAPI();

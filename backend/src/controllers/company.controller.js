@@ -2889,6 +2889,55 @@ export const uploadCompanyDocument = async (req, res) => {
 };
 
 /**
+ * Helper function to upload Pengalaman Document (Daftar or Kontrak) to Google Drive
+ * Path: .../[index].8 Kontrak Pengalaman/{type} - {nama_kegiatan} - {nama_perusahaan}.pdf
+ */
+async function uploadPengalamanDocumentHelper(
+  file,
+  namaPerusahaan,
+  folderNumber,
+  type,
+  namaKegiatan,
+) {
+  const basePerusahaanFolderId = process.env.GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID;
+
+  if (!basePerusahaanFolderId) {
+    throw new Error("GOOGLE_DRIVE_PERUSAHAAN_FOLDER_ID not configured in .env");
+  }
+
+  // Folder: 8. Kontrak Pengalaman
+  const companyIndex = parseInt(folderNumber, 10);
+  const companyFolderName = `${folderNumber}. ${namaPerusahaan}`;
+  const folderPath = [
+    companyFolderName,
+    `${companyIndex}.8 Kontrak Pengalaman`,
+  ];
+
+  // Sanitize filename parts
+  const safeKegiatan = namaKegiatan
+    .replace(/[^a-zA-Z0-9 .-]/g, "_")
+    .substring(0, 50);
+  const safeType = type.charAt(0).toUpperCase() + type.slice(1); // Daftar or Kontrak
+
+  const fileName = `${safeType} - ${safeKegiatan} - ${namaPerusahaan}.pdf`;
+
+  // Create read stream for file
+  const fs = await import("fs");
+  const fileStream = fs.createReadStream(file.path);
+
+  // Upload using oauth2GoogleService
+  const result = await oauth2GoogleService.uploadPdfFile(
+    fileStream,
+    fileName,
+    "application/pdf",
+    folderPath,
+    basePerusahaanFolderId,
+  );
+
+  return result;
+}
+
+/**
  * Upload Pengalaman Document (Daftar or Kontrak PDF)
  * POST /api/companies/:id/pengalaman/:itemId/:type/upload
  *
@@ -2903,9 +2952,16 @@ export const uploadPengalamanDocument = async (req, res) => {
     console.log(
       `📤 Upload Pengalaman Document: ${type} for company ${id}, item ${itemId}`,
     );
+    console.log("   Params:", req.params);
+    console.log(
+      "   File:",
+      file ? `${file.originalname} (${file.size} bytes)` : "MISSING",
+    );
 
-    // Validate type
-    if (!["daftar", "kontrak"].includes(type)) {
+    // Validate type (case-insensitive)
+    const validTypes = ["daftar", "kontrak"];
+    if (!validTypes.includes(type.toLowerCase())) {
+      console.error(`❌ Invalid document type: ${type}`);
       if (file) {
         const fs = await import("fs/promises");
         await fs.unlink(file.path).catch(() => {});
@@ -2962,26 +3018,35 @@ export const uploadPengalamanDocument = async (req, res) => {
     const folderNumber = String(companyIndex + 1).padStart(2, "0");
 
     // Upload using helper function
-    const result = await uploadPengalamanDocumentToDrive(
+    console.log(
+      `🔍 [DEBUG] calling uploadPengalamanDocumentHelper for ${type}...`,
+    );
+    const result = await uploadPengalamanDocumentHelper(
       file,
       namaPerusahaan,
       folderNumber,
       type,
       namaKegiatan,
     );
+    console.log(`✅ [DEBUG] helper finished. Result:`, result ? "OK" : "NULL");
 
     // Update the appropriate URL field in database
     const urlField = type === "daftar" ? "daftar_url" : "kontrak_url";
+    console.log(
+      `🔍 [DEBUG] Updating Sheet for item ${itemId}, field: ${urlField}`,
+    );
+
     await googleSheetsService.updateKontrakPengalaman(itemId, {
       [urlField]: result.webViewLink,
     });
+    console.log(`✅ [DEBUG] Sheet updated successfully`);
 
     // Cleanup temp file
     const fs = await import("fs/promises");
     await fs.unlink(file.path).catch(() => {});
 
     console.log(`✅ ${type} document uploaded successfully`);
-    console.log(`   File: ${result.meta.fileName}`);
+    console.log(`   File: ${result.fileName}`);
     console.log(`   URL: ${result.webViewLink}`);
 
     res.json({
@@ -2992,7 +3057,7 @@ export const uploadPengalamanDocument = async (req, res) => {
       data: {
         fileUrl: result.webViewLink,
         fileId: result.fileId,
-        fileName: result.meta.fileName,
+        fileName: result.fileName,
         type,
       },
     });

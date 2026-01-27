@@ -38,7 +38,7 @@ class OAuth2GoogleService {
       // Load OAuth2 credentials
       const credentialsPath = path.join(
         __dirname,
-        "../../credentials/oauth2-credentials.json"
+        "../../credentials/oauth2-credentials.json",
       );
 
       if (!fs.existsSync(credentialsPath)) {
@@ -53,13 +53,13 @@ class OAuth2GoogleService {
       this.oauth2Client = new google.auth.OAuth2(
         client_id,
         client_secret,
-        redirect_uris[0]
+        redirect_uris[0],
       );
 
       // Load token if exists
       const tokenPath = path.join(
         __dirname,
-        "../../credentials/oauth2-token.json"
+        "../../credentials/oauth2-token.json",
       );
 
       if (fs.existsSync(tokenPath)) {
@@ -74,7 +74,7 @@ class OAuth2GoogleService {
         this.isInitialized = true;
 
         console.log(
-          "✅ OAuth2 Google Service initialized (Drive, Sheets, Docs)"
+          "✅ OAuth2 Google Service initialized (Drive, Sheets, Docs)",
         );
       } else {
         console.log("⚠️  OAuth2 token not found. User needs to authenticate.");
@@ -138,7 +138,7 @@ class OAuth2GoogleService {
       // Save token
       const tokenPath = path.join(
         __dirname,
-        "../../credentials/oauth2-token.json"
+        "../../credentials/oauth2-token.json",
       );
       fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
 
@@ -235,7 +235,7 @@ class OAuth2GoogleService {
     try {
       const tokenPath = path.join(
         __dirname,
-        "../../credentials/oauth2-token.json"
+        "../../credentials/oauth2-token.json",
       );
       if (fs.existsSync(tokenPath)) {
         fs.unlinkSync(tokenPath);
@@ -328,7 +328,7 @@ class OAuth2GoogleService {
     fileName,
     mimeType,
     folderPath = [],
-    baseParentId = null
+    baseParentId = null,
   ) {
     await this.initialize();
 
@@ -348,21 +348,21 @@ class OAuth2GoogleService {
         for (const folderName of folderPath) {
           const existingFolder = await this.findFolderByName(
             folderName,
-            currentParentId
+            currentParentId,
           );
 
           if (existingFolder) {
             console.log(
-              `📁 Folder exists: ${folderName} (ID: ${existingFolder.id})`
+              `📁 Folder exists: ${folderName} (ID: ${existingFolder.id})`,
             );
             currentParentId = existingFolder.id;
           } else {
             const newFolder = await this.createFolder(
               folderName,
-              currentParentId
+              currentParentId,
             );
             console.log(
-              `✅ Folder created: ${folderName} (ID: ${newFolder.id})`
+              `✅ Folder created: ${folderName} (ID: ${newFolder.id})`,
             );
             currentParentId = newFolder.id;
           }
@@ -377,7 +377,10 @@ class OAuth2GoogleService {
 
       const media = {
         mimeType: mimeType,
-        body: Readable.from(fileBuffer),
+        body:
+          fileBuffer && typeof fileBuffer.pipe === "function"
+            ? fileBuffer
+            : Readable.from(fileBuffer),
       };
 
       const response = await this.drive.files.create({
@@ -543,7 +546,7 @@ class OAuth2GoogleService {
       });
 
       console.log(
-        `✅ Folder renamed: "${oldName}" → "${newName}" (ID: ${folder.id})`
+        `✅ Folder renamed: "${oldName}" → "${newName}" (ID: ${folder.id})`,
       );
       return {
         success: true,
@@ -555,7 +558,7 @@ class OAuth2GoogleService {
     } catch (error) {
       console.error(
         `❌ Error renaming folder "${oldName}" to "${newName}":`,
-        error
+        error,
       );
       throw new Error(`Failed to rename folder: ${error.message}`);
     }
@@ -627,7 +630,7 @@ class OAuth2GoogleService {
     } catch (error) {
       console.error(
         `❌ Error renaming file ${fileId} to "${newFileName}":`,
-        error
+        error,
       );
       throw new Error(`Failed to rename file: ${error.message}`);
     }
@@ -651,7 +654,7 @@ class OAuth2GoogleService {
           fileId: fileId,
           alt: "media",
         },
-        { responseType: "arraybuffer" }
+        { responseType: "arraybuffer" },
       );
 
       console.log(`✅ File downloaded: ${fileId}`);
@@ -686,7 +689,7 @@ class OAuth2GoogleService {
       });
 
       console.log(
-        `✅ Document created: ${title} (ID: ${response.data.documentId})`
+        `✅ Document created: ${title} (ID: ${response.data.documentId})`,
       );
       return response.data;
     } catch (error) {

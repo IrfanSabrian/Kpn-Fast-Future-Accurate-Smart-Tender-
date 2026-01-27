@@ -185,94 +185,229 @@
                       <!-- EDIT MODE -->
                       <div
                         v-if="editingDaftarId === item.id_kontrak"
-                        class="space-y-4 cursor-default"
+                        class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 transition-all group border-slate-200 dark:border-slate-700 cursor-default -m-6 relative shadow-lg z-10"
                         @click.stop
                       >
+                        <!-- Header -->
                         <div
-                          class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2 mb-2"
+                          class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
                         >
-                          <h4
-                            class="font-bold text-slate-700 dark:text-slate-200"
-                          >
-                            Edit Data Pengalaman
-                          </h4>
-                        </div>
-                        <div class="space-y-3">
-                          <div>
-                            <label
-                              class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                              >KEGIATAN</label
+                          <div class="flex items-center gap-3">
+                            <div
+                              class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-blue-50 dark:bg-blue-900/20 text-blue-600"
                             >
-                            <input
-                              v-model="daftarEditFormData.nama_kegiatan"
-                              type="text"
-                              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                              placeholder="Nama Kegiatan"
-                            />
-                          </div>
-                          <div>
-                            <label
-                              class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                              >SUB KEGIATAN</label
-                            >
-                            <input
-                              v-model="daftarEditFormData.nama_sub_kegiatan"
-                              type="text"
-                              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                              placeholder="Sub Kegiatan"
-                            />
-                          </div>
-                          <div>
-                            <label
-                              class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                              >LOKASI</label
-                            >
-                            <input
-                              v-model="daftarEditFormData.lokasi"
-                              type="text"
-                              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                              placeholder="Lokasi"
-                            />
+                              <i class="fas fa-edit"></i>
+                            </div>
+                            <div>
+                              <div
+                                class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                              >
+                                EDIT DATA
+                              </div>
+                              <h4
+                                class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
+                              >
+                                Data Pengalaman
+                              </h4>
+                            </div>
                           </div>
                         </div>
+
+                        <!-- Scrollable Content -->
                         <div
-                          class="flex justify-end gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-700"
+                          class="mt-4 space-y-0.5 max-h-[45vh] overflow-y-auto pr-2 custom-scrollbar"
                         >
-                          <button
-                            v-if="item.daftar_url"
-                            @click="handleAiScanDaftarEdit(item)"
-                            :disabled="isScanningDaftarEdit"
-                            class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 mr-auto"
-                            title="Scan data dari dokumen PDF dengan AI"
+                          <!-- Kegiatan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
                           >
-                            <i
-                              :class="
-                                isScanningDaftarEdit
-                                  ? 'fas fa-spinner fa-spin'
-                                  : 'fas fa-magic'
-                              "
-                            ></i>
-                            <span>{{
-                              isScanningDaftarEdit ? "Scanning..." : "Scan AI"
-                            }}</span>
-                          </button>
-                          <button
-                            @click="cancelEditDaftar"
-                            class="px-3 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              KEGIATAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="daftarEditFormData.nama_kegiatan"
+                                  type="text"
+                                  placeholder="Nama Kegiatan"
+                                  :disabled="daftarEditFieldLocks.nama_kegiatan"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="
+                                  toggleDaftarEditFieldLock('nama_kegiatan')
+                                "
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  daftarEditFieldLocks.nama_kegiatan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Sub Kegiatan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
                           >
-                            Batal
-                          </button>
-                          <button
-                            @click="saveDaftarEdit(item)"
-                            :disabled="isSavingDaftarEdit"
-                            class="px-3 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              SUB KEGIATAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="daftarEditFormData.nama_sub_kegiatan"
+                                  type="text"
+                                  placeholder="Sub Kegiatan"
+                                  :disabled="
+                                    daftarEditFieldLocks.nama_sub_kegiatan
+                                  "
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="
+                                  toggleDaftarEditFieldLock('nama_sub_kegiatan')
+                                "
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  daftarEditFieldLocks.nama_sub_kegiatan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Lokasi -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
                           >
-                            <i
-                              v-if="isSavingDaftarEdit"
-                              class="fas fa-spinner fa-spin"
-                            ></i>
-                            Simpan
-                          </button>
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              LOKASI
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="daftarEditFormData.lokasi"
+                                  type="text"
+                                  placeholder="Lokasi"
+                                  :disabled="daftarEditFieldLocks.lokasi"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleDaftarEditFieldLock('lokasi')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  daftarEditFieldLocks.lokasi
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Sticky Footer -->
+                          <div
+                            class="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 py-3 mt-2 flex justify-between items-center gap-2"
+                          >
+                            <!-- Left: AI Scan -->
+                            <button
+                              v-if="item.daftar_url"
+                              @click="handleAiScanDaftarEdit(item)"
+                              :disabled="isScanningDaftarEdit"
+                              class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1"
+                              title="Scan data dari dokumen PDF dengan AI"
+                            >
+                              <i
+                                :class="
+                                  isScanningDaftarEdit
+                                    ? 'fas fa-spinner fa-spin'
+                                    : 'fas fa-magic'
+                                "
+                              ></i>
+                              {{
+                                isScanningDaftarEdit ? "Scanning..." : "Scan AI"
+                              }}
+                            </button>
+                            <!-- Placeholder if no scan button -->
+                            <div v-else></div>
+
+                            <!-- Right: Controls -->
+                            <div class="flex items-center gap-2">
+                              <!-- Warning -->
+                              <span
+                                v-if="!isAllDaftarEditFieldsLocked"
+                                class="text-[9px] text-orange-500 font-bold animate-pulse hidden sm:inline-block"
+                              >
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                Ceklis semua data!
+                              </span>
+
+                              <!-- Validate All Button -->
+                              <button
+                                @click="validateAllDaftarEditFields"
+                                class="px-2 py-1.5 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 border border-green-100 dark:border-green-800"
+                                title="Validasi semua kolom sekaligus"
+                              >
+                                <i class="fas fa-check-double"></i>
+                                All
+                              </button>
+
+                              <div
+                                class="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"
+                              ></div>
+
+                              <button
+                                @click="cancelEditDaftar"
+                                class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                              >
+                                Batal
+                              </button>
+
+                              <button
+                                @click="saveDaftarEdit(item)"
+                                :disabled="
+                                  !isAllDaftarEditFieldsLocked ||
+                                  isSavingDaftarEdit
+                                "
+                                class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-400"
+                                :title="
+                                  !isAllDaftarEditFieldsLocked
+                                    ? 'Validasi semua kolom terlebih dahulu'
+                                    : ''
+                                "
+                              >
+                                <i
+                                  v-if="isSavingDaftarEdit"
+                                  class="fas fa-spinner fa-spin"
+                                ></i>
+                                <i v-else class="fas fa-save"></i>
+                                Simpan
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -390,10 +525,10 @@
                   <!-- Data Info / Edit Button -->
                   <div class="h-full">
                     <div
-                      class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex flex-col h-[calc(100vh-250px)] overflow-hidden"
+                      class="bg-white dark:bg-slate-800 rounded-xl border-2 p-6 transition-all group border-slate-200 dark:border-slate-700 cursor-default"
                     >
                       <div
-                        class="flex justify-between items-start p-6 border-b border-slate-100 dark:border-slate-700 shrink-0 bg-white dark:bg-slate-800 z-10"
+                        class="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3"
                       >
                         <div class="flex items-center gap-3">
                           <div
@@ -438,10 +573,538 @@
                             </button>
                           </template>
                           <template v-else>
+                            <!-- Controls moved to footer -->
+                          </template>
+                        </div>
+                      </div>
+
+                      <div
+                        class="mt-4 space-y-0.5 max-h-[45vh] overflow-y-auto pr-2 custom-scrollbar"
+                      >
+                        <!-- EDIT MODE FORM -->
+                        <div v-if="isEditingKontrak" class="space-y-0.5">
+                          <!-- Nomor Kontrak -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              NOMOR KONTRAK
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.nomor_kontrak"
+                                  type="text"
+                                  placeholder="Nomor Kontrak"
+                                  :disabled="kontrakFieldLocks.nomor_kontrak"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('nomor_kontrak')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.nomor_kontrak
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Nilai Kontrak -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              NILAI KONTRAK
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.nilai_kontrak"
+                                  type="number"
+                                  placeholder="Rp"
+                                  :disabled="kontrakFieldLocks.nilai_kontrak"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('nilai_kontrak')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.nilai_kontrak
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Sumber Dana -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              SUMBER DANA
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.sumber_dana"
+                                  type="text"
+                                  placeholder="Sumber Dana"
+                                  :disabled="kontrakFieldLocks.sumber_dana"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('sumber_dana')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.sumber_dana
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Tanggal Kontrak -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              TANGGAL KONTRAK
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.tanggal_kontrak"
+                                  type="date"
+                                  :disabled="kontrakFieldLocks.tanggal_kontrak"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="
+                                  toggleKontrakFieldLock('tanggal_kontrak')
+                                "
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.tanggal_kontrak
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Tanggal Mulai -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              TANGGAL MULAI
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.tanggal_mulai"
+                                  type="date"
+                                  :disabled="kontrakFieldLocks.tanggal_mulai"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('tanggal_mulai')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.tanggal_mulai
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Tanggal Selesai -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              TANGGAL SELESAI
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="
+                                    kontrakFormData.tanggal_selesai_kontrak
+                                  "
+                                  type="date"
+                                  :disabled="
+                                    kontrakFieldLocks.tanggal_selesai_kontrak
+                                  "
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="
+                                  toggleKontrakFieldLock(
+                                    'tanggal_selesai_kontrak',
+                                  )
+                                "
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.tanggal_selesai_kontrak
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Waktu Pelaksanaan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              WAKTU PELAKSANAAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.waktu_pelaksanaan"
+                                  type="text"
+                                  placeholder="Contoh: 180 Hari"
+                                  :disabled="
+                                    kontrakFieldLocks.waktu_pelaksanaan
+                                  "
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="
+                                  toggleKontrakFieldLock('waktu_pelaksanaan')
+                                "
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.waktu_pelaksanaan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Tanggal BA Serah Terima -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              TGL BA SERAH TERIMA
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="
+                                    kontrakFormData.tanggal_ba_serah_terima
+                                  "
+                                  type="date"
+                                  :disabled="
+                                    kontrakFieldLocks.tanggal_ba_serah_terima
+                                  "
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="
+                                  toggleKontrakFieldLock(
+                                    'tanggal_ba_serah_terima',
+                                  )
+                                "
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.tanggal_ba_serah_terima
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Pekerjaan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              PEKERJAAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.pekerjaan"
+                                  type="text"
+                                  placeholder="Nama Pekerjaan"
+                                  :disabled="kontrakFieldLocks.pekerjaan"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('pekerjaan')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.pekerjaan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Kegiatan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              KEGIATAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.kegiatan"
+                                  type="text"
+                                  placeholder="Kegiatan"
+                                  :disabled="kontrakFieldLocks.kegiatan"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('kegiatan')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.kegiatan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Sub Kegiatan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              SUB KEGIATAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.sub_kegiatan"
+                                  type="text"
+                                  placeholder="Sub Kegiatan"
+                                  :disabled="kontrakFieldLocks.sub_kegiatan"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('sub_kegiatan')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.sub_kegiatan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Lokasi -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              LOKASI
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.lokasi"
+                                  type="text"
+                                  placeholder="Lokasi"
+                                  :disabled="kontrakFieldLocks.lokasi"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('lokasi')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.lokasi
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Pemberi Tugas -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              PEMBERI TUGAS
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.pemberi_tugas"
+                                  type="text"
+                                  placeholder="Pemberi Tugas"
+                                  :disabled="kontrakFieldLocks.pemberi_tugas"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('pemberi_tugas')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.pemberi_tugas
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Kontak Pemberi Tugas -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-start"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-2"
+                            >
+                              ALAMAT / KONTAK
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <textarea
+                                  v-model="kontrakFormData.kontak_pemberi_tugas"
+                                  rows="3"
+                                  placeholder="Alamat / Kontak"
+                                  :disabled="
+                                    kontrakFieldLocks.kontak_pemberi_tugas
+                                  "
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                ></textarea>
+                              </div>
+                              <button
+                                @click="
+                                  toggleKontrakFieldLock('kontak_pemberi_tugas')
+                                "
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.kontak_pemberi_tugas
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Footer Actions (Sticky Bottom) -->
+                          <div
+                            class="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 py-3 mt-2 flex justify-between items-center gap-2"
+                          >
+                            <!-- Left: AI Scan -->
                             <button
                               @click="handleKontrakAiScanInline"
                               :disabled="isAiScanning"
-                              class="text-xs font-bold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-2 rounded-lg transition-colors flex items-center gap-2"
+                              class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1"
+                              title="Scan data dari dokumen PDF dengan AI"
                             >
                               <i
                                 :class="
@@ -450,222 +1113,61 @@
                                     : 'fas fa-magic'
                                 "
                               ></i>
-                              {{ isAiScanning ? "Scaning..." : "AI Scan" }}
+                              {{ isAiScanning ? "Scanning..." : "AI Scan" }}
                             </button>
-                            <button
-                              @click="cancelEditKontrakInline"
-                              class="text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition-colors"
-                            >
-                              Batal
-                            </button>
-                            <button
-                              @click="saveKontrakInline"
-                              :disabled="isSubmittingKontrak"
-                              class="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                            >
-                              <i
-                                v-if="isSubmittingKontrak"
-                                class="fas fa-spinner fa-spin"
-                              ></i>
-                              Simpan
-                            </button>
-                          </template>
-                        </div>
-                      </div>
 
-                      <div
-                        class="p-6 overflow-y-auto flex-1 space-y-6 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700"
-                      >
-                        <!-- EDIT MODE FORM -->
-                        <div v-if="isEditingKontrak" class="space-y-6">
-                          <!-- 1. Nilai & Waktu -->
-                          <div>
-                            <h5
-                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
-                            >
-                              <i class="fas fa-money-bill-wave"></i> Nilai &
-                              Waktu
-                            </h5>
-                            <div class="grid grid-cols-2 gap-4">
-                              <div class="col-span-2">
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >NILAI KONTRAK</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.nilai_kontrak"
-                                  type="number"
-                                  placeholder="Rp"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div class="col-span-2">
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >SUMBER DANA</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.sumber_dana"
-                                  type="text"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >TANGGAL KONTRAK</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.tanggal_kontrak"
-                                  type="date"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >TANGGAL MULAI</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.tanggal_mulai"
-                                  type="date"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >TANGGAL SELESAI</label
-                                >
-                                <input
-                                  v-model="
-                                    kontrakFormData.tanggal_selesai_kontrak
-                                  "
-                                  type="date"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >WAKTU PELAKSANAAN</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.waktu_pelaksanaan"
-                                  type="text"
-                                  placeholder="Contoh: 180 Hari"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div class="col-span-2">
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >TANGGAL BA SERAH TERIMA</label
-                                >
-                                <input
-                                  v-model="
-                                    kontrakFormData.tanggal_ba_serah_terima
-                                  "
-                                  type="date"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                            </div>
-                          </div>
+                            <!-- Right: Controls -->
+                            <div class="flex items-center gap-2">
+                              <!-- Warning -->
+                              <span
+                                v-if="!isAllKontrakFieldsLocked"
+                                class="text-[9px] text-orange-500 font-bold animate-pulse hidden sm:inline-block"
+                              >
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                Ceklis semua data!
+                              </span>
 
-                          <div
-                            class="border-t border-slate-100 dark:border-slate-700"
-                          ></div>
+                              <!-- Validate All Button -->
+                              <button
+                                @click="validateAllKontrakFields"
+                                class="px-2 py-1.5 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 border border-green-100 dark:border-green-800"
+                                title="Validasi semua kolom sekaligus"
+                              >
+                                <i class="fas fa-check-double"></i>
+                                All
+                              </button>
 
-                          <!-- 2. Detail Pekerjaan -->
-                          <div>
-                            <h5
-                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
-                            >
-                              <i class="fas fa-building"></i> Detail Pekerjaan
-                            </h5>
-                            <div class="grid grid-cols-2 gap-4">
-                              <div class="col-span-2">
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >PEKERJAAN</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.pekerjaan"
-                                  type="text"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >KEGIATAN</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.kegiatan"
-                                  type="text"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >SUB KEGIATAN</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.sub_kegiatan"
-                                  type="text"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div class="col-span-2">
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >LOKASI</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.lokasi"
-                                  type="text"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                            </div>
-                          </div>
+                              <div
+                                class="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"
+                              ></div>
 
-                          <div
-                            class="border-t border-slate-100 dark:border-slate-700"
-                          ></div>
+                              <button
+                                @click="cancelEditKontrakInline"
+                                class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                              >
+                                Batal
+                              </button>
 
-                          <!-- 3. Pemberi Tugas -->
-                          <div>
-                            <h5
-                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
-                            >
-                              <i class="fas fa-user-tie"></i> Pemberi Tugas
-                            </h5>
-                            <div class="grid grid-cols-2 gap-4">
-                              <div class="col-span-2">
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >PEMBERI TUGAS</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.pemberi_tugas"
-                                  type="text"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div class="col-span-2">
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >ALAMAT / KONTAK</label
-                                >
-                                <textarea
-                                  v-model="kontrakFormData.kontak_pemberi_tugas"
-                                  rows="3"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                ></textarea>
-                              </div>
+                              <button
+                                @click="saveKontrakInline"
+                                :disabled="
+                                  !isAllKontrakFieldsLocked ||
+                                  isSubmittingKontrak
+                                "
+                                class="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-400"
+                                :title="
+                                  !isAllKontrakFieldsLocked
+                                    ? 'Validasi semua kolom terlebih dahulu'
+                                    : ''
+                                "
+                              >
+                                <i
+                                  v-if="isSubmittingKontrak"
+                                  class="fas fa-spinner fa-spin"
+                                ></i>
+                                <i v-else class="fas fa-save"></i>
+                                Simpan
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -3172,7 +3674,6 @@
             v-model="daftarPengalamanFormData.nama_kegiatan"
             label="Kegiatan"
             placeholder="Contoh: Penyelenggaraan Bangunan Gedung"
-            required
             :showValidation="showDaftarPengalamanValidation"
             :locked="daftarPengalamanFieldLocks.nama_kegiatan"
             @update:locked="
@@ -3183,7 +3684,6 @@
             v-model="daftarPengalamanFormData.lokasi"
             label="Lokasi"
             placeholder="Contoh: Kabupaten Sambas"
-            required
             :showValidation="showDaftarPengalamanValidation"
             :locked="daftarPengalamanFieldLocks.lokasi"
             @update:locked="(val) => (daftarPengalamanFieldLocks.lokasi = val)"
@@ -3241,8 +3741,6 @@
             :disabled="
               isSubmittingDaftarPengalaman ||
               !daftarPengalamanFormData.nama_pekerjaan ||
-              !daftarPengalamanFormData.nama_kegiatan ||
-              !daftarPengalamanFormData.lokasi ||
               (showDaftarPengalamanValidation &&
                 !isAllDaftarPengalamanValidated)
             "
@@ -3265,154 +3763,85 @@
     </CompanyDocumentModal>
 
     <!-- Edit Kontrak Pengalaman Modal -->
-    <BaseModal
+    <CompanyDocumentModal
       :show="showEditKontrakModal"
+      :title="kontrakFormData.nomor_kontrak || 'Edit Kontrak'"
+      :subtitle="'NOMOR KONTRAK'"
+      :icon="'fas fa-file-contract'"
+      :formData="kontrakFormData"
+      :fieldLocks="kontrakFieldLocks"
+      :fields="kontrakFields"
+      :documentUrl="selectedPengalamanDetail?.kontrak_url"
+      :isScanning="isAiScanning"
       @close="showEditKontrakModal = false"
-      maxWidth="5xl"
-      title="Edit Kontrak Pengalaman"
+      @scan="handleAiScanKontrak"
     >
-      <template #default>
-        <div class="space-y-6">
-          <!-- AI Scan Button -->
-          <div class="flex justify-end mb-4">
-            <button
-              @click="handleAiScanKontrak"
-              :disabled="isAiScanning || !selectedPengalamanDetail?.kontrak_url"
-              class="px-4 py-2 text-sm font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      <template #footer>
+        <div
+          class="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 py-3 mt-2 flex justify-between items-center gap-2"
+        >
+          <button
+            @click="handleAiScanKontrak"
+            :disabled="isAiScanning || !selectedPengalamanDetail?.kontrak_url"
+            class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1"
+            title="Scan data dari dokumen PDF dengan AI"
+          >
+            <i v-if="isAiScanning" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-magic"></i>
+            {{ isAiScanning ? "Scanning..." : "Scan AI" }}
+          </button>
+
+          <div class="flex items-center gap-2">
+            <!-- Warning -->
+            <span
+              v-if="!isAllKontrakValidated"
+              class="text-[9px] text-orange-500 font-bold animate-pulse"
             >
-              <i v-if="isAiScanning" class="fas fa-spinner fa-spin"></i>
-              <i v-else class="fas fa-magic"></i>
-              {{ isAiScanning ? "Scanning..." : "Scan AI" }}
+              <i class="fas fa-exclamation-circle mr-1"></i>
+              Ceklis semua data!
+            </span>
+
+            <!-- Validate All Button -->
+            <button
+              @click="validateAllKontrakFields"
+              class="px-2 py-1 text-[10px] font-bold rounded transition-all flex items-center gap-1"
+              :class="
+                isAllKontrakValidated
+                  ? 'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400'
+              "
+              title="Validasi semua kolom sekaligus"
+            >
+              <i class="fas fa-check-double"></i>
+              All
+            </button>
+
+            <button
+              @click="showEditKontrakModal = false"
+              :disabled="isSubmittingKontrak"
+              class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              Batal
+            </button>
+
+            <button
+              @click="saveKontrakData"
+              :disabled="isSubmittingKontrak || !isAllKontrakValidated"
+              class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-400"
+              :title="
+                !isAllKontrakValidated
+                  ? 'Validasi semua kolom terlebih dahulu'
+                  : 'Simpan perubahan'
+              "
+            >
+              <i v-if="isSubmittingKontrak" class="fas fa-spinner fa-spin"></i>
+              <i v-else class="fas fa-save"></i>
+              Simpan
             </button>
           </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Informasi Pekerjaan -->
-            <div class="md:col-span-2">
-              <h4
-                class="text-sm font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2"
-              >
-                <i class="fas fa-info-circle"></i> Informasi Pekerjaan
-              </h4>
-            </div>
-            <FormInput
-              v-model="kontrakFormData.nama_pekerjaan"
-              label="Nama Pekerjaan"
-              placeholder="Nama proyek"
-              required
-            />
-            <FormInput
-              v-model="kontrakFormData.nama_kegiatan"
-              label="Kegiatan"
-              placeholder="Kegiatan"
-            />
-            <FormInput
-              v-model="kontrakFormData.nama_sub_kegiatan"
-              label="Sub Kegiatan"
-              placeholder="Sub kegiatan"
-            />
-            <FormInput
-              v-model="kontrakFormData.lokasi"
-              label="Lokasi"
-              placeholder="Lokasi proyek"
-            />
-
-            <!-- Pemberi Tugas -->
-            <div class="md:col-span-2 mt-4">
-              <h4
-                class="text-sm font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2"
-              >
-                <i class="fas fa-user-tie"></i> Pemberi Tugas
-              </h4>
-            </div>
-            <FormInput
-              v-model="kontrakFormData.nama_pemberi_tugas"
-              label="Nama Pemberi Tugas"
-              placeholder="Nama instansi/perusahaan"
-            />
-            <FormInput
-              v-model="kontrakFormData.telepon_pemberi_tugas"
-              label="Telepon"
-              placeholder="No. telepon"
-            />
-            <FormInput
-              v-model="kontrakFormData.alamat_pemberi_tugas"
-              label="Alamat"
-              type="textarea"
-              :rows="2"
-              placeholder="Alamat lengkap"
-            />
-            <FormInput
-              v-model="kontrakFormData.fax_pemberi_tugas"
-              label="Fax"
-              placeholder="No. fax"
-            />
-
-            <!-- Data Kontrak -->
-            <div class="md:col-span-2 mt-4">
-              <h4
-                class="text-sm font-bold text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-2"
-              >
-                <i class="fas fa-file-signature"></i> Data Kontrak
-              </h4>
-            </div>
-            <FormInput
-              v-model="kontrakFormData.nomor_kontrak"
-              label="Nomor Kontrak"
-              placeholder="No. kontrak"
-              required
-            />
-            <FormInput
-              v-model="kontrakFormData.tanggal_kontrak"
-              label="Tanggal Kontrak"
-              type="date"
-            />
-            <FormInput
-              v-model="kontrakFormData.nilai_kontrak"
-              label="Nilai Kontrak"
-              type="number"
-              placeholder="Nilai dalam Rupiah"
-            />
-            <FormInput
-              v-model="kontrakFormData.waktu_pelaksanaan"
-              label="Waktu Pelaksanaan"
-              placeholder="Misal: 180 hari"
-            />
-            <FormInput
-              v-model="kontrakFormData.tanggal_selesai_kontrak"
-              label="Tanggal Selesai"
-              type="date"
-            />
-            <FormInput
-              v-model="kontrakFormData.tanggal_ba_serah_terima"
-              label="Tanggal BA Serah Terima"
-              type="date"
-            />
-          </div>
         </div>
       </template>
-
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <button
-            @click="showEditKontrakModal = false"
-            :disabled="isSubmittingKontrak"
-            class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
-          >
-            Batal
-          </button>
-          <button
-            @click="saveKontrakData"
-            :disabled="isSubmittingKontrak || !kontrakFormData.nomor_kontrak"
-            class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <i v-if="isSubmittingKontrak" class="fas fa-spinner fa-spin"></i>
-            <i v-else class="fas fa-save"></i>
-            {{ isSubmittingKontrak ? "Menyimpan..." : "Simpan" }}
-          </button>
-        </div>
-      </template>
-    </BaseModal>
+    </CompanyDocumentModal>
 
     <ToastNotification />
   </div>
@@ -3535,6 +3964,7 @@ const npwpModalRef = ref(null);
 const sptModalRef = ref(null);
 const pkpModalRef = ref(null);
 const kswpModalRef = ref(null);
+const daftarPengalamanModalRef = ref(null);
 
 // SPT Field Locks & Validation
 const sptFieldLocks = ref({
@@ -3547,6 +3977,8 @@ const sptFieldLocks = ref({
   nama_wp: false,
   npwp: false,
   status_spt: false,
+  nitku: false,
+  pembetulan_ke: false,
 });
 const showSptValidation = ref(false);
 const sptUploadFormData = ref({
@@ -3609,8 +4041,106 @@ const closePengalamanDetail = () => {
   selectedPengalamanDetail.value = null;
 };
 
+const kontrakFields = [
+  // Informasi Pekerjaan
+  {
+    key: "nama_pekerjaan",
+    label: "NAMA PEKERJAAN",
+    placeholder: "Nama Pekerjaan",
+    section: "Informasi Pekerjaan",
+    icon: "fas fa-briefcase",
+  },
+  {
+    key: "nama_kegiatan",
+    label: "KEGIATAN",
+    placeholder: "Kegiatan",
+    section: "Informasi Pekerjaan",
+  },
+  {
+    key: "nama_sub_kegiatan",
+    label: "SUB KEGIATAN",
+    placeholder: "Sub Kegiatan",
+    section: "Informasi Pekerjaan",
+  },
+  {
+    key: "lokasi",
+    label: "LOKASI",
+    placeholder: "Lokasi",
+    section: "Informasi Pekerjaan",
+  },
+
+  // Pemberi Tugas
+  {
+    key: "nama_pemberi_tugas",
+    label: "NAMA PEMBERI TUGAS",
+    placeholder: "Nama Pemberi Tugas",
+    section: "Pemberi Tugas",
+    icon: "fas fa-user-tie",
+  },
+  {
+    key: "alamat_pemberi_tugas",
+    label: "ALAMAT",
+    placeholder: "Alamat Pemberi Tugas",
+    type: "textarea",
+    section: "Pemberi Tugas",
+  },
+  {
+    key: "telepon_pemberi_tugas",
+    label: "TELEPON",
+    placeholder: "No. Telepon",
+    section: "Pemberi Tugas",
+  },
+  {
+    key: "fax_pemberi_tugas",
+    label: "FAX",
+    placeholder: "No. Fax",
+    section: "Pemberi Tugas",
+  },
+
+  // Data Kontrak
+  {
+    key: "nomor_kontrak",
+    label: "NOMOR KONTRAK",
+    placeholder: "Nomor Kontrak",
+    section: "Detail Kontrak",
+    icon: "fas fa-file-contract",
+  },
+  {
+    key: "tanggal_kontrak",
+    label: "TANGGAL KONTRAK",
+    type: "date",
+    section: "Detail Kontrak",
+  },
+  {
+    key: "nilai_kontrak",
+    label: "NILAI KONTRAK",
+    type: "number",
+    placeholder: "Rp",
+    section: "Detail Kontrak",
+  },
+  {
+    key: "waktu_pelaksanaan",
+    label: "WAKTU PELAKSANAAN",
+    placeholder: "Contoh: 180 Hari",
+    section: "Detail Kontrak",
+  },
+  {
+    key: "tanggal_selesai_kontrak",
+    label: "TANGGAL SELESAI",
+    type: "date",
+    section: "Detail Kontrak",
+  },
+  {
+    key: "tanggal_ba_serah_terima",
+    label: "TANGGAL BA SERAH TERIMA",
+    type: "date",
+    section: "Detail Kontrak",
+  },
+];
+
 const openEditKontrakModal = (item) => {
   selectedPengalamanDetail.value = item;
+
   // Populate form with existing data
   kontrakFormData.value = {
     nama_pekerjaan: item.nama_pekerjaan || "",
@@ -3629,6 +4159,13 @@ const openEditKontrakModal = (item) => {
     tanggal_selesai_kontrak: item.tanggal_selesai_kontrak || "",
     tanggal_ba_serah_terima: item.tanggal_ba_serah_terima || "",
   };
+
+  // Initialize locks (all false initially)
+  kontrakFieldLocks.value = {};
+  Object.keys(kontrakFormData.value).forEach((key) => {
+    kontrakFieldLocks.value[key] = false;
+  });
+
   showEditKontrakModal.value = true;
 };
 
@@ -4305,6 +4842,43 @@ const daftarPengalamanFormData = ref({
   nama_kegiatan: "",
   lokasi: "",
 });
+
+// -- DAFTAR PENGALAMAN EDIT / VALIDATION STATE --
+const daftarEditFieldLocks = ref({
+  nama_kegiatan: false,
+  nama_sub_kegiatan: false,
+  lokasi: false,
+});
+
+const isAllDaftarEditFieldsLocked = computed(() => {
+  return (
+    daftarEditFieldLocks.value.nama_kegiatan &&
+    daftarEditFieldLocks.value.nama_sub_kegiatan &&
+    daftarEditFieldLocks.value.lokasi
+  );
+});
+
+const toggleDaftarEditFieldLock = (field) => {
+  daftarEditFieldLocks.value[field] = !daftarEditFieldLocks.value[field];
+};
+
+const validateAllDaftarEditFields = () => {
+  Object.keys(daftarEditFieldLocks.value).forEach((key) => {
+    daftarEditFieldLocks.value[key] = true;
+  });
+};
+
+// Reset locks when starting edit on a new item
+watch(
+  () => editingDaftarId.value,
+  (newVal) => {
+    if (newVal) {
+      Object.keys(daftarEditFieldLocks.value).forEach((key) => {
+        daftarEditFieldLocks.value[key] = false;
+      });
+    }
+  },
+);
 const daftarPdfFile = ref(null); // Keep for fallback logic if needed, but primary is event
 const isSubmittingDaftarPengalaman = ref(false);
 
@@ -4317,17 +4891,18 @@ const daftarPengalamanFieldLocks = ref({
 });
 
 const isAllDaftarPengalamanValidated = computed(() => {
-  return Object.values(daftarPengalamanFieldLocks.value).every(
-    (locked) => locked === true,
+  const locks = daftarPengalamanFieldLocks.value;
+  return (
+    locks.nama_pekerjaan === true &&
+    locks.nama_kegiatan === true &&
+    locks.lokasi === true
   );
 });
 
 const validateAllDaftarPengalamanFields = () => {
-  daftarPengalamanFieldLocks.value = {
-    nama_pekerjaan: true,
-    nama_kegiatan: true,
-    lokasi: true,
-  };
+  daftarPengalamanFieldLocks.value.nama_pekerjaan = true;
+  daftarPengalamanFieldLocks.value.nama_kegiatan = true;
+  daftarPengalamanFieldLocks.value.lokasi = true;
 };
 
 // Deprecated file handlers removed (handled by component)
@@ -4406,22 +4981,115 @@ const handleAiScanLocalDaftar = async () => {
   }
 };
 
+const handleAiScanDaftarComplete = (data) => {
+  console.log("✅ [DAFTAR] Receiving AI Scan Data:", data);
+
+  let experienceItem = {};
+
+  // Case 1: Direct object
+  if (data.pekerjaan || data.kegiatan || data.lokasi) {
+    experienceItem = data;
+  }
+  // Case 2: Nested in experience_list array
+  else if (
+    data.experience_list &&
+    Array.isArray(data.experience_list) &&
+    data.experience_list.length > 0
+  ) {
+    experienceItem = data.experience_list[0];
+  }
+  // Case 3: Generic array
+  else if (Array.isArray(data) && data.length > 0) {
+    experienceItem = data[0];
+  }
+  // Case 4: Nested in 'data' property (common wrapper)
+  else if (data.data) {
+    if (data.data.pekerjaan || data.data.kegiatan) {
+      experienceItem = data.data;
+    } else if (Array.isArray(data.data) && data.data.length > 0) {
+      experienceItem = data.data[0];
+    }
+  }
+
+  // Populate Form
+  daftarPengalamanFormData.value = {
+    nama_pekerjaan:
+      experienceItem.pekerjaan ||
+      experienceItem.nama_pekerjaan ||
+      experienceItem.job_title ||
+      "",
+    nama_kegiatan:
+      experienceItem.kegiatan ||
+      experienceItem.nama_kegiatan ||
+      experienceItem.activity ||
+      "",
+    lokasi: experienceItem.lokasi || experienceItem.location || "",
+  };
+
+  console.log("✅ Form Updated:", daftarPengalamanFormData.value);
+
+  // Reset Validation Locks (users must validate)
+  daftarPengalamanFieldLocks.value = {
+    nama_pekerjaan: false,
+    nama_kegiatan: false,
+    lokasi: false,
+  };
+
+  // Attempt to capture file from modal ref immediately if available
+  // Use typeof check to prevent ReferenceError if ref is not ready
+  if (
+    typeof daftarPengalamanModalRef !== "undefined" &&
+    daftarPengalamanModalRef.value?.selectedFile
+  ) {
+    daftarPdfFile.value = daftarPengalamanModalRef.value.selectedFile;
+  } else {
+    daftarPdfFile.value = null;
+  }
+
+  toast.success("Data berhasil dipindai! Silakan validasi.");
+};
+
 const saveDaftarPengalaman = async (file) => {
+  // Get file from:
+  // 1. Argument (if passed directly as File)
+  // 2. State (if set previously)
+  // 3. Modal Ref (most likely scenario for custom footer actions)
+
+  let fileToUpload = null;
+
+  // Check if 'file' argument is a valid File object (not an Event)
+  if (file && (file instanceof File || file instanceof Blob)) {
+    fileToUpload = file;
+  }
+
+  // Fallback to refs if argument is invalid/event
+  if (!fileToUpload && daftarPdfFile.value) {
+    fileToUpload = daftarPdfFile.value;
+  }
+
+  if (
+    !fileToUpload &&
+    typeof daftarPengalamanModalRef !== "undefined" &&
+    daftarPengalamanModalRef.value?.selectedFile
+  ) {
+    fileToUpload = daftarPengalamanModalRef.value.selectedFile;
+  }
+
   // Validation
-  if (!file && !daftarPdfFile.value) {
+  if (!fileToUpload) {
     toast.error("PDF Daftar Pengalaman wajib diupload!");
     return;
   }
 
-  // Use file from args if provided (from component emit), otherwise fallback to state
-  const fileToUpload = file || daftarPdfFile.value;
+  // Double check file validity
+  if (!(fileToUpload instanceof File)) {
+    console.warn("⚠️ [DEBUG] fileToUpload is NOT an instance of File!");
+    toast.error("Format file tidak valid.");
+    return;
+  }
 
-  if (
-    !daftarPengalamanFormData.value.nama_pekerjaan ||
-    !daftarPengalamanFormData.value.nama_kegiatan ||
-    !daftarPengalamanFormData.value.lokasi
-  ) {
-    toast.error("Pekerjaan, Kegiatan, dan Lokasi wajib diisi!");
+  if (!daftarPengalamanFormData.value.nama_pekerjaan) {
+    toast.error("Nama Pekerjaan wajib diisi!");
     return;
   }
 
@@ -4498,7 +5166,12 @@ const saveDaftarPengalaman = async (file) => {
     });
 
     if (!uploadRes.ok) {
-      throw new Error("Gagal mengunggah PDF");
+      const errorText = await uploadRes.text();
+      console.error("Upload error response:", errorText);
+      console.error("Upload status:", uploadRes.status);
+      throw new Error(
+        `Gagal mengunggah PDF: ${errorText || uploadRes.statusText}`,
+      );
     }
 
     // Hide upload toast and show final success
@@ -4508,13 +5181,16 @@ const saveDaftarPengalaman = async (file) => {
 
     showAddPengalamanModal.value = false;
 
-    // Reset form
+    // Reset form and file
     daftarPengalamanFormData.value = {
       nama_pekerjaan: "",
       nama_kegiatan: "",
       lokasi: "",
     };
-    clearDaftarPdf();
+    daftarPdfFile.value = null;
+    if (daftarPengalamanModalRef.value) {
+      daftarPengalamanModalRef.value.selectedFile = null;
+    }
 
     // Refresh data
     await fetchPengalaman();
@@ -4557,6 +5233,40 @@ const kontrakFormData = ref({
 const isSubmittingKontrak = ref(false);
 const isAiScanning = ref(false);
 
+// === KONTRAK INLINE VALIDATION STATE ===
+const kontrakFieldLocks = ref({
+  nomor_kontrak: false,
+  nilai_kontrak: false,
+  sumber_dana: false,
+  tanggal_kontrak: false,
+  tanggal_mulai: false,
+  tanggal_selesai_kontrak: false,
+  waktu_pelaksanaan: false,
+  tanggal_ba_serah_terima: false,
+  pekerjaan: false,
+  kegiatan: false,
+  sub_kegiatan: false,
+  lokasi: false,
+  pemberi_tugas: false,
+  kontak_pemberi_tugas: false,
+});
+
+const isAllKontrakFieldsLocked = computed(() => {
+  return Object.values(kontrakFieldLocks.value).every(
+    (locked) => locked === true,
+  );
+});
+
+const toggleKontrakFieldLock = (fieldName) => {
+  kontrakFieldLocks.value[fieldName] = !kontrakFieldLocks.value[fieldName];
+};
+
+const validateAllKontrakFields = () => {
+  Object.keys(kontrakFieldLocks.value).forEach((key) => {
+    kontrakFieldLocks.value[key] = true;
+  });
+};
+
 const handleAiScanKontrak = async () => {
   if (!selectedPengalamanDetail.value?.kontrak_url) {
     toast.error("Tidak ada URL dokumen untuk di-scan");
@@ -4564,8 +5274,13 @@ const handleAiScanKontrak = async () => {
   }
 
   isAiScanning.value = true;
+  const toastId = toast.info("Sedang melakukan scan AI...", 0); // Persistent
+
   try {
-    toast.info("Sedang melakukan scan AI...", 0);
+    console.log(
+      "🚀 Starting AI Scan for Kontrak:",
+      selectedPengalamanDetail.value.kontrak_url,
+    );
 
     const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
       method: "POST",
@@ -4578,20 +5293,40 @@ const handleAiScanKontrak = async () => {
     });
 
     const result = await res.json();
+    console.log("✅ AI Scan Result:", result);
 
     if (result.success && result.data) {
+      const scannedData = result.data;
+      let filledCount = 0;
+
       // Update form with scanned data
       Object.keys(kontrakFormData.value).forEach((key) => {
-        if (result.data[key]) {
-          kontrakFormData.value[key] = result.data[key];
+        // Check if key exists in scanned data (allow empty strings to clear if needed, or stick to non-empty?)
+        // User request: "datanya tidak masuk". Usually means keys didn't match or were undefined.
+        // We will be permissive: if key exists in result, take it.
+        if (scannedData.hasOwnProperty(key)) {
+          console.log(`📝 Mapping ${key}: ${scannedData[key]}`);
+          kontrakFormData.value[key] = scannedData[key] || "";
+          if (scannedData[key]) filledCount++;
         }
       });
-      toast.success("AI Scan Berhasil!");
+
+      // Reset all locks to allow user to validate the scanned data
+      Object.keys(kontrakFieldLocks.value).forEach((key) => {
+        kontrakFieldLocks.value[key] = false;
+      });
+
+      toast.removeToast(toastId);
+      toast.success(
+        "AI Scan Berhasil!",
+        `${filledCount} field terisi otomatis.`,
+      );
     } else {
       throw new Error(result.message || "Scan AI gagal");
     }
   } catch (error) {
-    console.error("AI Scan Error:", error);
+    console.error("❌ AI Scan Error:", error);
+    toast.removeToast(toastId);
     toast.error("Gagal melakukan scan AI: " + error.message);
   } finally {
     isAiScanning.value = false;
@@ -4604,44 +5339,68 @@ const handleKontrakAiScanInline = async () => {
     return;
   }
 
+  console.log("🚀 [INLINE KONTRAK] Starting AI Scan...");
+  console.log(
+    "📄 [INLINE KONTRAK] File URL:",
+    selectedPengalamanDetail.value.kontrak_url,
+  );
+
   isAiScanning.value = true;
   const toastId = toast.info("Sedang melakukan scan AI...", 0); // Persistent toast
 
   try {
+    const requestBody = {
+      fileUrl: selectedPengalamanDetail.value.kontrak_url,
+      documentType: "kontrak",
+      category: "company",
+    };
+    console.log("📤 [INLINE KONTRAK] Request:", requestBody);
+
     const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fileUrl: selectedPengalamanDetail.value.kontrak_url,
-        documentType: "kontrak",
-        category: "company",
-      }),
+      body: JSON.stringify(requestBody),
     });
 
+    console.log("📥 [INLINE KONTRAK] Response Status:", res.status);
+
     const result = await res.json();
+    console.log("✅ [INLINE KONTRAK] AI Scan Result:", result);
 
     if (result.success && result.data) {
+      // Log the scanned data
+      console.log("📝 [INLINE KONTRAK] Scanned Data:", result.data);
+
+      let filledCount = 0;
       // Update form with scanned data
-      // For each key in our form, if it exists in result, update it.
-      // If result has explicitly null/empty for a key, we should clear it (as requested).
-      // We iterate over the FORM keys to ensure we only update relevant fields.
       Object.keys(kontrakFormData.value).forEach((key) => {
-        // Only update if the key exists in the result data (even if empty string)
         if (result.data.hasOwnProperty(key)) {
+          console.log(`📝 [INLINE KONTRAK] Mapping ${key}:`, result.data[key]);
           kontrakFormData.value[key] = result.data[key] || "";
+          if (result.data[key]) filledCount++;
         }
       });
-      toast.removeToast(toastId); // Remove persistent toast
-      toast.success("AI Scan Berhasil!");
+
+      // Reset all locks to allow user to validate the scanned data
+      Object.keys(kontrakFieldLocks.value).forEach((key) => {
+        kontrakFieldLocks.value[key] = false;
+      });
+
+      toast.removeToast(toastId);
+      toast.success(
+        "AI Scan Berhasil!",
+        `${filledCount} field terisi otomatis.`,
+      );
     } else {
       throw new Error(result.message || "Scan AI gagal");
     }
   } catch (error) {
-    console.error("AI Scan Error:", error);
-    toast.removeToast(toastId); // Remove persistent toast on error too
+    console.error("❌ [INLINE KONTRAK] AI Scan Error:", error);
+    toast.removeToast(toastId);
     toast.error("Gagal melakukan scan AI: " + error.message);
   } finally {
     isAiScanning.value = false;
+    console.log("🏁 [INLINE KONTRAK] Scan complete");
   }
 };
 
@@ -4674,10 +5433,21 @@ const startEditKontrakInline = (item) => {
     tanggal_selesai_kontrak: item.tanggal_selesai_kontrak || "",
     tanggal_ba_serah_terima: item.tanggal_ba_serah_terima || "",
   };
+
+  // Reset all validation locks when starting edit
+  Object.keys(kontrakFieldLocks.value).forEach((key) => {
+    kontrakFieldLocks.value[key] = false;
+  });
+
   isEditingKontrak.value = true;
 };
 
 const cancelEditKontrakInline = () => {
+  // Reset validation locks when canceling
+  Object.keys(kontrakFieldLocks.value).forEach((key) => {
+    kontrakFieldLocks.value[key] = false;
+  });
+
   isEditingKontrak.value = false;
 };
 
@@ -4704,6 +5474,12 @@ const saveKontrakInline = async () => {
     }
 
     toast.success("Data kontrak berhasil diperbarui!");
+
+    // Reset validation locks after successful save
+    Object.keys(kontrakFieldLocks.value).forEach((key) => {
+      kontrakFieldLocks.value[key] = false;
+    });
+
     isEditingKontrak.value = false;
 
     // Refresh data

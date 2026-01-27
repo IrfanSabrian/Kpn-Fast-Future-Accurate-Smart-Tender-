@@ -211,7 +211,7 @@ class MistralAIService {
           "bahasa_dikuasai": "Bahasa yang dikuasai"
         }`;
 
-      case "kontrak":
+      case "daftarpengalaman":
       case "kontrak_pengalaman":
         return `${baseInstruction}
         
@@ -233,6 +233,8 @@ class MistralAIService {
         - DO NOT extract "sub_kegiatan" for SPK format (Field does not exist).
         - Ensure "pekerjaan" is the specific job title.
         - Ensure "kegiatan" is the broader activity.
+        - Return a SINGLE OBJECT if it's a single contract.
+        - If multiple experiences are listed, return the first one found or the most prominent one.
 
         Structure:
         {

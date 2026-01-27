@@ -31,7 +31,7 @@ const upload = multer({
  * Scan PDF document using Multi-AI Strategy (Groq -> Gemini)
  *
  * @body {File} file - PDF file to scan
- * @body {String} documentType - Type of document (ktp, npwp, ijazah, cv)
+ * @body {String} documentType - Type of document (ktp, npwp, ijazah, cv, daftarPengalaman)
  * @returns {Object} Extracted fields as JSON
  */
 router.post("/scan-document", upload.single("file"), async (req, res) => {
@@ -49,11 +49,12 @@ router.post("/scan-document", upload.single("file"), async (req, res) => {
     if (!documentType) {
       return res.status(400).json({
         success: false,
-        message: "documentType is required (ktp, npwp, ijazah, or cv)",
+        message:
+          "documentType is required (ktp, npwp, ijazah, cv, or daftarPengalaman)",
       });
     }
 
-    const validTypes = ["ktp", "npwp", "ijazah", "cv"];
+    const validTypes = ["ktp", "npwp", "ijazah", "cv", "daftarpengalaman"];
     if (!validTypes.includes(documentType.toLowerCase())) {
       return res.status(400).json({
         success: false,

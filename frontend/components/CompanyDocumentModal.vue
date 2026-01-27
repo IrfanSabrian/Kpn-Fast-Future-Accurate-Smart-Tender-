@@ -329,7 +329,9 @@ const scanWithAI = async () => {
       formData.append("file", selectedFile.value);
       formData.append(
         "documentType",
-        props.documentType === "pengalaman" ? "daftar" : props.documentType,
+        props.documentType === "pengalaman"
+          ? "daftarPengalaman"
+          : props.documentType,
       );
 
       console.log(
@@ -366,7 +368,7 @@ const scanWithAI = async () => {
             fileUrl: props.existingFileUrl,
             documentType:
               props.documentType === "pengalaman"
-                ? "daftar"
+                ? "daftarPengalaman"
                 : props.documentType, // Ensure backend supports this for context
             instruction: `Extract ${props.documentType} details`, // Generic fallback instruction
           }),
@@ -431,9 +433,8 @@ const scanWithAI = async () => {
     // Emit scanned data to parent component (parent will handle toast)
     emit("aiScanComplete", result.data);
 
-    // Success toast handled here to close the persistent one properly
+    // Hide persistent scanning toast
     hideToast(scanToastId);
-    showSuccess("Scan Berhasil", "Data berhasil diekstrak dari dokumen.");
   } catch (err) {
     console.error("[AI SCAN] ❌ Error:", err);
     hideToast(scanToastId); // Hide loading toast on error
