@@ -807,23 +807,14 @@ FOR TABLE FORMAT (Daftar Pengalaman):
 - Look for table with columns: "Nama Pekerjaan", "Bidang/Sub Bidang Pekerjaan", "Lokasi"
 - Extract the FIRST row of data (ignore header)
 - MAPPING:
-  * "Nama Pekerjaan" column → Extract as "nama_kegiatan"
-  * "Bidang/Sub Bidang Pekerjaan" column → Extract as "nama_sub_kegiatan" (capture ALL text in this cell)
+  * "Nama Pekerjaan" column → Extract as "pekerjaan"
+  * "Bidang/Sub Bidang Pekerjaan" column → Extract as "sub_kegiatan" (capture ALL text in this cell)
   * "Lokasi" column → Extract as "lokasi"
-
-- Example Table Row:
-  | Nama Pekerjaan | Bidang/Sub Bidang Pekerjaan | Lokasi |
-  |----------------|------------------------------|---------|
-  | Penyelenggaraan Bangunan Gedung Di Wilayah Daerah Kabupaten/Kota Pemberiaan Izin Mendirikan Bangunan (IMB) dan Sertifikat Laik Fungsi Bangunan Gedung | Penyelenggaraan Bangunan Gedung Di Wilayah Daerah Kabupaten/Kota | Kabupaten Sambas |
-  
-  Should extract as:
-  nama_kegiatan: "Penyelenggaraan Bangunan Gedung Di Wilayah Daerah Kabupaten/Kota Pemberiaan Izin Mendirikan Bangunan (IMB) dan Sertifikat Laik Fungsi Bangunan Gedung"
-  nama_sub_kegiatan: "Penyelenggaraan Bangunan Gedung Di Wilayah Daerah Kabupaten/Kota"
-  lokasi: "Kabupaten Sambas"
 
 FOR SPK FORMAT:
 - Look for "PROGRAM:", "KEGIATAN:", "SUB KEGIATAN:", "PEKERJAAN:" labels
-- Extract each exactly as written
+- Combine PROGRAM and KEGIATAN into single field
+- Extract contact information and combine into formatted string
 
 IMPORTANT:
 - For dates use YYYY-MM-DD format
@@ -833,25 +824,9 @@ IMPORTANT:
 
 JSON Structure:
 {
-  "nama_program": "Program name (if exists in SPK)",
-  "nama_kegiatan": "From 'Nama Pekerjaan' column (TABLE) or 'KEGIATAN' section (SPK)",
-  "nama_sub_kegiatan": "From 'Bidang/Sub Bidang Pekerjaan' column (TABLE) or 'SUB KEGIATAN' section (SPK)",
-  "nama_pekerjaan": "Same as nama_kegiatan for TABLE, or 'PEKERJAAN' section for SPK",
-  "lokasi": "From 'Lokasi' column (TABLE) or location text (SPK)",
-  "nama_pemberi_tugas": "Client name (SPK only)",
-  "alamat_pemberi_tugas": "Client address (SPK only)",
-  "telepon_pemberi_tugas": "Client phone (SPK only)",
-  "fax_pemberi_tugas": "Client fax (SPK only)",
-  "kode_pos_pemberi_tugas": "Client postal code (SPK only)",
-  "sumber_dana": "Funding source e.g., DAU, APBD (SPK only)",
-  "nomor_kontrak": "Contract number (SPK only)",
-  "tanggal_kontrak": "Contract date YYYY-MM-DD (SPK only)",
-  "nilai_kontrak": "Contract value number only (SPK only)",
-  "waktu_pelaksanaan": "Duration e.g., 30 HARI KALENDER (SPK only)",
-  "tanggal_mulai": "Start date YYYY-MM-DD (SPK only)",
-  "tanggal_selesai_kontrak": "End date YYYY-MM-DD (SPK only)",
-  "tanggal_ba_serah_terima": "Handover date YYYY-MM-DD (SPK only)"
-}`;
+  "kegiatan": "Combined from PROGRAM + KEGIATAN (SPK) or Nama Pekerjaan (TABLE)",
+  "sub_kegiatan": "From SUB KEGIATAN (SPK) or Bidang/Sub Bidang column (TABLE)",
+  "pekerjaan": "From PEKERJAAN (SPK) or`;
 
     try {
       const imagePart = this.fileToGenerativePart(pdfBuffer, "application/pdf");

@@ -205,7 +205,7 @@ router.post("/scan-drive-file", async (req, res) => {
     );
 
     data = scanResult.data;
-    provider = scanResult.provider;
+    const provider = scanResult.provider;
 
     const scanTime = Date.now() - scanStartTime;
     console.log(
@@ -243,14 +243,14 @@ router.post("/scan-generic", upload.single("file"), async (req, res) => {
         .json({ success: false, message: "File and documentType required" });
     }
 
-    console.log(`[AI GENERIC SCAN] Scanning ${documentType}...`);
-    // Reuse scanCompanyDocument which now supports 'kontrak_pengalaman'
-    const data = await geminiAIService.scanCompanyDocument(
+    console.log(`[AI GENERIC SCAN] Scanning ${documentType} with Mistral...`);
+    // Use generic scanner (Mistral) which now supports all types
+    const result = await aiScannerService.scanDocument(
       req.file.buffer,
       documentType,
     );
 
-    res.json({ success: true, data });
+    res.json({ success: true, data: result.data });
   } catch (error) {
     console.error(`[AI GENERIC SCAN] Error:`, error);
     res.status(500).json({ success: false, message: error.message });

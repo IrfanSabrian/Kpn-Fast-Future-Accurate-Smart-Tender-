@@ -170,97 +170,200 @@
                     <div
                       v-for="(item, index) in subModules.kontrak"
                       :key="item.id_kontrak"
-                      class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 cursor-pointer relative group transition-all hover:shadow-md"
+                      class="bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-6 cursor-pointer relative group transition-all hover:shadow-md"
                       :class="{
                         'border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-900/10':
                           selectedPengalamanList?.id_kontrak ===
                           item.id_kontrak,
                       }"
-                      @click="selectPengalamanList(item)"
+                      @click="
+                        editingDaftarId === item.id_kontrak
+                          ? null
+                          : selectPengalamanList(item)
+                      "
                     >
-                      <!-- Action Buttons (Hover) -->
+                      <!-- EDIT MODE -->
                       <div
-                        class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        v-if="editingDaftarId === item.id_kontrak"
+                        class="space-y-4 cursor-default"
+                        @click.stop
                       >
-                        <button
-                          @click.stop="openEditPengalaman(item)"
-                          class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/10 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-all border border-blue-100 dark:border-blue-900/30"
-                          title="Edit Data"
+                        <div
+                          class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2 mb-2"
                         >
-                          <i class="fas fa-pen text-xs"></i>
-                        </button>
-                        <button
-                          @click.stop="confirmDeletePengalaman(item)"
-                          class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/10 dark:text-red-400 dark:hover:bg-red-900/20 transition-all border border-red-100 dark:border-red-900/30"
-                          title="Hapus Data"
-                        >
-                          <i class="fas fa-trash-alt text-xs"></i>
-                        </button>
-                      </div>
-
-                      <div class="flex items-start justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                          <div
-                            class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0"
+                          <h4
+                            class="font-bold text-slate-700 dark:text-slate-200"
                           >
-                            <i class="fas fa-briefcase"></i>
+                            Edit Data Pengalaman
+                          </h4>
+                        </div>
+                        <div class="space-y-3">
+                          <div>
+                            <label
+                              class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                              >KEGIATAN</label
+                            >
+                            <input
+                              v-model="daftarEditFormData.nama_kegiatan"
+                              type="text"
+                              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                              placeholder="Nama Kegiatan"
+                            />
                           </div>
                           <div>
+                            <label
+                              class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                              >SUB KEGIATAN</label
+                            >
+                            <input
+                              v-model="daftarEditFormData.nama_sub_kegiatan"
+                              type="text"
+                              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                              placeholder="Sub Kegiatan"
+                            />
+                          </div>
+                          <div>
+                            <label
+                              class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                              >LOKASI</label
+                            >
+                            <input
+                              v-model="daftarEditFormData.lokasi"
+                              type="text"
+                              class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                              placeholder="Lokasi"
+                            />
+                          </div>
+                        </div>
+                        <div
+                          class="flex justify-end gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-700"
+                        >
+                          <button
+                            v-if="item.daftar_url"
+                            @click="handleAiScanDaftarEdit(item)"
+                            :disabled="isScanningDaftarEdit"
+                            class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 mr-auto"
+                            title="Scan data dari dokumen PDF dengan AI"
+                          >
+                            <i
+                              :class="
+                                isScanningDaftarEdit
+                                  ? 'fas fa-spinner fa-spin'
+                                  : 'fas fa-magic'
+                              "
+                            ></i>
+                            <span>{{
+                              isScanningDaftarEdit ? "Scanning..." : "Scan AI"
+                            }}</span>
+                          </button>
+                          <button
+                            @click="cancelEditDaftar"
+                            class="px-3 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            @click="saveDaftarEdit(item)"
+                            :disabled="isSavingDaftarEdit"
+                            class="px-3 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+                          >
+                            <i
+                              v-if="isSavingDaftarEdit"
+                              class="fas fa-spinner fa-spin"
+                            ></i>
+                            Simpan
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- DISPLAY MODE -->
+                      <div v-else>
+                        <!-- Action Buttons (Hover) -->
+                        <div
+                          class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        >
+                          <button
+                            @click.stop="openEditPengalaman(item)"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/10 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-all border border-blue-100 dark:border-blue-900/30"
+                            title="Edit Data"
+                          >
+                            <i class="fas fa-pen text-xs"></i>
+                          </button>
+                          <button
+                            @click.stop="confirmDeletePengalaman(item)"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/10 dark:text-red-400 dark:hover:bg-red-900/20 transition-all border border-red-100 dark:border-red-900/30"
+                            title="Hapus Data"
+                          >
+                            <i class="fas fa-trash-alt text-xs"></i>
+                          </button>
+                        </div>
+
+                        <div class="flex items-start justify-between mb-4">
+                          <div class="flex items-center gap-3">
                             <div
-                              class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                              class="w-10 h-10 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center shrink-0"
+                            >
+                              <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div>
+                              <div
+                                class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                              >
+                                PEKERJAAN
+                              </div>
+                              <h4
+                                class="font-bold text-slate-800 dark:text-white text-lg leading-none mt-1"
+                              >
+                                {{
+                                  item.pekerjaan || item.nama_pekerjaan || "-"
+                                }}
+                              </h4>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 3 Key Fields Grid -->
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                          <div>
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase text-slate-500"
                             >
                               KEGIATAN
                             </div>
-                            <h4
-                              class="font-bold text-slate-800 dark:text-white text-base leading-tight mt-0.5"
+                            <div
+                              class="text-xs font-medium text-slate-700 dark:text-slate-200 break-all"
                             >
-                              {{ item.nama_kegiatan || "-" }}
-                            </h4>
+                              {{ item.kegiatan || item.nama_kegiatan || "-" }}
+                            </div>
+                          </div>
+                          <div class="col-span-2">
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase text-slate-500"
+                            >
+                              LOKASI
+                            </div>
+                            <div
+                              class="text-xs font-medium text-slate-700 dark:text-slate-200 break-all"
+                            >
+                              {{ item.lokasi || "-" }}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <!-- 3 Key Fields Grid -->
-                      <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                        <div>
-                          <div
-                            class="text-[10px] font-bold text-slate-400 uppercase text-slate-500"
-                          >
-                            SUB KEGIATAN
-                          </div>
-                          <div
-                            class="font-medium text-slate-700 dark:text-slate-300 line-clamp-1"
-                          >
-                            {{ item.nama_sub_kegiatan || "-" }}
-                          </div>
-                        </div>
-                        <div class="col-span-2">
-                          <div
-                            class="text-[10px] font-bold text-slate-400 uppercase text-slate-500"
-                          >
-                            LOKASI
-                          </div>
-                          <div
-                            class="font-medium text-slate-700 dark:text-slate-300 line-clamp-1"
-                          >
-                            {{ item.lokasi || "-" }}
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Detail Button -->
-                      <div
-                        class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end"
-                      >
-                        <button
-                          @click.stop="viewPengalamanDetail(item)"
-                          class="text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline flex items-center gap-1 group/btn"
+                        <!-- Detail Button -->
+                        <div
+                          class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-end"
                         >
-                          LIHAT DETAIL KONTRAK
-                          <i
-                            class="fas fa-arrow-right transform group-hover/btn:translate-x-1 transition-transform"
-                          ></i>
-                        </button>
+                          <button
+                            @click.stop="viewPengalamanDetail(item)"
+                            class="text-blue-600 dark:text-blue-400 text-xs font-bold hover:underline flex items-center gap-1 group/btn"
+                          >
+                            LIHAT DETAIL KONTRAK
+                            <i
+                              class="fas fa-arrow-right transform group-hover/btn:translate-x-1 transition-transform"
+                            ></i>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -396,6 +499,17 @@
                                   class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                                 />
                               </div>
+                              <div class="col-span-2">
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >SUMBER DANA</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.sumber_dana"
+                                  type="text"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
                               <div>
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
@@ -410,7 +524,18 @@
                               <div>
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >TGL SELESAI / PHO</label
+                                  >TANGGAL MULAI</label
+                                >
+                                <input
+                                  v-model="kontrakFormData.tanggal_mulai"
+                                  type="date"
+                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                                  >TANGGAL SELESAI</label
                                 >
                                 <input
                                   v-model="
@@ -432,10 +557,10 @@
                                   class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                                 />
                               </div>
-                              <div>
+                              <div class="col-span-2">
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >TGL BA SERAH TERIMA</label
+                                  >TANGGAL BA SERAH TERIMA</label
                                 >
                                 <input
                                   v-model="
@@ -463,10 +588,10 @@
                               <div class="col-span-2">
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >NAMA PEKERJAAN</label
+                                  >PEKERJAAN</label
                                 >
                                 <input
-                                  v-model="kontrakFormData.nama_pekerjaan"
+                                  v-model="kontrakFormData.pekerjaan"
                                   type="text"
                                   class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                                 />
@@ -474,10 +599,10 @@
                               <div>
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >BIDANG</label
+                                  >KEGIATAN</label
                                 >
                                 <input
-                                  v-model="kontrakFormData.bidang_pekerjaan"
+                                  v-model="kontrakFormData.kegiatan"
                                   type="text"
                                   class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                                 />
@@ -485,10 +610,10 @@
                               <div>
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >SUB BIDANG</label
+                                  >SUB KEGIATAN</label
                                 >
                                 <input
-                                  v-model="kontrakFormData.sub_bidang_pekerjaan"
+                                  v-model="kontrakFormData.sub_kegiatan"
                                   type="text"
                                   class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                                 />
@@ -496,7 +621,7 @@
                               <div class="col-span-2">
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >LOKASI PROYEK</label
+                                  >LOKASI</label
                                 >
                                 <input
                                   v-model="kontrakFormData.lokasi"
@@ -522,10 +647,10 @@
                               <div class="col-span-2">
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >NAMA PEMBERI TUGAS</label
+                                  >PEMBERI TUGAS</label
                                 >
                                 <input
-                                  v-model="kontrakFormData.nama_pemberi_tugas"
+                                  v-model="kontrakFormData.pemberi_tugas"
                                   type="text"
                                   class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                                 />
@@ -533,37 +658,13 @@
                               <div class="col-span-2">
                                 <label
                                   class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >ALAMAT</label
+                                  >ALAMAT / KONTAK</label
                                 >
                                 <textarea
-                                  v-model="kontrakFormData.alamat_pemberi_tugas"
-                                  rows="2"
+                                  v-model="kontrakFormData.kontak_pemberi_tugas"
+                                  rows="3"
                                   class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
                                 ></textarea>
-                              </div>
-                              <div>
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >TELEPON</label
-                                >
-                                <input
-                                  v-model="
-                                    kontrakFormData.telepon_pemberi_tugas
-                                  "
-                                  type="text"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
-                              </div>
-                              <div>
-                                <label
-                                  class="text-[10px] font-bold text-slate-400 uppercase block mb-1"
-                                  >FAX</label
-                                >
-                                <input
-                                  v-model="kontrakFormData.fax_pemberi_tugas"
-                                  type="text"
-                                  class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                                />
                               </div>
                             </div>
                           </div>
@@ -600,6 +701,20 @@
                                   }}
                                 </div>
                               </div>
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  SUMBER DANA
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.sumber_dana || "-"
+                                  }}
+                                </div>
+                              </div>
                               <div>
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
@@ -620,7 +735,23 @@
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
                                 >
-                                  TGL SELESAI / PHO
+                                  TANGGAL MULAI
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    formatDate(
+                                      selectedPengalamanDetail.tanggal_mulai,
+                                    )
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  TANGGAL SELESAI
                                 </div>
                                 <div
                                   class="font-medium text-slate-700 dark:text-slate-200 text-sm"
@@ -651,7 +782,7 @@
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
                                 >
-                                  TGL BA SERAH TERIMA
+                                  TANGGAL BA SERAH TERIMA
                                 </div>
                                 <div
                                   class="font-medium text-slate-700 dark:text-slate-200 text-sm"
@@ -682,12 +813,13 @@
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
                                 >
-                                  NAMA PEKERJAAN
+                                  PEKERJAAN
                                 </div>
                                 <div
                                   class="font-medium text-slate-700 dark:text-slate-200 text-sm"
                                 >
                                   {{
+                                    selectedPengalamanDetail.pekerjaan ||
                                     selectedPengalamanDetail.nama_pekerjaan ||
                                     "-"
                                   }}
@@ -697,13 +829,14 @@
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
                                 >
-                                  BIDANG
+                                  KEGIATAN
                                 </div>
                                 <div
                                   class="font-medium text-slate-700 dark:text-slate-200 text-sm"
                                 >
                                   {{
-                                    selectedPengalamanDetail.bidang_pekerjaan ||
+                                    selectedPengalamanDetail.kegiatan ||
+                                    selectedPengalamanDetail.nama_kegiatan ||
                                     "-"
                                   }}
                                 </div>
@@ -712,13 +845,14 @@
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
                                 >
-                                  SUB BIDANG
+                                  SUB KEGIATAN
                                 </div>
                                 <div
                                   class="font-medium text-slate-700 dark:text-slate-200 text-sm"
                                 >
                                   {{
-                                    selectedPengalamanDetail.sub_bidang_pekerjaan ||
+                                    selectedPengalamanDetail.sub_kegiatan ||
+                                    selectedPengalamanDetail.nama_sub_kegiatan ||
                                     "-"
                                   }}
                                 </div>
@@ -727,7 +861,7 @@
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
                                 >
-                                  LOKASI PROYEK
+                                  LOKASI
                                 </div>
                                 <div
                                   class="font-medium text-slate-700 dark:text-slate-200 text-sm"
@@ -754,12 +888,13 @@
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
                                 >
-                                  NAMA PEMBERI TUGAS
+                                  PEMBERI TUGAS
                                 </div>
                                 <div
                                   class="font-medium text-slate-700 dark:text-slate-200 text-sm"
                                 >
                                   {{
+                                    selectedPengalamanDetail.pemberi_tugas ||
                                     selectedPengalamanDetail.nama_pemberi_tugas ||
                                     "-"
                                   }}
@@ -769,43 +904,26 @@
                                 <div
                                   class="text-[10px] font-bold text-slate-400 uppercase"
                                 >
-                                  ALAMAT
+                                  ALAMAT / KONTAK
                                 </div>
                                 <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm whitespace-pre-line"
                                 >
                                   {{
-                                    selectedPengalamanDetail.alamat_pemberi_tugas ||
-                                    "-"
-                                  }}
-                                </div>
-                              </div>
-                              <div>
-                                <div
-                                  class="text-[10px] font-bold text-slate-400 uppercase"
-                                >
-                                  TELEPON
-                                </div>
-                                <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
-                                >
-                                  {{
-                                    selectedPengalamanDetail.telepon_pemberi_tugas ||
-                                    "-"
-                                  }}
-                                </div>
-                              </div>
-                              <div>
-                                <div
-                                  class="text-[10px] font-bold text-slate-400 uppercase"
-                                >
-                                  FAX
-                                </div>
-                                <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
-                                >
-                                  {{
-                                    selectedPengalamanDetail.fax_pemberi_tugas ||
+                                    selectedPengalamanDetail.kontak_pemberi_tugas ||
+                                    [
+                                      selectedPengalamanDetail.alamat_pemberi_tugas,
+                                      selectedPengalamanDetail.telepon_pemberi_tugas
+                                        ? "Telp. " +
+                                          selectedPengalamanDetail.telepon_pemberi_tugas
+                                        : "",
+                                      selectedPengalamanDetail.fax_pemberi_tugas
+                                        ? "Fax " +
+                                          selectedPengalamanDetail.fax_pemberi_tugas
+                                        : "",
+                                    ]
+                                      .filter(Boolean)
+                                      .join(", ") ||
                                     "-"
                                   }}
                                 </div>
@@ -2154,8 +2272,8 @@
 
     <!-- Modals (Simplified for Layout Demo) -->
 
-    <!-- Tax Document Upload Modals -->
-    <CompanyTaxDocumentModal
+    <!-- Tax Document Modals (Reused Component) -->
+    <CompanyDocumentModal
       ref="npwpModalRef"
       :show="showNpwpUploadModal"
       @close="
@@ -2352,9 +2470,9 @@
           </button>
         </div>
       </template>
-    </CompanyTaxDocumentModal>
+    </CompanyDocumentModal>
 
-    <CompanyTaxDocumentModal
+    <CompanyDocumentModal
       ref="sptModalRef"
       :show="showSptUploadModal"
       @close="
@@ -2669,9 +2787,9 @@
           </button>
         </div>
       </template>
-    </CompanyTaxDocumentModal>
+    </CompanyDocumentModal>
 
-    <CompanyTaxDocumentModal
+    <CompanyDocumentModal
       ref="pkpModalRef"
       :show="showPkpUploadModal"
       @close="
@@ -2822,9 +2940,9 @@
           </button>
         </div>
       </template>
-    </CompanyTaxDocumentModal>
+    </CompanyDocumentModal>
 
-    <CompanyTaxDocumentModal
+    <CompanyDocumentModal
       ref="kswpModalRef"
       :show="showKswpUploadModal"
       @close="
@@ -3017,155 +3135,103 @@
           </button>
         </div>
       </template>
-    </CompanyTaxDocumentModal>
+    </CompanyDocumentModal>
 
     <!-- Add/Edit Daftar Pengalaman Modal -->
-    <BaseModal
+    <CompanyDocumentModal
+      ref="daftarPengalamanModalRef"
       :show="showAddPengalamanModal"
+      document-type="pengalaman"
+      :company-name="company?.nama_perusahaan"
+      :show-validation="showDaftarPengalamanValidation"
+      :is-all-validated="isAllDaftarPengalamanValidated"
       @close="showAddPengalamanModal = false"
-      maxWidth="5xl"
-      title="Tambah Daftar Pengalaman"
+      @save="saveDaftarPengalaman"
+      @aiScanComplete="handleAiScanDaftarComplete"
+      @validate-all="validateAllDaftarPengalamanFields"
+      @fileSelected="
+        // Custom logic to enable validation locally
+        showDaftarPengalamanValidation = true
+      "
     >
-      <template #default>
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[380px]">
-          <!-- Left Column: Form Fields -->
-          <div class="lg:col-span-7 space-y-6">
-            <div class="flex items-center gap-3 mb-2">
-              <div
-                class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center"
-              >
-                <i class="fas fa-edit"></i>
-              </div>
-              <div>
-                <h4 class="font-bold text-slate-800 dark:text-white">
-                  Informasi Pekerjaan
-                </h4>
-                <p class="text-xs text-slate-500">
-                  Lengkapi detail pekerjaan di bawah ini
-                </p>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 gap-4">
-              <FormInput
-                v-model="daftarPengalamanFormData.nama_kegiatan"
-                label="Kegiatan"
-                placeholder="Contoh: Penyelenggaraan Bangunan Gedung"
-                required
-              />
-              <FormInput
-                v-model="daftarPengalamanFormData.nama_sub_kegiatan"
-                label="Sub Kegiatan"
-                placeholder="Contoh: Pengubahsuaian Bangunan Gedung"
-              />
-              <FormInput
-                v-model="daftarPengalamanFormData.lokasi"
-                label="Lokasi"
-                placeholder="Contoh: Kabupaten Sambas"
-                required
-              />
-            </div>
-          </div>
-
-          <!-- Right Column: Upload & Scan -->
-          <div class="lg:col-span-5 space-y-4">
-            <div class="flex items-center justify-between mb-2">
-              <label
-                class="text-sm font-bold text-slate-700 dark:text-slate-300"
-              >
-                <i class="fas fa-file-pdf text-red-500 mr-2"></i>
-                Dokumen Pendukung <span class="text-red-500">*</span>
-              </label>
-
-              <!-- Action Buttons (Only visible if file selected) -->
-              <div v-if="daftarPdfFile" class="flex gap-2">
-                <button
-                  @click="handleAiScanLocalDaftar"
-                  :disabled="isAiScanning || !daftarPdfFile"
-                  class="px-3 py-1.5 text-xs font-bold text-purple-600 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-all flex items-center gap-2 shadow-sm"
-                >
-                  <i v-if="isAiScanning" class="fas fa-spinner fa-spin"></i>
-                  <i v-else class="fas fa-magic"></i>
-                  <span>Scan AI</span>
-                </button>
-                <button
-                  @click="$refs.daftarPdfInput.click()"
-                  class="w-8 h-8 text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all flex items-center justify-center shadow-sm"
-                  title="Perbarui PDF"
-                >
-                  <i class="fas fa-sync-alt text-xs"></i>
-                </button>
-              </div>
-            </div>
-
-            <div
-              class="w-full h-[320px] rounded-xl border transition-all relative overflow-hidden flex flex-col bg-white dark:bg-slate-800"
-              :class="
-                daftarPdfFile
-                  ? 'border-slate-200 dark:border-slate-700'
-                  : 'border-slate-200 dark:border-slate-700 hover:border-blue-400 hover:shadow-md cursor-pointer'
-              "
-              @click="!daftarPdfFile && $refs.daftarPdfInput.click()"
-            >
-              <input
-                ref="daftarPdfInput"
-                type="file"
-                accept="application/pdf"
-                @change="handleDaftarPdfSelect"
-                class="hidden"
-              />
-
-              <!-- Preview State -->
-              <div v-if="daftarPdfFile" class="flex-1 flex flex-col relative">
-                <iframe
-                  v-if="daftarPdfPreviewUrl"
-                  :src="daftarPdfPreviewUrl + '#toolbar=0'"
-                  class="w-full h-full flex-1 border-none"
-                ></iframe>
-
-                <div
-                  class="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between"
-                >
-                  <div
-                    class="truncate text-xs font-bold text-slate-700 dark:text-slate-300 flex-1 mr-2"
-                  >
-                    {{ daftarPdfFile.name }}
-                  </div>
-                  <div class="text-[10px] text-slate-500 font-mono">
-                    {{ formatFileSize(daftarPdfFile.size) }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Upload Placeholder State -->
-              <div
-                v-else
-                class="flex-1 flex flex-col items-center justify-center text-center p-6"
-              >
-                <div
-                  class="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center mb-4"
-                >
-                  <i class="fas fa-cloud-upload-alt text-3xl"></i>
-                </div>
-                <h5
-                  class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1"
-                >
-                  Klik untuk Upload PDF
-                </h5>
-                <p class="text-xs text-slate-500 max-w-[200px]">
-                  Format PDF, Maksimal ukuran file 50MB.
-                </p>
-              </div>
-            </div>
-          </div>
+      <!-- Form Fields Slot -->
+      <template #form-fields>
+        <div class="grid grid-cols-1 gap-4">
+          <FormInput
+            v-model="daftarPengalamanFormData.nama_pekerjaan"
+            label="Pekerjaan"
+            placeholder="Contoh: Konsultansi Perencanaan..."
+            required
+            :showValidation="showDaftarPengalamanValidation"
+            :locked="daftarPengalamanFieldLocks.nama_pekerjaan"
+            @update:locked="
+              (val) => (daftarPengalamanFieldLocks.nama_pekerjaan = val)
+            "
+          />
+          <FormInput
+            v-model="daftarPengalamanFormData.nama_kegiatan"
+            label="Kegiatan"
+            placeholder="Contoh: Penyelenggaraan Bangunan Gedung"
+            required
+            :showValidation="showDaftarPengalamanValidation"
+            :locked="daftarPengalamanFieldLocks.nama_kegiatan"
+            @update:locked="
+              (val) => (daftarPengalamanFieldLocks.nama_kegiatan = val)
+            "
+          />
+          <FormInput
+            v-model="daftarPengalamanFormData.lokasi"
+            label="Lokasi"
+            placeholder="Contoh: Kabupaten Sambas"
+            required
+            :showValidation="showDaftarPengalamanValidation"
+            :locked="daftarPengalamanFieldLocks.lokasi"
+            @update:locked="(val) => (daftarPengalamanFieldLocks.lokasi = val)"
+          />
         </div>
       </template>
 
-      <template #footer>
-        <div class="flex justify-end gap-3">
+      <!-- Validate All Button Slot -->
+      <template #validate-all-button>
+        <div class="flex items-center gap-2">
+          <!-- Warning -->
+          <span
+            v-if="
+              showDaftarPengalamanValidation && !isAllDaftarPengalamanValidated
+            "
+            class="text-[10px] text-orange-500 font-medium animate-pulse hidden sm:inline-block"
+          >
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            Validasi!
+          </span>
+
+          <button
+            v-if="showDaftarPengalamanValidation"
+            @click="validateAllDaftarPengalamanFields"
+            class="px-2.5 py-1.5 text-[10px] font-bold rounded-lg transition-colors flex items-center gap-1 border"
+            :class="
+              isAllDaftarPengalamanValidated
+                ? 'text-white bg-green-500 border-green-600 hover:bg-green-600'
+                : 'text-green-600 bg-green-50 hover:bg-green-100 dark:text-green-400 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+            "
+            title="Validasi Semua Input Sekaligus"
+          >
+            <i
+              class="fas"
+              :class="
+                isAllDaftarPengalamanValidated ? 'fa-check' : 'fa-check-double'
+              "
+            ></i>
+            {{ isAllDaftarPengalamanValidated ? "Verified" : "All" }}
+          </button>
+        </div>
+      </template>
+
+      <!-- Footer Actions -->
+      <template #footer-actions>
+        <div class="flex items-center gap-2">
           <button
             @click="showAddPengalamanModal = false"
-            :disabled="isSubmittingDaftarPengalaman"
             class="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
           >
             Batal
@@ -3174,11 +3240,18 @@
             @click="saveDaftarPengalaman"
             :disabled="
               isSubmittingDaftarPengalaman ||
-              !daftarPdfFile ||
+              !daftarPengalamanFormData.nama_pekerjaan ||
               !daftarPengalamanFormData.nama_kegiatan ||
-              !daftarPengalamanFormData.lokasi
+              !daftarPengalamanFormData.lokasi ||
+              (showDaftarPengalamanValidation &&
+                !isAllDaftarPengalamanValidated)
             "
             class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            :title="
+              showDaftarPengalamanValidation && !isAllDaftarPengalamanValidated
+                ? 'Validasi semua kolom terlebih dahulu'
+                : 'Simpan Daftar Pengalaman'
+            "
           >
             <i
               v-if="isSubmittingDaftarPengalaman"
@@ -3189,7 +3262,7 @@
           </button>
         </div>
       </template>
-    </BaseModal>
+    </CompanyDocumentModal>
 
     <!-- Edit Kontrak Pengalaman Modal -->
     <BaseModal
@@ -3229,14 +3302,14 @@
               required
             />
             <FormInput
-              v-model="kontrakFormData.bidang_pekerjaan"
-              label="Bidang Pekerjaan"
-              placeholder="Bidang"
+              v-model="kontrakFormData.nama_kegiatan"
+              label="Kegiatan"
+              placeholder="Kegiatan"
             />
             <FormInput
-              v-model="kontrakFormData.sub_bidang_pekerjaan"
-              label="Sub Bidang"
-              placeholder="Sub bidang"
+              v-model="kontrakFormData.nama_sub_kegiatan"
+              label="Sub Kegiatan"
+              placeholder="Sub kegiatan"
             />
             <FormInput
               v-model="kontrakFormData.lokasi"
@@ -3351,7 +3424,7 @@ import BaseSkeleton from "~/components/BaseSkeleton.vue";
 import ToastNotification from "~/components/ToastNotification.vue";
 import FormInput from "~/components/FormInput.vue";
 import DocumentPdfPreview from "~/components/DocumentPdfPreview.vue";
-import CompanyTaxDocumentModal from "~/components/CompanyTaxDocumentModal.vue";
+import CompanyDocumentModal from "~/components/CompanyDocumentModal.vue";
 import CompanyTaxTab from "~/components/companies/tabs/CompanyTaxTab.vue";
 import CompanyOverviewTab from "~/components/companies/tabs/CompanyOverviewTab.vue";
 import CompanyDocumentTab from "~/components/companies/tabs/CompanyDocumentTab.vue";
@@ -3541,9 +3614,10 @@ const openEditKontrakModal = (item) => {
   // Populate form with existing data
   kontrakFormData.value = {
     nama_pekerjaan: item.nama_pekerjaan || "",
-    bidang_pekerjaan: item.bidang_pekerjaan || "",
-    sub_bidang_pekerjaan: item.sub_bidang_pekerjaan || "",
+    nama_kegiatan: item.nama_kegiatan || "",
+    nama_sub_kegiatan: item.nama_sub_kegiatan || "",
     lokasi: item.lokasi || "",
+
     nama_pemberi_tugas: item.nama_pemberi_tugas || "",
     alamat_pemberi_tugas: item.alamat_pemberi_tugas || "",
     telepon_pemberi_tugas: item.telepon_pemberi_tugas || "",
@@ -3558,9 +3632,101 @@ const openEditKontrakModal = (item) => {
   showEditKontrakModal.value = true;
 };
 
+const editingDaftarId = ref(null);
+const daftarEditFormData = ref({
+  nama_kegiatan: "",
+  nama_sub_kegiatan: "",
+  lokasi: "",
+});
+const isScanningDaftarEdit = ref(false);
+const isSavingDaftarEdit = ref(false);
+
 const openEditPengalaman = (item) => {
-  // TODO: Implement edit functionality later
-  toast.info("Fitur edit akan segera tersedia");
+  editingDaftarId.value = item.id_kontrak;
+  daftarEditFormData.value = {
+    nama_kegiatan: item.nama_kegiatan || item.kegiatan || "",
+    nama_sub_kegiatan: item.nama_sub_kegiatan || item.sub_kegiatan || "",
+    lokasi: item.lokasi || "",
+  };
+};
+
+const cancelEditDaftar = () => {
+  editingDaftarId.value = null;
+  daftarEditFormData.value = {
+    nama_kegiatan: "",
+    nama_sub_kegiatan: "",
+    lokasi: "",
+  };
+};
+
+const handleAiScanDaftarEdit = async (item) => {
+  if (!item.daftar_url) {
+    toast.error("Tidak ada dokumen PDF untuk di-scan");
+    return;
+  }
+
+  isScanningDaftarEdit.value = true;
+  const toastId = toast.info("Sedang memindai dokumen...", 0);
+
+  try {
+    const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileUrl: item.daftar_url,
+        documentType: "kontrak", // Generic type for experience
+        category: "company",
+      }),
+    });
+
+    const result = await res.json();
+    if (result.success && result.data) {
+      const data = result.data;
+      daftarEditFormData.value = {
+        nama_kegiatan:
+          data.nama_kegiatan || daftarEditFormData.value.nama_kegiatan,
+        nama_sub_kegiatan:
+          data.nama_sub_kegiatan || daftarEditFormData.value.nama_sub_kegiatan,
+        lokasi: data.lokasi || daftarEditFormData.value.lokasi,
+      };
+      toast.success("Scan berhasil! Data telah diperbarui.");
+    } else {
+      throw new Error(result.message || "Gagal melakukan scan");
+    }
+  } catch (error) {
+    console.error("AI Scan Error:", error);
+    toast.error("Error: " + error.message);
+  } finally {
+    toast.hideToast(toastId);
+    isScanningDaftarEdit.value = false;
+  }
+};
+
+const saveDaftarEdit = async (item) => {
+  if (!item.id_kontrak) return;
+
+  isSavingDaftarEdit.value = true;
+  try {
+    const res = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/pengalaman/${item.id_kontrak}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(daftarEditFormData.value),
+      },
+    );
+
+    if (!res.ok) throw new Error("Gagal menyimpan perubahan");
+
+    toast.success("Data berhasil diperbarui");
+    editingDaftarId.value = null;
+    await fetchPengalaman();
+  } catch (error) {
+    console.error("Save Error:", error);
+    toast.error(error.message);
+  } finally {
+    isSavingDaftarEdit.value = false;
+  }
 };
 
 const confirmDeletePengalaman = (item) => {
@@ -4134,39 +4300,37 @@ const saveKswpDocument = async () => {
   }
 };
 
-// Form data for Daftar Pengalaman modal
 const daftarPengalamanFormData = ref({
+  nama_pekerjaan: "",
   nama_kegiatan: "",
-  nama_sub_kegiatan: "",
   lokasi: "",
 });
-const daftarPdfFile = ref(null);
-const daftarPdfInput = ref(null);
-const daftarPdfPreviewUrl = ref(null);
+const daftarPdfFile = ref(null); // Keep for fallback logic if needed, but primary is event
 const isSubmittingDaftarPengalaman = ref(false);
 
-const handleDaftarPdfSelect = (event) => {
-  const file = event.target.files[0];
-  if (file && file.type === "application/pdf") {
-    daftarPdfFile.value = file;
-    // Create preview URL
-    if (daftarPdfPreviewUrl.value)
-      URL.revokeObjectURL(daftarPdfPreviewUrl.value);
-    daftarPdfPreviewUrl.value = URL.createObjectURL(file);
-  }
+// Validation state for Tambah Daftar Pengalaman Modal
+const showDaftarPengalamanValidation = ref(false);
+const daftarPengalamanFieldLocks = ref({
+  nama_pekerjaan: false,
+  nama_kegiatan: false,
+  lokasi: false,
+});
+
+const isAllDaftarPengalamanValidated = computed(() => {
+  return Object.values(daftarPengalamanFieldLocks.value).every(
+    (locked) => locked === true,
+  );
+});
+
+const validateAllDaftarPengalamanFields = () => {
+  daftarPengalamanFieldLocks.value = {
+    nama_pekerjaan: true,
+    nama_kegiatan: true,
+    lokasi: true,
+  };
 };
 
-const clearDaftarPdf = () => {
-  if (daftarPdfPreviewUrl.value) {
-    URL.revokeObjectURL(daftarPdfPreviewUrl.value);
-    daftarPdfPreviewUrl.value = null;
-  }
-  daftarPdfFile.value = null;
-  if (daftarPdfInput.value) {
-    daftarPdfInput.value.value = "";
-  }
-};
-
+// Deprecated file handlers removed (handled by component)
 const handleAiScanLocalDaftar = async () => {
   if (!daftarPdfFile.value) return;
 
@@ -4187,16 +4351,45 @@ const handleAiScanLocalDaftar = async () => {
     if (!res.ok) throw new Error("Gagal melakukan scan AI");
 
     const result = await res.json();
+    console.log("🔍 [AI SCAN] Raw API Response:", result);
+
     if (result.success && result.data) {
       const data = result.data;
+      console.log("📊 [AI SCAN] Extracted Data:", data);
+
+      // Extract from experience_list array (AI returns nested structure)
+      const experienceItem = data.experience_list?.[0] || data;
+      console.log("📋 [AI SCAN] Experience Item:", experienceItem);
+
       // Map to form data
-      daftarPengalamanFormData.value = {
+      const mappedData = {
+        nama_pekerjaan:
+          experienceItem.pekerjaan ||
+          experienceItem.nama_pekerjaan ||
+          experienceItem.job_title ||
+          data.pekerjaan ||
+          data.nama_pekerjaan ||
+          "",
         nama_kegiatan:
-          data.nama_kegiatan || daftarPengalamanFormData.value.nama_kegiatan,
-        nama_sub_kegiatan:
-          data.nama_sub_kegiatan ||
-          daftarPengalamanFormData.value.nama_sub_kegiatan,
-        lokasi: data.lokasi || daftarPengalamanFormData.value.lokasi,
+          experienceItem.kegiatan ||
+          experienceItem.nama_kegiatan ||
+          experienceItem.activity ||
+          data.kegiatan ||
+          data.nama_kegiatan ||
+          "",
+        lokasi:
+          experienceItem.lokasi || experienceItem.location || data.lokasi || "",
+      };
+
+      console.log("🔄 [AI SCAN] Mapped to form:", mappedData);
+      daftarPengalamanFormData.value = mappedData;
+      console.log("✅ [AI SCAN] Form updated:", daftarPengalamanFormData.value);
+
+      // Reset validation locks to force manual review
+      daftarPengalamanFieldLocks.value = {
+        nama_pekerjaan: false,
+        nama_kegiatan: false,
+        lokasi: false,
       };
 
       toast.hideToast(scanToastId);
@@ -4205,7 +4398,7 @@ const handleAiScanLocalDaftar = async () => {
       );
     }
   } catch (error) {
-    console.error("AI Scan Error:", error);
+    console.error("❌ [AI SCAN] Error:", error);
     toast.hideToast(scanToastId);
     toast.error("Gagal memindai dokumen: " + error.message);
   } finally {
@@ -4213,26 +4406,36 @@ const handleAiScanLocalDaftar = async () => {
   }
 };
 
-const saveDaftarPengalaman = async () => {
+const saveDaftarPengalaman = async (file) => {
   // Validation
-  if (!daftarPdfFile.value) {
+  if (!file && !daftarPdfFile.value) {
     toast.error("PDF Daftar Pengalaman wajib diupload!");
     return;
   }
 
+  // Use file from args if provided (from component emit), otherwise fallback to state
+  const fileToUpload = file || daftarPdfFile.value;
+
   if (
+    !daftarPengalamanFormData.value.nama_pekerjaan ||
     !daftarPengalamanFormData.value.nama_kegiatan ||
     !daftarPengalamanFormData.value.lokasi
   ) {
-    toast.error("Kegiatan dan Lokasi wajib diisi!");
+    toast.error("Pekerjaan, Kegiatan, dan Lokasi wajib diisi!");
     return;
   }
 
   isSubmittingDaftarPengalaman.value = true;
-  try {
-    toast.info("Membuat data pengalaman...");
 
+  // Track toast IDs for manual cleanup
+  let saveDataToastId = null;
+  let uploadPdfToastId = null;
+
+  try {
     // Step 1: Create the experience record (POST)
+    // Use persistent toast (duration = 0) so it stays until we hide it manually
+    saveDataToastId = toast.info("Membuat data pengalaman...", 0);
+
     const createRes = await fetch(
       `${apiBaseUrl}/companies/${companyId}/pengalaman`,
       {
@@ -4275,38 +4478,57 @@ const saveDaftarPengalaman = async () => {
       );
     }
 
-    // Step 2: Upload PDF to Google Drive
-    toast.info("Mengunggah PDF Daftar Pengalaman...");
-    const uploadFormData = new FormData();
-    uploadFormData.append("file", daftarPdfFile.value);
+    // Hide the save data toast and show success briefly
+    toast.hideToast(saveDataToastId);
+    saveDataToastId = null; // Mark as cleaned up
+    toast.success("Data pengalaman berhasil dibuat!", 2000);
 
-    const uploadRes = await fetch(
-      `${apiBaseUrl}/companies/${companyId}/pengalaman/${newItemId}/daftar/upload`,
-      {
-        method: "POST",
-        body: uploadFormData,
-      },
-    );
+    // Step 2: Upload PDF
+    uploadPdfToastId = toast.info("Mengunggah dokumen PDF...", 0);
+
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", fileToUpload);
+
+    const experienceId = newItemId;
+    const uploadUrl = `${apiBaseUrl}/companies/${companyId}/pengalaman/${experienceId}/daftar/upload`;
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: "POST",
+      body: uploadFormData,
+    });
 
     if (!uploadRes.ok) {
       throw new Error("Gagal mengunggah PDF");
     }
 
+    // Hide upload toast and show final success
+    toast.hideToast(uploadPdfToastId);
+    uploadPdfToastId = null; // Mark as cleaned up
     toast.success("Daftar pengalaman berhasil ditambahkan!");
+
     showAddPengalamanModal.value = false;
 
     // Reset form
     daftarPengalamanFormData.value = {
+      nama_pekerjaan: "",
       nama_kegiatan: "",
-      nama_sub_kegiatan: "",
       lokasi: "",
     };
     clearDaftarPdf();
 
     // Refresh data
-    await fetchCompanyDetail();
+    await fetchPengalaman();
   } catch (error) {
     console.error("Error saving daftar pengalaman:", error);
+
+    // Clean up any remaining toasts
+    if (saveDataToastId) {
+      toast.hideToast(saveDataToastId);
+    }
+    if (uploadPdfToastId) {
+      toast.hideToast(uploadPdfToastId);
+    }
+
     toast.error(`Gagal menyimpan: ${error.message}`);
   } finally {
     isSubmittingDaftarPengalaman.value = false;
@@ -4315,18 +4537,20 @@ const saveDaftarPengalaman = async () => {
 
 // Form data for Kontrak Pengalaman modal
 const kontrakFormData = ref({
-  nama_pekerjaan: "",
-  bidang_pekerjaan: "",
-  sub_bidang_pekerjaan: "",
+  kegiatan: "",
+  sub_kegiatan: "",
+  pekerjaan: "",
   lokasi: "",
-  nama_pemberi_tugas: "",
-  alamat_pemberi_tugas: "",
-  telepon_pemberi_tugas: "",
-  fax_pemberi_tugas: "",
+
+  pemberi_tugas: "",
+  kontak_pemberi_tugas: "",
+  sumber_dana: "",
+
   nomor_kontrak: "",
   tanggal_kontrak: "",
   nilai_kontrak: "",
   waktu_pelaksanaan: "",
+  tanggal_mulai: "",
   tanggal_selesai_kontrak: "",
   tanggal_ba_serah_terima: "",
 });
@@ -4381,7 +4605,7 @@ const handleKontrakAiScanInline = async () => {
   }
 
   isAiScanning.value = true;
-  toast.info("Sedang melakukan scan AI...", 0);
+  const toastId = toast.info("Sedang melakukan scan AI...", 0); // Persistent toast
 
   try {
     const res = await fetch(`${apiBaseUrl}/ai/scan-drive-file`, {
@@ -4398,17 +4622,23 @@ const handleKontrakAiScanInline = async () => {
 
     if (result.success && result.data) {
       // Update form with scanned data
+      // For each key in our form, if it exists in result, update it.
+      // If result has explicitly null/empty for a key, we should clear it (as requested).
+      // We iterate over the FORM keys to ensure we only update relevant fields.
       Object.keys(kontrakFormData.value).forEach((key) => {
-        if (result.data[key]) {
-          kontrakFormData.value[key] = result.data[key];
+        // Only update if the key exists in the result data (even if empty string)
+        if (result.data.hasOwnProperty(key)) {
+          kontrakFormData.value[key] = result.data[key] || "";
         }
       });
+      toast.removeToast(toastId); // Remove persistent toast
       toast.success("AI Scan Berhasil!");
     } else {
       throw new Error(result.message || "Scan AI gagal");
     }
   } catch (error) {
     console.error("AI Scan Error:", error);
+    toast.removeToast(toastId); // Remove persistent toast on error too
     toast.error("Gagal melakukan scan AI: " + error.message);
   } finally {
     isAiScanning.value = false;
@@ -4418,18 +4648,29 @@ const handleKontrakAiScanInline = async () => {
 const startEditKontrakInline = (item) => {
   // Populate form with existing data
   kontrakFormData.value = {
-    nama_pekerjaan: item.nama_pekerjaan || "",
-    bidang_pekerjaan: item.bidang_pekerjaan || "",
-    sub_bidang_pekerjaan: item.sub_bidang_pekerjaan || "",
+    kegiatan: item.kegiatan || item.nama_kegiatan || "",
+    sub_kegiatan: item.sub_kegiatan || item.nama_sub_kegiatan || "",
+    pekerjaan: item.pekerjaan || item.nama_pekerjaan || "",
     lokasi: item.lokasi || "",
-    nama_pemberi_tugas: item.nama_pemberi_tugas || "",
-    alamat_pemberi_tugas: item.alamat_pemberi_tugas || "",
-    telepon_pemberi_tugas: item.telepon_pemberi_tugas || "",
-    fax_pemberi_tugas: item.fax_pemberi_tugas || "",
+
+    pemberi_tugas: item.pemberi_tugas || item.nama_pemberi_tugas || "",
+    kontak_pemberi_tugas:
+      item.kontak_pemberi_tugas ||
+      [
+        item.alamat_pemberi_tugas,
+        item.telepon_pemberi_tugas,
+        item.fax_pemberi_tugas,
+      ]
+        .filter(Boolean)
+        .join(", ") ||
+      "",
+    sumber_dana: item.sumber_dana || "",
+
     nomor_kontrak: item.nomor_kontrak || "",
     tanggal_kontrak: item.tanggal_kontrak || "",
     nilai_kontrak: item.nilai_kontrak || "",
     waktu_pelaksanaan: item.waktu_pelaksanaan || "",
+    tanggal_mulai: item.tanggal_mulai || "",
     tanggal_selesai_kontrak: item.tanggal_selesai_kontrak || "",
     tanggal_ba_serah_terima: item.tanggal_ba_serah_terima || "",
   };
@@ -4845,22 +5086,44 @@ const handleUploadSave = async (tabId) => {
     if (!file) throw new Error("Tidak ada file yang dipilih");
 
     // Step 1: Upload to Google Drive
-    toast.info(`Mengunggah dokumen ${tabId.toUpperCase()} ke Drive...`, 5000);
+    toast.info(`Mengunggah dokumen ${tabId.toUpperCase()} ke Drive...`); // Removed timeout
 
     const uploadFormData = new FormData();
     uploadFormData.append("file", file);
 
-    const uploadRes = await fetch(
-      `${apiBaseUrl}/companies/${companyId}/${tabId}/upload`,
-      { method: "POST", body: uploadFormData },
-    );
+    let uploadUrl = `${apiBaseUrl}/companies/${companyId}/${tabId}/upload`;
+
+    // Special handling for 'kontrak' to ensure custom naming
+    // Uses specific endpoint: /api/companies/:id/pengalaman/:itemId/:type/upload
+    if (tabId === "kontrak") {
+      let selectedItem = selectedItems.value[tabId];
+      // If in detail view, try using selectedPengalamanDetail
+      if (pengalamanViewMode.value === "detail") {
+        selectedItem = selectedPengalamanDetail.value;
+      }
+
+      const itemId = selectedItem?.id_kontrak;
+      if (itemId) {
+        console.log("🚀 Using specific upload endpoint for Kontrak:", itemId);
+        uploadUrl = `${apiBaseUrl}/companies/${companyId}/pengalaman/${itemId}/kontrak/upload`;
+      } else {
+        console.warn(
+          "⚠️ No Contract ID found, falling back to generic upload (naming might be incorrect)",
+        );
+      }
+    }
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: "POST",
+      body: uploadFormData,
+    });
 
     if (!uploadRes.ok) throw new Error("Gagal mengunggah ke Drive");
     const uploadResult = await uploadRes.json();
     const fileUrl = uploadResult.data.fileUrl;
 
     // Step 2: Update Data
-    toast.info("Menyimpan data...", 3000);
+    toast.info("Menyimpan data..."); // Removed timeout - will stay until success/error
 
     // Identify if updating existing or adding new
     // For kontrak in detail view, use selectedPengalamanDetail instead
@@ -4945,10 +5208,10 @@ const handleUploadSave = async (tabId) => {
       throw new Error(err.error || err.message || "Gagal menyimpan data");
     }
 
-    toast.success(`Dokumen ${tabId.toUpperCase()} berhasil diunggah.`);
+    // Clear pending upload first
     pendingUploads.value[tabId] = null;
 
-    // Refresh data
+    // Refresh data BEFORE showing success toast
     switch (tabId) {
       case "akta":
         await fetchAkta();
@@ -4988,6 +5251,9 @@ const handleUploadSave = async (tabId) => {
         await fetchBPJS();
         break;
     }
+
+    // Show success toast AFTER data is refreshed
+    toast.success(`Dokumen ${tabId.toUpperCase()} berhasil diunggah.`);
   } catch (error) {
     console.error("Upload failed:", error);
     toast.error(`Gagal upload: ${error.message}`);

@@ -97,7 +97,7 @@ class GoogleSheetsService {
 
       if (!spreadsheetId) {
         throw new Error(
-          "GOOGLE_SHEET_ID_PERUSAHAAN not configured in environment variables"
+          "GOOGLE_SHEET_ID_PERUSAHAAN not configured in environment variables",
         );
       }
 
@@ -107,7 +107,7 @@ class GoogleSheetsService {
       // Read all data
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${profilTabName}!A1:Z1000`,
+        range: `${profilTabName}!A:ZZ`,
       });
 
       const rows = response.data.values;
@@ -278,7 +278,7 @@ class GoogleSheetsService {
         const newFolderName = `${folderNumber}. ${newCompanyName}`;
 
         console.log(
-          `🔄 Company name changed: "${oldCompanyName}" → "${newCompanyName}"`
+          `🔄 Company name changed: "${oldCompanyName}" → "${newCompanyName}"`,
         );
 
         // 1. Rename Cloudinary logo (if exists) by re-uploading with new name
@@ -302,7 +302,7 @@ class GoogleSheetsService {
             if (config.cloud_name && config.api_key && config.api_secret) {
               // Extract old public_id
               const publicIdMatch = oldUrl.match(
-                /\/upload\/(?:v\d+\/)?(.+)\.\w+$/
+                /\/upload\/(?:v\d+\/)?(.+)\.\w+$/,
               );
 
               if (publicIdMatch) {
@@ -326,7 +326,7 @@ class GoogleSheetsService {
                       public_id: newPublicId,
                       overwrite: true,
                       resource_type: "image",
-                    }
+                    },
                   );
 
                   console.log(`   ✅ Logo uploaded with new name`);
@@ -334,15 +334,14 @@ class GoogleSheetsService {
 
                   // Step 2: Delete old logo
                   console.log(`   🗑️  Deleting old logo...`);
-                  const deleteResult = await cloudinaryV2.uploader.destroy(
-                    oldPublicId
-                  );
+                  const deleteResult =
+                    await cloudinaryV2.uploader.destroy(oldPublicId);
 
                   if (deleteResult.result === "ok") {
                     console.log(`   ✅ Old logo deleted`);
                   } else {
                     console.log(
-                      `   ℹ️  Old logo delete result: ${deleteResult.result}`
+                      `   ℹ️  Old logo delete result: ${deleteResult.result}`,
                     );
                   }
 
@@ -354,7 +353,7 @@ class GoogleSheetsService {
                 } catch (cloudinaryOpError) {
                   console.error(
                     `❌ Cloudinary operation error:`,
-                    cloudinaryOpError.message
+                    cloudinaryOpError.message,
                   );
                   result.cloudinaryRenameError = cloudinaryOpError.message;
                 }
@@ -363,13 +362,13 @@ class GoogleSheetsService {
               }
             } else {
               console.log(
-                `ℹ️  Cloudinary not configured, skipping logo rename`
+                `ℹ️  Cloudinary not configured, skipping logo rename`,
               );
             }
           } catch (cloudinaryError) {
             console.error(
               "❌ Failed to rename Cloudinary logo:",
-              cloudinaryError.message
+              cloudinaryError.message,
             );
             result.cloudinaryRenameError = cloudinaryError.message;
           }
@@ -381,10 +380,10 @@ class GoogleSheetsService {
           await oauth2GoogleService.renameFolder(
             oldFolderName,
             newFolderName,
-            parentFolderId
+            parentFolderId,
           );
           console.log(
-            `✅ Company folder renamed: "${oldFolderName}" → "${newFolderName}"`
+            `✅ Company folder renamed: "${oldFolderName}" → "${newFolderName}"`,
           );
           result.folderRenamed = true;
 
@@ -392,13 +391,13 @@ class GoogleSheetsService {
           try {
             const companyIndex = parseInt(folderNumber, 10); // "01" -> 1, "02" -> 2
             console.log(
-              `📁 Finding "${companyIndex}.0 Logo & Kop" subfolder...`
+              `📁 Finding "${companyIndex}.0 Logo & Kop" subfolder...`,
             );
 
             // Find the renamed company folder
             const companyFolder = await oauth2GoogleService.findFolderByName(
               newFolderName,
-              parentFolderId
+              parentFolderId,
             );
 
             if (companyFolder) {
@@ -406,12 +405,12 @@ class GoogleSheetsService {
               const logoFolderName = `${companyIndex}.0 Logo & Kop`;
               const logoFolder = await oauth2GoogleService.findFolderByName(
                 logoFolderName,
-                companyFolder.id
+                companyFolder.id,
               );
 
               if (logoFolder) {
                 console.log(
-                  `📁 Found "${logoFolderName}" folder (ID: ${logoFolder.id})`
+                  `📁 Found "${logoFolderName}" folder (ID: ${logoFolder.id})`,
                 );
 
                 // Try to find logo file with common extensions
@@ -425,7 +424,7 @@ class GoogleSheetsService {
                 ];
 
                 console.log(
-                  `🔍 Searching for logo file: "${oldLogoFileName}"...`
+                  `🔍 Searching for logo file: "${oldLogoFileName}"...`,
                 );
 
                 let logoFile = null;
@@ -436,13 +435,13 @@ class GoogleSheetsService {
                   const fullFileName = `${oldLogoFileName}${ext}`;
                   logoFile = await oauth2GoogleService.findFileByName(
                     fullFileName,
-                    logoFolder.id
+                    logoFolder.id,
                   );
 
                   if (logoFile) {
                     foundExtension = ext;
                     console.log(
-                      `📄 Found logo file: "${fullFileName}" (ID: ${logoFile.id})`
+                      `📄 Found logo file: "${fullFileName}" (ID: ${logoFile.id})`,
                     );
                     break;
                   }
@@ -455,10 +454,10 @@ class GoogleSheetsService {
 
                   await oauth2GoogleService.renameFileById(
                     logoFile.id,
-                    newLogoFileName
+                    newLogoFileName,
                   );
                   console.log(
-                    `✅ Logo file renamed: "${oldLogoFileName}${foundExtension}" → "${newLogoFileName}"`
+                    `✅ Logo file renamed: "${oldLogoFileName}${foundExtension}" → "${newLogoFileName}"`,
                   );
                   result.logoFileRenamed = true;
                 } else {
@@ -477,13 +476,13 @@ class GoogleSheetsService {
                   const fullFileName = `${oldKopFileName}${ext}`;
                   kopFile = await oauth2GoogleService.findFileByName(
                     fullFileName,
-                    logoFolder.id
+                    logoFolder.id,
                   );
 
                   if (kopFile) {
                     kopFoundExtension = ext;
                     console.log(
-                      `📄 Found kop file: "${fullFileName}" (ID: ${kopFile.id})`
+                      `📄 Found kop file: "${fullFileName}" (ID: ${kopFile.id})`,
                     );
                     break;
                   }
@@ -496,10 +495,10 @@ class GoogleSheetsService {
 
                   await oauth2GoogleService.renameFileById(
                     kopFile.id,
-                    newKopFileName
+                    newKopFileName,
                   );
                   console.log(
-                    `✅ Kop file renamed: "${oldKopFileName}${kopFoundExtension}" → "${newKopFileName}"`
+                    `✅ Kop file renamed: "${oldKopFileName}${kopFoundExtension}" → "${newKopFileName}"`,
                   );
                   result.kopFileRenamed = true;
                 } else {
@@ -511,35 +510,35 @@ class GoogleSheetsService {
                 const profilFolderName = `${companyIndex}.1 Profil Perusahaan`;
                 const profilFolder = await oauth2GoogleService.findFolderByName(
                   profilFolderName,
-                  companyFolder.id
+                  companyFolder.id,
                 );
 
                 if (profilFolder) {
                   const oldProfilPDFName = `Profil Perusahaan ${oldCompanyName}.pdf`;
                   const profilFile = await oauth2GoogleService.findFileByName(
                     oldProfilPDFName,
-                    profilFolder.id
+                    profilFolder.id,
                   );
 
                   if (profilFile) {
                     const newProfilPDFName = `Profil Perusahaan ${newCompanyName}.pdf`;
 
                     console.log(
-                      `📄 Found company profile PDF: "${oldProfilPDFName}" (ID: ${profilFile.id})`
+                      `📄 Found company profile PDF: "${oldProfilPDFName}" (ID: ${profilFile.id})`,
                     );
                     console.log(`🔄 Renaming to: "${newProfilPDFName}"`);
 
                     await oauth2GoogleService.renameFileById(
                       profilFile.id,
-                      newProfilPDFName
+                      newProfilPDFName,
                     );
                     console.log(
-                      `✅ Company profile PDF renamed: "${oldProfilPDFName}" → "${newProfilPDFName}"`
+                      `✅ Company profile PDF renamed: "${oldProfilPDFName}" → "${newProfilPDFName}"`,
                     );
                     result.companyProfileRenamed = true;
                   } else {
                     console.log(
-                      `ℹ️  Company profile PDF not found in "${profilFolderName}"`
+                      `ℹ️  Company profile PDF not found in "${profilFolderName}"`,
                     );
                   }
                 } else {
@@ -552,14 +551,14 @@ class GoogleSheetsService {
           } catch (logoFileError) {
             console.error(
               "❌ Failed to rename logo file:",
-              logoFileError.message
+              logoFileError.message,
             );
             result.logoFileRenameError = logoFileError.message;
           }
         } catch (driveError) {
           console.error(
             "❌ Failed to rename Google Drive folder:",
-            driveError.message
+            driveError.message,
           );
           result.folderRenameError = driveError.message;
         }
@@ -591,7 +590,7 @@ class GoogleSheetsService {
           } catch (sheetError) {
             console.error(
               "❌ Failed to update sheet with new logo URL:",
-              sheetError.message
+              sheetError.message,
             );
             result.sheetUpdateError = sheetError.message;
           }
@@ -619,7 +618,7 @@ class GoogleSheetsService {
       if (!company) throw new Error(`Company with ID ${id} not found`);
 
       console.log(
-        `🗑️  Starting asset deletion for company: ${company.nama_perusahaan}`
+        `🗑️  Starting asset deletion for company: ${company.nama_perusahaan}`,
       );
 
       // 1. Delete logo from Cloudinary
@@ -636,7 +635,7 @@ class GoogleSheetsService {
 
           // Extract public_id
           const publicIdMatch = company.logo_cloud.match(
-            /\/upload\/(?:v\d+\/)?(.+)\.\w+$/
+            /\/upload\/(?:v\d+\/)?(.+)\.\w+$/,
           );
           if (publicIdMatch) {
             const publicId = decodeURIComponent(publicIdMatch[1]);
@@ -652,7 +651,7 @@ class GoogleSheetsService {
       try {
         const allCompanies = await this.getAllProfilPerusahaan();
         const companyIndex = allCompanies.findIndex(
-          (c) => c.id_perusahaan === id
+          (c) => c.id_perusahaan === id,
         );
 
         if (companyIndex !== -1 && company.nama_perusahaan) {
@@ -667,7 +666,7 @@ class GoogleSheetsService {
       } catch (error) {
         console.error(
           "❌ Failed to delete Google Drive folder:",
-          error.message
+          error.message,
         );
       }
 
@@ -706,7 +705,7 @@ class GoogleSheetsService {
         deletedCount++;
       } catch (error) {
         console.warn(
-          `   ⚠️ Failed to delete from ${tableName}: ${error.message}`
+          `   ⚠️ Failed to delete from ${tableName}: ${error.message}`,
         );
       }
     }
@@ -724,7 +723,7 @@ class GoogleSheetsService {
       const result = await this.deleteSheetData(
         "db_profil_perusahaan",
         "id_perusahaan",
-        id
+        id,
       );
       console.log(`✅ Company profile deleted`);
       return result;
@@ -767,7 +766,7 @@ class GoogleSheetsService {
     try {
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${sheetName}!A1:Z2000`,
+        range: `${sheetName}!A:ZZ`,
       });
       const rows = response.data.values;
       if (!rows || rows.length < 2) return [];
@@ -834,7 +833,7 @@ class GoogleSheetsService {
         // One-to-Many relationships
         const skk = skkData.filter((s) => s.id_personel === p.id_personel); // SKK (Multiple)
         const referensi = referensiData.filter(
-          (r) => r.id_personel === p.id_personel
+          (r) => r.id_personel === p.id_personel,
         );
         const stnk = stnkData.filter((s) => s.id_personel === p.id_personel);
 
@@ -941,7 +940,7 @@ class GoogleSheetsService {
         data.id_personel = this.generateNewId(
           currentData,
           "id_personel",
-          "PRS"
+          "PRS",
         );
       }
       // Format tanggal: YYYY-MM-DD HH:MM:SS (readable, bukan ISO)
@@ -989,7 +988,7 @@ class GoogleSheetsService {
       try {
         if (namaLengkap) {
           console.log(
-            `🔍 Starting folder creation for personel: ${namaLengkap}`
+            `🔍 Starting folder creation for personel: ${namaLengkap}`,
           );
 
           // Find or create "02. Personel" folder
@@ -997,19 +996,19 @@ class GoogleSheetsService {
 
           if (process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID) {
             console.log(
-              `📁 Using GOOGLE_DRIVE_PERSONEL_FOLDER_ID: ${process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID}`
+              `📁 Using GOOGLE_DRIVE_PERSONEL_FOLDER_ID: ${process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID}`,
             );
             personelParentFolder = {
               id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID,
             };
           } else {
             console.log(
-              "🔍 GOOGLE_DRIVE_PERSONEL_FOLDER_ID not set, searching for Data folder..."
+              "🔍 GOOGLE_DRIVE_PERSONEL_FOLDER_ID not set, searching for Data folder...",
             );
             // Try to find "Data" folder first
             const dataFolder = await oauth2GoogleService.findFolderByName(
               "Data",
-              process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
+              process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID,
             );
 
             if (dataFolder) {
@@ -1017,24 +1016,24 @@ class GoogleSheetsService {
               // Look for "02. Personel" inside Data folder
               personelParentFolder = await oauth2GoogleService.findFolderByName(
                 "02. Personel",
-                dataFolder.id
+                dataFolder.id,
               );
 
               if (!personelParentFolder) {
                 console.log(
-                  '📁 "02. Personel" folder not found, creating it...'
+                  '📁 "02. Personel" folder not found, creating it...',
                 );
                 // Create "02. Personel" if not exists
                 personelParentFolder = await oauth2GoogleService.createFolder(
                   "02. Personel",
-                  dataFolder.id
+                  dataFolder.id,
                 );
                 console.log(
-                  `✅ Created "02. Personel" folder (ID: ${personelParentFolder.id})`
+                  `✅ Created "02. Personel" folder (ID: ${personelParentFolder.id})`,
                 );
               } else {
                 console.log(
-                  `✅ Found "02. Personel" folder (ID: ${personelParentFolder.id})`
+                  `✅ Found "02. Personel" folder (ID: ${personelParentFolder.id})`,
                 );
               }
             } else {
@@ -1045,18 +1044,18 @@ class GoogleSheetsService {
           if (personelParentFolder) {
             // Create folder with personnel name
             console.log(
-              `📁 Creating folder "${namaLengkap}" in parent ${personelParentFolder.id}...`
+              `📁 Creating folder "${namaLengkap}" in parent ${personelParentFolder.id}...`,
             );
             const personelFolder = await oauth2GoogleService.createFolder(
               namaLengkap,
-              personelParentFolder.id
+              personelParentFolder.id,
             );
             console.log(
-              `✅ Created folder for personel: ${namaLengkap} (${personelFolder.id})`
+              `✅ Created folder for personel: ${namaLengkap} (${personelFolder.id})`,
             );
           } else {
             console.warn(
-              '⚠️ Parent folder "02. Personel" not found, skipping folder creation'
+              '⚠️ Parent folder "02. Personel" not found, skipping folder creation',
             );
           }
         }
@@ -1146,7 +1145,7 @@ class GoogleSheetsService {
 
         if (newNameClean && oldNameClean && newNameClean !== oldNameClean) {
           console.log(
-            `🔄 [RENAME PERSONEL] Starting rename process: "${oldNameClean}" → "${newNameClean}"`
+            `🔄 [RENAME PERSONEL] Starting rename process: "${oldNameClean}" → "${newNameClean}"`,
           );
 
           // Find "02. Personel" folder
@@ -1157,27 +1156,27 @@ class GoogleSheetsService {
               id: process.env.GOOGLE_DRIVE_PERSONEL_FOLDER_ID,
             };
             console.log(
-              `📁 [RENAME PERSONEL] Using configured Personel Folder ID: ${personelParentFolder.id}`
+              `📁 [RENAME PERSONEL] Using configured Personel Folder ID: ${personelParentFolder.id}`,
             );
           } else {
             console.log(
-              '🔍 [RENAME PERSONEL] Searching for "02. Personel" folder structure...'
+              '🔍 [RENAME PERSONEL] Searching for "02. Personel" folder structure...',
             );
             const dataFolder = await oauth2GoogleService.findFolderByName(
               "Data",
-              process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
+              process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID,
             );
             if (dataFolder) {
               console.log(
-                `📁 [RENAME PERSONEL] Found Data folder: ${dataFolder.id}`
+                `📁 [RENAME PERSONEL] Found Data folder: ${dataFolder.id}`,
               );
               personelParentFolder = await oauth2GoogleService.findFolderByName(
                 "02. Personel",
-                dataFolder.id
+                dataFolder.id,
               );
               if (personelParentFolder) {
                 console.log(
-                  `📁 [RENAME PERSONEL] Found "02. Personel" folder: ${personelParentFolder.id}`
+                  `📁 [RENAME PERSONEL] Found "02. Personel" folder: ${personelParentFolder.id}`,
                 );
               }
             }
@@ -1185,7 +1184,7 @@ class GoogleSheetsService {
 
           if (!personelParentFolder) {
             console.error(
-              '❌ [RENAME PERSONEL] Parent folder "02. Personel" not found - cannot rename folder and files'
+              '❌ [RENAME PERSONEL] Parent folder "02. Personel" not found - cannot rename folder and files',
             );
             return {
               success: true,
@@ -1195,18 +1194,18 @@ class GoogleSheetsService {
           }
 
           console.log(
-            `📂 [RENAME PERSONEL] Parent folder found: ${personelParentFolder.id}. Searching for folder "${oldNameClean}"...`
+            `📂 [RENAME PERSONEL] Parent folder found: ${personelParentFolder.id}. Searching for folder "${oldNameClean}"...`,
           );
 
           // Try to find the folder first to verify existence
           const existingFolder = await oauth2GoogleService.findFolderByName(
             oldNameClean,
-            personelParentFolder.id
+            personelParentFolder.id,
           );
 
           if (!existingFolder) {
             console.warn(
-              `⚠️ [RENAME PERSONEL] Folder "${oldNameClean}" not found in parent ${personelParentFolder.id} - cannot rename`
+              `⚠️ [RENAME PERSONEL] Folder "${oldNameClean}" not found in parent ${personelParentFolder.id} - cannot rename`,
             );
             return {
               success: true,
@@ -1216,13 +1215,13 @@ class GoogleSheetsService {
           }
 
           console.log(
-            `✅ [RENAME PERSONEL] Found folder to rename: "${oldNameClean}" (ID: ${existingFolder.id})`
+            `✅ [RENAME PERSONEL] Found folder to rename: "${oldNameClean}" (ID: ${existingFolder.id})`,
           );
 
           // === STEP 1: RENAME ALL DOCUMENT PDF FILES FIRST ===
           try {
             console.log(
-              `📄 [RENAME PERSONEL] Step 1: Renaming document PDF files inside folder "${oldNameClean}"...`
+              `📄 [RENAME PERSONEL] Step 1: Renaming document PDF files inside folder "${oldNameClean}"...`,
             );
 
             // Define document subfolders and their file patterns
@@ -1255,64 +1254,64 @@ class GoogleSheetsService {
             for (const docFolder of documentFolders) {
               try {
                 console.log(
-                  `🔍 [RENAME PERSONEL] Looking for subfolder "${docFolder.folderName}" in folder ID ${existingFolder.id}...`
+                  `🔍 [RENAME PERSONEL] Looking for subfolder "${docFolder.folderName}" in folder ID ${existingFolder.id}...`,
                 );
 
                 // Find document subfolder
                 const subfolder = await oauth2GoogleService.findFolderByName(
                   docFolder.folderName,
-                  existingFolder.id
+                  existingFolder.id,
                 );
 
                 if (!subfolder) {
                   console.log(
-                    `ℹ️  [RENAME PERSONEL] Subfolder not found: "${docFolder.folderName}" - skipping`
+                    `ℹ️  [RENAME PERSONEL] Subfolder not found: "${docFolder.folderName}" - skipping`,
                   );
                   skippedFilesCount++;
                   continue;
                 }
 
                 console.log(
-                  `📁 [RENAME PERSONEL] Found subfolder "${docFolder.folderName}" (ID: ${subfolder.id})`
+                  `📁 [RENAME PERSONEL] Found subfolder "${docFolder.folderName}" (ID: ${subfolder.id})`,
                 );
                 console.log(
-                  `🔍 [RENAME PERSONEL] Looking for file "${docFolder.oldFileName}" in subfolder...`
+                  `🔍 [RENAME PERSONEL] Looking for file "${docFolder.oldFileName}" in subfolder...`,
                 );
 
                 // Find file with old name
                 const file = await oauth2GoogleService.findFileByName(
                   docFolder.oldFileName,
-                  subfolder.id
+                  subfolder.id,
                 );
 
                 if (!file) {
                   console.log(
-                    `ℹ️  [RENAME PERSONEL] File not found: "${docFolder.oldFileName}" in ${docFolder.folderName} - skipping`
+                    `ℹ️  [RENAME PERSONEL] File not found: "${docFolder.oldFileName}" in ${docFolder.folderName} - skipping`,
                   );
                   skippedFilesCount++;
                   continue;
                 }
 
                 console.log(
-                  `📄 [RENAME PERSONEL] Found file "${docFolder.oldFileName}" (ID: ${file.id})`
+                  `📄 [RENAME PERSONEL] Found file "${docFolder.oldFileName}" (ID: ${file.id})`,
                 );
                 console.log(
-                  `🔄 [RENAME PERSONEL] Renaming file to "${docFolder.newFileName}"...`
+                  `🔄 [RENAME PERSONEL] Renaming file to "${docFolder.newFileName}"...`,
                 );
 
                 // Rename file
                 await oauth2GoogleService.renameFileById(
                   file.id,
-                  docFolder.newFileName
+                  docFolder.newFileName,
                 );
                 renamedFilesCount++;
                 console.log(
-                  `✅ [RENAME PERSONEL] Successfully renamed file: "${docFolder.oldFileName}" → "${docFolder.newFileName}"`
+                  `✅ [RENAME PERSONEL] Successfully renamed file: "${docFolder.oldFileName}" → "${docFolder.newFileName}"`,
                 );
               } catch (fileError) {
                 console.error(
                   `❌ [RENAME PERSONEL] Error renaming file in ${docFolder.folderName}:`,
-                  fileError.message
+                  fileError.message,
                 );
                 // Continue with other files even if one fails
                 skippedFilesCount++;
@@ -1320,12 +1319,12 @@ class GoogleSheetsService {
             }
 
             console.log(
-              `✅ [RENAME PERSONEL] Finished renaming PDF files: ${renamedFilesCount} renamed, ${skippedFilesCount} skipped`
+              `✅ [RENAME PERSONEL] Finished renaming PDF files: ${renamedFilesCount} renamed, ${skippedFilesCount} skipped`,
             );
           } catch (filesError) {
             console.error(
               "❌ [RENAME PERSONEL] Error during PDF file renaming:",
-              filesError
+              filesError,
             );
             // Continue to folder rename even if file renaming fails
           }
@@ -1333,38 +1332,38 @@ class GoogleSheetsService {
           // === STEP 2: RENAME THE FOLDER ===
           try {
             console.log(
-              `🔄 [RENAME PERSONEL] Step 2: Renaming folder "${oldNameClean}" to "${newNameClean}"...`
+              `🔄 [RENAME PERSONEL] Step 2: Renaming folder "${oldNameClean}" to "${newNameClean}"...`,
             );
             await oauth2GoogleService.renameFolder(
               oldNameClean,
               newNameClean,
-              personelParentFolder.id
+              personelParentFolder.id,
             );
             console.log(
-              `✅ [RENAME PERSONEL] Successfully renamed folder: "${oldNameClean}" → "${newNameClean}"`
+              `✅ [RENAME PERSONEL] Successfully renamed folder: "${oldNameClean}" → "${newNameClean}"`,
             );
           } catch (folderRenameError) {
             console.error(
               `❌ [RENAME PERSONEL] Error renaming folder:`,
-              folderRenameError
+              folderRenameError,
             );
             throw folderRenameError; // Throw this error as it's critical
           }
         } else {
           if (!newNameClean || !oldNameClean) {
             console.log(
-              `ℹ️  [RENAME PERSONEL] Skipping rename: empty name (old: "${oldNameClean}", new: "${newNameClean}")`
+              `ℹ️  [RENAME PERSONEL] Skipping rename: empty name (old: "${oldNameClean}", new: "${newNameClean}")`,
             );
           } else {
             console.log(
-              `ℹ️  [RENAME PERSONEL] Skipping rename: names are the same ("${oldNameClean}")`
+              `ℹ️  [RENAME PERSONEL] Skipping rename: names are the same ("${oldNameClean}")`,
             );
           }
         }
       } catch (folderError) {
         console.error(
           "❌ [RENAME PERSONEL] Error in rename process:",
-          folderError
+          folderError,
         );
         // Don't throw error, continue with personnel update
       }
@@ -1434,7 +1433,7 @@ class GoogleSheetsService {
         resource: { requests },
       });
       console.log(
-        `   ✅ Deleted ${rowsToDelete.length} rows from ${sheetName}`
+        `   ✅ Deleted ${rowsToDelete.length} rows from ${sheetName}`,
       );
     } catch (e) {
       console.warn(`   ⚠️ Error deleting from ${sheetName}: ${e.message}`);
@@ -1459,12 +1458,12 @@ class GoogleSheetsService {
         if (!personelParentFolderId) {
           const dataFolder = await oauth2GoogleService.findFolderByName(
             "Data",
-            process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID
+            process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID,
           );
           if (dataFolder) {
             const pFolder = await oauth2GoogleService.findFolderByName(
               "02 Database Personel",
-              dataFolder.id
+              dataFolder.id,
             );
             if (pFolder) personelParentFolderId = pFolder.id;
           }
@@ -1474,7 +1473,7 @@ class GoogleSheetsService {
           const folderName = personel.nama_lengkap; // Assuming folder name matches nama_lengkap
           await oauth2GoogleService.deleteFolder(
             folderName,
-            personelParentFolderId
+            personelParentFolderId,
           );
           console.log(`✅ Personnel folder deleted: "${folderName}"`);
         }
@@ -1510,7 +1509,7 @@ class GoogleSheetsService {
         spreadsheetIdPersonel,
         table,
         "id_personel",
-        id
+        id,
       );
     }
 
@@ -1520,7 +1519,7 @@ class GoogleSheetsService {
       spreadsheetIdCompany,
       "db_pejabat",
       "id_personel",
-      id
+      id,
     );
 
     return { success: true, message: "Related data deleted" };
@@ -1540,7 +1539,7 @@ class GoogleSheetsService {
       spreadsheetIdPersonel,
       "db_personel",
       "id_personel",
-      id
+      id,
     );
 
     return { success: true, message: "Profile deleted" };
@@ -1588,7 +1587,7 @@ class GoogleSheetsService {
       const spreadsheetId = process.env.GOOGLE_SHEET_ID_PERUSAHAAN;
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: `${sheetName}!A1:Z1000`,
+        range: `${sheetName}!A:ZZ`,
       });
 
       const rows = response.data.values;
@@ -1701,7 +1700,7 @@ class GoogleSheetsService {
 
         // Try loose match (lowercase)
         const key = Object.keys(data).find(
-          (k) => k.toLowerCase() === header.toLowerCase()
+          (k) => k.toLowerCase() === header.toLowerCase(),
         );
         return key ? data[key] : "";
       });
@@ -1771,11 +1770,11 @@ class GoogleSheetsService {
         if (allData.length > 0) {
           console.log(
             `   Sample values in ${idField}:`,
-            allData.slice(0, 3).map((i) => i[idField])
+            allData.slice(0, 3).map((i) => i[idField]),
           );
         }
         throw new Error(
-          `Data with ${idField} = ${id} not found in ${sheetName}`
+          `Data with ${idField} = ${id} not found in ${sheetName}`,
         );
       }
 
@@ -1792,7 +1791,7 @@ class GoogleSheetsService {
 
         // Try loose match
         const key = Object.keys(updatedData).find(
-          (k) => k.toLowerCase() === header.toLowerCase()
+          (k) => k.toLowerCase() === header.toLowerCase(),
         );
         return key ? updatedData[key] : "";
       });
@@ -1813,7 +1812,7 @@ class GoogleSheetsService {
     } catch (error) {
       console.error(`   ❌ Failed to update data in ${sheetName}:`, error);
       throw new Error(
-        `Failed to update data in ${sheetName}: ${error.message}`
+        `Failed to update data in ${sheetName}: ${error.message}`,
       );
     }
   }
@@ -1878,7 +1877,7 @@ class GoogleSheetsService {
     } catch (error) {
       // Don't throw error here to allow cascade to continue even if one table fails or is empty
       console.warn(
-        `Warning: Failed to delete from ${sheetName}: ${error.message}`
+        `Warning: Failed to delete from ${sheetName}: ${error.message}`,
       );
       return { success: false, message: error.message };
     }
@@ -1904,7 +1903,7 @@ class GoogleSheetsService {
 
       if (index === -1) {
         throw new Error(
-          `Data with ${idField} = ${id} not found in ${sheetName}`
+          `Data with ${idField} = ${id} not found in ${sheetName}`,
         );
       }
 
@@ -1942,7 +1941,7 @@ class GoogleSheetsService {
       };
     } catch (error) {
       throw new Error(
-        `Failed to delete data from ${sheetName}: ${error.message}`
+        `Failed to delete data from ${sheetName}: ${error.message}`,
       );
     }
   }
@@ -1982,7 +1981,7 @@ class GoogleSheetsService {
       data.id_perusahaan = this.generateNewId(
         companies,
         "id_perusahaan",
-        "COMP"
+        "COMP",
       );
     }
 
@@ -1994,14 +1993,14 @@ class GoogleSheetsService {
     const result = await this.addSheetData(
       "db_profil_perusahaan",
       headers,
-      data
+      data,
     );
 
     // Create folder in Google Drive
     try {
       const folder = await oauth2GoogleService.createFolder(folderName);
       console.log(
-        `✅ Folder created for company: ${folderName} (ID: ${folder.id})`
+        `✅ Folder created for company: ${folderName} (ID: ${folder.id})`,
       );
 
       // Optionally, you can store the folder ID in the company data
@@ -2042,7 +2041,7 @@ class GoogleSheetsService {
       headers,
       "id_perusahaan",
       id,
-      data
+      data,
     );
 
     // Check if nama_perusahaan changed
@@ -2054,7 +2053,7 @@ class GoogleSheetsService {
         // Get all companies to find the index/number of this company
         const allCompanies = await this.getAllCompanies();
         const companyIndex = allCompanies.findIndex(
-          (c) => c.id_perusahaan === id
+          (c) => c.id_perusahaan === id,
         );
 
         if (companyIndex !== -1) {
@@ -2068,10 +2067,10 @@ class GoogleSheetsService {
           // Rename folder in Google Drive
           const folder = await oauth2GoogleService.renameFolder(
             oldFolderName,
-            newFolderName
+            newFolderName,
           );
           console.log(
-            `✅ Company folder renamed: "${oldFolderName}" → "${newFolderName}"`
+            `✅ Company folder renamed: "${oldFolderName}" → "${newFolderName}"`,
           );
 
           result.folderRenamed = true;
@@ -2127,7 +2126,7 @@ class GoogleSheetsService {
     const result = await this.deleteSheetData(
       "db_profil_perusahaan",
       "id_perusahaan",
-      id
+      id,
     );
 
     // Add folder deletion info to result
@@ -2363,87 +2362,67 @@ class GoogleSheetsService {
   }
 
   async addPengalaman(data) {
-    const headers = [
-      "id_kontrak",
-      "id_perusahaan",
-      "nama_pekerjaan",
-      "bidang_pekerjaan",
-      "sub_bidang_pekerjaan",
-      "lokasi",
-      "nama_pemberi_tugas",
-      "alamat_pemberi_tugas",
-      "telepon_pemberi_tugas",
-      "fax_pemberi_tugas",
-      "kode_pos_pemberi_tugas",
-      "nomor_kontrak",
-      "tanggal_kontrak",
-      "nilai_kontrak",
-      "waktu_pelaksanaan",
-      "tanggal_selesai_kontrak",
-      "tanggal_ba_serah_terima",
-      "daftar_url",
-      "kontrak_url",
-      "tanggal_input",
-      "author",
-    ];
-    // Generate new ID if not provided
-    if (!data.id_kontrak) {
-      const allData = await this.getAllPengalaman();
-      data.id_kontrak = this.generateNewId(allData, "id_kontrak", "KONTR");
-    }
-    return this.addSheetData("db_kontrak_pengalaman", headers, data);
+    // Legacy method - map old field names to new structure
+    const mappedData = {
+      id_perusahaan: data.id_perusahaan,
+      // Combine old fields into new kegiatan
+      nama_program: data.nama_program,
+      nama_kegiatan: data.bidang_pekerjaan || data.nama_kegiatan,
+      // Map renamed fields
+      nama_sub_kegiatan: data.sub_bidang_pekerjaan || data.nama_sub_kegiatan,
+      nama_pekerjaan: data.nama_pekerjaan,
+      lokasi: data.lokasi,
+      // Map contact fields
+      nama_pemberi_tugas: data.nama_pemberi_tugas,
+      alamat_pemberi_tugas: data.alamat_pemberi_tugas,
+      telepon_pemberi_tugas: data.telepon_pemberi_tugas,
+      fax_pemberi_tugas: data.fax_pemberi_tugas,
+      kode_pos_pemberi_tugas: data.kode_pos_pemberi_tugas,
+      // Other fields
+      sumber_dana: data.sumber_dana,
+      nomor_kontrak: data.nomor_kontrak,
+      tanggal_kontrak: data.tanggal_kontrak,
+      nilai_kontrak: data.nilai_kontrak,
+      waktu_pelaksanaan: data.waktu_pelaksanaan,
+      tanggal_mulai: data.tanggal_mulai,
+      tanggal_selesai_kontrak: data.tanggal_selesai_kontrak,
+      tanggal_ba_serah_terima: data.tanggal_ba_serah_terima,
+      daftar_url: data.daftar_url,
+      kontrak_url: data.kontrak_url,
+    };
+
+    // Use the new method
+    return this.addKontrakPengalaman(mappedData, data.author || "system");
   }
 
   async updatePengalaman(nomorKontrak, data) {
-    // Note: nomorKontrak might not be unique globally, but id_kontrak is.
-    // However, existing controller might use nomor_kontrak.
-    // Ideally we should use id_kontrak.
-    // Let's support both or check what's passed.
-    // The route usually passes an ID.
-    // If the frontend sends id_kontrak, use that.
+    // Legacy method - map old field names to new structure
+    const mappedData = {
+      // Map old to new fields
+      nama_program: data.nama_program,
+      nama_kegiatan: data.bidang_pekerjaan || data.nama_kegiatan,
+      nama_sub_kegiatan: data.sub_bidang_pekerjaan || data.nama_sub_kegiatan,
+      nama_pekerjaan: data.nama_pekerjaan,
+      lokasi: data.lokasi,
+      nama_pemberi_tugas: data.nama_pemberi_tugas,
+      alamat_pemberi_tugas: data.alamat_pemberi_tugas,
+      telepon_pemberi_tugas: data.telepon_pemberi_tugas,
+      fax_pemberi_tugas: data.fax_pemberi_tugas,
+      kode_pos_pemberi_tugas: data.kode_pos_pemberi_tugas,
+      sumber_dana: data.sumber_dana,
+      nomor_kontrak: data.nomor_kontrak,
+      tanggal_kontrak: data.tanggal_kontrak,
+      nilai_kontrak: data.nilai_kontrak,
+      waktu_pelaksanaan: data.waktu_pelaksanaan,
+      tanggal_mulai: data.tanggal_mulai,
+      tanggal_selesai_kontrak: data.tanggal_selesai_kontrak,
+      tanggal_ba_serah_terima: data.tanggal_ba_serah_terima,
+      daftar_url: data.daftar_url,
+      kontrak_url: data.kontrak_url,
+    };
 
-    const headers = [
-      "id_kontrak",
-      "id_perusahaan",
-      "nama_pekerjaan",
-      "bidang_pekerjaan",
-      "sub_bidang_pekerjaan",
-      "lokasi",
-      "nama_pemberi_tugas",
-      "alamat_pemberi_tugas",
-      "telepon_pemberi_tugas",
-      "fax_pemberi_tugas",
-      "kode_pos_pemberi_tugas",
-      "nomor_kontrak",
-      "tanggal_kontrak",
-      "nilai_kontrak",
-      "waktu_pelaksanaan",
-      "tanggal_selesai_kontrak",
-      "tanggal_ba_serah_terima",
-      "daftar_url",
-      "kontrak_url",
-    ];
-
-    // Determine if we are updating by id_kontrak or nomor_kontrak
-    // Assuming the first argument is the ID value.
-    let idField = "id_kontrak";
-
-    // Check if it looks like KONTRxxx or KTRxxx
-    if (
-      !String(nomorKontrak).startsWith("KONTR") &&
-      !String(nomorKontrak).startsWith("KTR")
-    ) {
-      // Fallback to nomor_kontrak if it doesn't look like our ID
-      idField = "nomor_kontrak";
-    }
-
-    return this.updateSheetData(
-      "db_kontrak_pengalaman",
-      headers,
-      idField,
-      nomorKontrak,
-      data
-    );
+    // Use the new method
+    return this.updateKontrakPengalaman(nomorKontrak, mappedData);
   }
 
   async deletePengalaman(id) {
@@ -2508,7 +2487,7 @@ class GoogleSheetsService {
     return allKBLI.filter(
       (k) =>
         k.kode_klbi.toLowerCase().includes(searchTerm) ||
-        k.nama_klasifikasi.toLowerCase().includes(searchTerm)
+        k.nama_klasifikasi.toLowerCase().includes(searchTerm),
     );
   }
 
@@ -2516,7 +2495,7 @@ class GoogleSheetsService {
     const nibList = await this.getAllNIB(idPerusahaan);
     if (nibList.length === 0) {
       throw new Error(
-        "NIB data not found for this company. Cannot update KBLI."
+        "NIB data not found for this company. Cannot update KBLI.",
       );
     }
 
@@ -2557,7 +2536,7 @@ class GoogleSheetsService {
     if (!spreadsheetId) {
       // Fallback for safety if not configured, though likely to fail if not in default sheet
       console.warn(
-        "GOOGLE_SHEET_ID_PERSONEL not set for getAllpersonelProject"
+        "GOOGLE_SHEET_ID_PERSONEL not set for getAllpersonelProject",
       );
       return this.getSheetData("db_personel_project");
     }
@@ -2581,12 +2560,12 @@ class GoogleSheetsService {
       const allData = await this.getAllpersonelProject();
       // Find index of the row matching both id_project and nik
       const index = allData.findIndex(
-        (p) => p.id_project === idProject && p.nik === nik
+        (p) => p.id_project === idProject && p.nik === nik,
       );
 
       if (index === -1) {
         throw new Error(
-          `personel assignment not found for Project ${idProject} and NIK ${nik}`
+          `personel assignment not found for Project ${idProject} and NIK ${nik}`,
         );
       }
 
@@ -2631,7 +2610,7 @@ class GoogleSheetsService {
     } catch (error) {
       console.error("Error deleting personel project:", error);
       throw new Error(
-        `Failed to remove personel from project: ${error.message}`
+        `Failed to remove personel from project: ${error.message}`,
       );
     }
   }
@@ -2640,7 +2619,7 @@ class GoogleSheetsService {
   async getProjectsByCompany(idPerusahaan) {
     const projects = await this.getSheetData("db_project");
     const companyProjects = projects.filter(
-      (p) => p.id_perusahaan === idPerusahaan
+      (p) => p.id_perusahaan === idPerusahaan,
     );
 
     const personelProject = await this.getSheetData("db_personel_project");
@@ -2648,7 +2627,7 @@ class GoogleSheetsService {
     // Join data
     return companyProjects.map((project) => {
       const assignments = personelProject.filter(
-        (pp) => pp.id_project === project.id_project
+        (pp) => pp.id_project === project.id_project,
       );
       return {
         ...project,
@@ -2700,37 +2679,36 @@ class GoogleSheetsService {
         if (company) {
           const allCompanies = await this.getAllCompanies();
           const companyIndex = allCompanies.findIndex(
-            (c) => c.id_perusahaan === data.id_perusahaan
+            (c) => c.id_perusahaan === data.id_perusahaan,
           );
 
           if (companyIndex !== -1) {
             const companyFolderNumber = String(companyIndex + 1).padStart(
               2,
-              "0"
+              "0",
             );
             const companyFolderName = `${companyFolderNumber}.(${company.nama_perusahaan})`;
-            const companyFolder = await oauth2GoogleService.findFolderByName(
-              companyFolderName
-            );
+            const companyFolder =
+              await oauth2GoogleService.findFolderByName(companyFolderName);
 
             if (companyFolder) {
               // Get all projects for this company to determine project number
               // Note: We use the new getProjectsByCompany which returns array
               const companyProjects = await this.getProjectsByCompany(
-                data.id_perusahaan
+                data.id_perusahaan,
               );
               const projectNumber = String(companyProjects.length).padStart(
                 2,
-                "0"
+                "0",
               );
               const projectFolderName = `${projectNumber}.(${data.nama_project})`;
 
               const projectFolder = await oauth2GoogleService.createFolder(
                 projectFolderName,
-                companyFolder.id
+                companyFolder.id,
               );
               console.log(
-                `✅ Project folder created: ${companyFolderName}/${projectFolderName} (ID: ${projectFolder.id})`
+                `✅ Project folder created: ${companyFolderName}/${projectFolderName} (ID: ${projectFolder.id})`,
               );
 
               result.projectFolderId = projectFolder.id;
@@ -2764,7 +2742,7 @@ class GoogleSheetsService {
       headers,
       "id_project",
       idProject,
-      data
+      data,
     );
 
     // Check if nama_project changed
@@ -2777,25 +2755,24 @@ class GoogleSheetsService {
         if (company) {
           const allCompanies = await this.getAllCompanies();
           const companyIndex = allCompanies.findIndex(
-            (c) => c.id_perusahaan === currentProject.id_perusahaan
+            (c) => c.id_perusahaan === currentProject.id_perusahaan,
           );
 
           if (companyIndex !== -1) {
             const companyFolderNumber = String(companyIndex + 1).padStart(
               2,
-              "0"
+              "0",
             );
             const companyFolderName = `${companyFolderNumber}.(${company.nama_perusahaan})`;
-            const companyFolder = await oauth2GoogleService.findFolderByName(
-              companyFolderName
-            );
+            const companyFolder =
+              await oauth2GoogleService.findFolderByName(companyFolderName);
 
             if (companyFolder) {
               const companyProjects = await this.getProjectsByCompany(
-                currentProject.id_perusahaan
+                currentProject.id_perusahaan,
               );
               const projectIndex = companyProjects.findIndex(
-                (p) => p.id_project === idProject
+                (p) => p.id_project === idProject,
               );
 
               if (projectIndex !== -1) {
@@ -2806,12 +2783,12 @@ class GoogleSheetsService {
                 const projectFolder =
                   await oauth2GoogleService.findFolderByName(
                     oldProjectFolderName,
-                    companyFolder.id
+                    companyFolder.id,
                   );
                 if (projectFolder) {
                   await oauth2GoogleService.renameFolderById(
                     projectFolder.id,
-                    newProjectFolderName
+                    newProjectFolderName,
                   );
                   result.folderRenamed = true;
                   result.newProjectFolderName = newProjectFolderName;
@@ -2843,22 +2820,21 @@ class GoogleSheetsService {
       if (company) {
         const allCompanies = await this.getAllCompanies();
         const companyIndex = allCompanies.findIndex(
-          (c) => c.id_perusahaan === project.id_perusahaan
+          (c) => c.id_perusahaan === project.id_perusahaan,
         );
 
         if (companyIndex !== -1) {
           const companyFolderNumber = String(companyIndex + 1).padStart(2, "0");
           const companyFolderName = `${companyFolderNumber}.(${company.nama_perusahaan})`;
-          const companyFolder = await oauth2GoogleService.findFolderByName(
-            companyFolderName
-          );
+          const companyFolder =
+            await oauth2GoogleService.findFolderByName(companyFolderName);
 
           if (companyFolder) {
             const companyProjects = await this.getProjectsByCompany(
-              project.id_perusahaan
+              project.id_perusahaan,
             );
             const projectIndex = companyProjects.findIndex(
-              (p) => p.id_project === idProject
+              (p) => p.id_project === idProject,
             );
 
             if (projectIndex !== -1) {
@@ -2866,7 +2842,7 @@ class GoogleSheetsService {
               const projectFolderName = `${projectNumber}.(${project.nama_project})`;
               const projectFolder = await oauth2GoogleService.findFolderByName(
                 projectFolderName,
-                companyFolder.id
+                companyFolder.id,
               );
 
               if (projectFolder) {
@@ -2886,7 +2862,7 @@ class GoogleSheetsService {
     // We need to implement a way to delete multiple rows or iterate
     const allpersonelProject = await this.getAllpersonelProject();
     const assignmentsToDelete = allpersonelProject.filter(
-      (p) => p.id_project === idProject
+      (p) => p.id_project === idProject,
     );
 
     // Note: This is inefficient if we have many assignments, but with current simple sheet implementation:
@@ -2903,7 +2879,7 @@ class GoogleSheetsService {
     const result = await this.deleteSheetData(
       "db_project",
       "id_project",
-      idProject
+      idProject,
     );
 
     result.folderDeleted = folderDeleted;
@@ -2921,7 +2897,7 @@ class GoogleSheetsService {
     // Get all assignments
     const allAssignments = await this.getAllpersonelProject();
     const companyAssignments = allAssignments.filter((a) =>
-      projectIds.includes(a.id_project)
+      projectIds.includes(a.id_project),
     );
 
     // Get unique NIKs
@@ -3011,7 +2987,7 @@ class GoogleSheetsService {
       headers,
       "id_personel",
       idPersonel,
-      data
+      data,
     );
   }
 
@@ -3031,11 +3007,11 @@ class GoogleSheetsService {
           try {
             await oauth2GoogleService.deleteFile(fileId);
             console.log(
-              `✅ Deleted KTP file from Google Drive (ID: ${fileId})`
+              `✅ Deleted KTP file from Google Drive (ID: ${fileId})`,
             );
           } catch (err) {
             console.warn(
-              `⚠️  Could not delete KTP file from Drive: ${err.message}`
+              `⚠️  Could not delete KTP file from Drive: ${err.message}`,
             );
           }
         }
@@ -3097,7 +3073,7 @@ class GoogleSheetsService {
       headers,
       "id_personel",
       idPersonel,
-      data
+      data,
     );
   }
 
@@ -3117,11 +3093,11 @@ class GoogleSheetsService {
           try {
             await oauth2GoogleService.deleteFile(fileId);
             console.log(
-              `✅ Deleted NPWP file from Google Drive (ID: ${fileId})`
+              `✅ Deleted NPWP file from Google Drive (ID: ${fileId})`,
             );
           } catch (err) {
             console.warn(
-              `⚠️  Could not delete NPWP file from Drive: ${err.message}`
+              `⚠️  Could not delete NPWP file from Drive: ${err.message}`,
             );
           }
         }
@@ -3131,7 +3107,7 @@ class GoogleSheetsService {
       return this.deleteSheetDataPersonel(
         "db_npwp_personel",
         "id_personel",
-        idPersonel
+        idPersonel,
       );
     } catch (error) {
       throw new Error(`Failed to delete NPWP: ${error.message}`);
@@ -3182,7 +3158,7 @@ class GoogleSheetsService {
       headers,
       "id_personel",
       idPersonel,
-      data
+      data,
     );
   }
 
@@ -3202,11 +3178,11 @@ class GoogleSheetsService {
           try {
             await oauth2GoogleService.deleteFile(fileId);
             console.log(
-              `✅ Deleted Ijazah file from Google Drive (ID: ${fileId})`
+              `✅ Deleted Ijazah file from Google Drive (ID: ${fileId})`,
             );
           } catch (err) {
             console.warn(
-              `⚠️  Could not delete Ijazah file from Drive: ${err.message}`
+              `⚠️  Could not delete Ijazah file from Drive: ${err.message}`,
             );
           }
         }
@@ -3216,7 +3192,7 @@ class GoogleSheetsService {
       return this.deleteSheetDataPersonel(
         "db_ijazah",
         "id_personel",
-        idPersonel
+        idPersonel,
       );
     } catch (error) {
       throw new Error(`Failed to delete Ijazah: ${error.message}`);
@@ -3263,7 +3239,7 @@ class GoogleSheetsService {
       headers,
       "id_personel",
       idPersonel,
-      data
+      data,
     );
   }
 
@@ -3285,7 +3261,7 @@ class GoogleSheetsService {
             console.log(`✅ Deleted CV file from Google Drive (ID: ${fileId})`);
           } catch (err) {
             console.warn(
-              `⚠️  Could not delete CV file from Drive: ${err.message}`
+              `⚠️  Could not delete CV file from Drive: ${err.message}`,
             );
           }
         }
@@ -3427,7 +3403,7 @@ class GoogleSheetsService {
       data.id_sertifikat_standar = this.generateNewId(
         allData,
         "id_sertifikat_standar",
-        "SERT"
+        "SERT",
       );
     }
     return this.addSheetData("db_sertifikat_standar", headers, data);
@@ -3453,7 +3429,7 @@ class GoogleSheetsService {
       headers,
       "id_sertifikat_standar",
       id,
-      data
+      data,
     );
   }
 
@@ -3461,7 +3437,7 @@ class GoogleSheetsService {
     return this.deleteSheetData(
       "db_sertifikat_standar",
       "id_sertifikat_standar",
-      id
+      id,
     );
   }
 
@@ -3585,7 +3561,7 @@ class GoogleSheetsService {
         } catch (error) {
           console.warn(
             'Could not get user info for author, using "system":',
-            error.message
+            error.message,
           );
           data.author = "system";
         }
@@ -3621,7 +3597,7 @@ class GoogleSheetsService {
 
       if (index === -1) {
         throw new Error(
-          `Data with ${idField} = ${id} not found in ${sheetName}`
+          `Data with ${idField} = ${id} not found in ${sheetName}`,
         );
       }
 
@@ -3643,7 +3619,7 @@ class GoogleSheetsService {
       };
     } catch (error) {
       throw new Error(
-        `Failed to update data in ${sheetName}: ${error.message}`
+        `Failed to update data in ${sheetName}: ${error.message}`,
       );
     }
   }
@@ -3660,7 +3636,7 @@ class GoogleSheetsService {
 
       if (index === -1) {
         throw new Error(
-          `Data with ${idField} = ${id} not found in ${sheetName}`
+          `Data with ${idField} = ${id} not found in ${sheetName}`,
         );
       }
 
@@ -3697,7 +3673,7 @@ class GoogleSheetsService {
       };
     } catch (error) {
       throw new Error(
-        `Failed to delete data from ${sheetName}: ${error.message}`
+        `Failed to delete data from ${sheetName}: ${error.message}`,
       );
     }
   }
@@ -3782,7 +3758,7 @@ class GoogleSheetsService {
           {
             kbli: kbliString,
             // author: author // Optional: update author? Maybe keep original creator.
-          }
+          },
         );
       }
 
@@ -3809,7 +3785,7 @@ class GoogleSheetsService {
     const currentData = await this.readSheet(
       process.env.GOOGLE_SHEET_ID_PERSONEL ||
         process.env.GOOGLE_SHEET_ID_PERSONIL,
-      "db_skk"
+      "db_skk",
     );
     data.id_skk = this.generateNewId(currentData, "id_skk", "SKK");
 
@@ -3850,7 +3826,7 @@ class GoogleSheetsService {
     const currentData = await this.readSheet(
       process.env.GOOGLE_SHEET_ID_PERSONEL ||
         process.env.GOOGLE_SHEET_ID_PERSONIL,
-      "db_referensi"
+      "db_referensi",
     );
     data.id_referensi = this.generateNewId(currentData, "id_referensi", "REF");
 
@@ -3871,7 +3847,7 @@ class GoogleSheetsService {
       headers,
       "id_referensi",
       id,
-      data
+      data,
     );
   }
 
@@ -3897,7 +3873,7 @@ class GoogleSheetsService {
     const currentData = await this.readSheet(
       process.env.GOOGLE_SHEET_ID_PERSONEL ||
         process.env.GOOGLE_SHEET_ID_PERSONIL,
-      "db_stnk"
+      "db_stnk",
     );
     data.id_stnk = this.generateNewId(currentData, "id_stnk", "STNK");
 
@@ -3921,7 +3897,7 @@ class GoogleSheetsService {
       headers,
       "id_stnk",
       id,
-      data
+      data,
     );
   }
 
@@ -3994,66 +3970,71 @@ class GoogleSheetsService {
     }
   }
   // --- KONTRAK PENGALAMAN CRUD ---
-  async addKontrakPengalaman(data) {
+  async addKontrakPengalaman(data, author = "system") {
     if (!this.initialized) await this.initialize();
 
-    // Generate ID
-    const currentData = await this.readSheet(
+    const rows = await this.readSheet(
       process.env.GOOGLE_SHEET_ID_PERUSAHAAN,
-      "db_kontrak_pengalaman"
+      "db_kontrak_pengalaman",
     );
-    const newId = this.generateNewId(currentData, "id_kontrak", "KTR");
 
-    // Auto-generate tanggal_input
+    // Generate new ID
+    let maxNum = 0;
+    rows.forEach((row) => {
+      if (row.id_kontrak && row.id_kontrak.startsWith("KTR")) {
+        const num = parseInt(row.id_kontrak.replace("KTR", ""));
+        if (num > maxNum) maxNum = num;
+      }
+    });
+    const newId = `KTR${String(maxNum + 1).padStart(3, "0")}`;
+
     const now = new Date();
-    const tanggalInput = `${now.getFullYear()}-${String(
-      now.getMonth() + 1
-    ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(
-      now.getHours()
-    ).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(
-      now.getSeconds()
-    ).padStart(2, "0")}`;
+    const tanggalInput = now.toISOString().slice(0, 19).replace("T", " ");
 
-    // Get author from OAuth2
-    let author = "system";
-    try {
-      const userInfo = await oauth2GoogleService.getUserInfo();
-      author = userInfo.name || userInfo.username || "system";
-    } catch (e) {
-      console.warn("Could not get user info for author:", e.message);
-    }
+    // Helper: Combine nama_program and nama_kegiatan into kegiatan
+    const kegiatan = [data.nama_program, data.nama_kegiatan]
+      .filter(Boolean)
+      .join(" \n\n ")
+      .trim();
 
-    // New schema with 24 columns
+    // Helper: Format kontak_pemberi_tugas combining all contact info
+    const kontakParts = [];
+    if (data.alamat_pemberi_tugas) kontakParts.push(data.alamat_pemberi_tugas);
+    if (data.telepon_pemberi_tugas)
+      kontakParts.push(`Telp. ${data.telepon_pemberi_tugas}`);
+    if (data.fax_pemberi_tugas)
+      kontakParts.push(`Fax ${data.fax_pemberi_tugas}`);
+    if (data.kode_pos_pemberi_tugas)
+      kontakParts.push(`Kode Pos ${data.kode_pos_pemberi_tugas}`);
+    const kontak_pemberi_tugas = kontakParts.join(", ");
+
+    // New schema with 19 columns
     const newRow = [
-      newId, // id_kontrak
-      data.id_perusahaan, // id_perusahaan
-      data.nama_program || "", // nama_program (NEW)
-      data.nama_kegiatan || "", // nama_kegiatan (was bidang_pekerjaan)
-      data.nama_sub_kegiatan || "", // nama_sub_kegiatan (was sub_bidang_pekerjaan)
-      data.nama_pekerjaan || "", // nama_pekerjaan
-      data.lokasi || "", // lokasi
-      data.nama_pemberi_tugas || "", // nama_pemberi_tugas
-      data.alamat_pemberi_tugas || "", // alamat_pemberi_tugas
-      data.telepon_pemberi_tugas || "", // telepon_pemberi_tugas
-      data.fax_pemberi_tugas || "", // fax_pemberi_tugas
-      data.kode_pos_pemberi_tugas || "", // kode_pos_pemberi_tugas (NEW)
-      data.sumber_dana || "", // sumber_dana (NEW)
-      data.nomor_kontrak || "", // nomor_kontrak
-      data.tanggal_kontrak || "", // tanggal_kontrak
-      data.nilai_kontrak || "", // nilai_kontrak
-      data.waktu_pelaksanaan || "", // waktu_pelaksanaan
-      data.tanggal_mulai || "", // tanggal_mulai (NEW)
-      data.tanggal_selesai_kontrak || "", // tanggal_selesai_kontrak
-      data.tanggal_ba_serah_terima || "", // tanggal_ba_serah_terima
-      data.daftar_url || "", // daftar_url
-      data.kontrak_url || "", // kontrak_url
-      tanggalInput, // tanggal_input (AUTO)
-      author, // author (AUTO)
+      newId, // 0: id_kontrak
+      data.id_perusahaan, // 1: id_perusahaan
+      kegiatan || data.kegiatan || "", // 2: kegiatan (combined)
+      data.nama_sub_kegiatan || data.sub_kegiatan || "", // 3: sub_kegiatan
+      data.nama_pekerjaan || data.pekerjaan || "", // 4: pekerjaan
+      data.lokasi || "", // 5: lokasi
+      data.nama_pemberi_tugas || data.pemberi_tugas || "", // 6: pemberi_tugas
+      kontak_pemberi_tugas || data.kontak_pemberi_tugas || "", // 7: kontak_pemberi_tugas
+      data.sumber_dana || "", // 8: sumber_dana
+      data.nomor_kontrak || "", // 9: nomor_kontrak
+      data.tanggal_kontrak || "", // 10: tanggal_kontrak
+      data.nilai_kontrak || "", // 11: nilai_kontrak
+      data.waktu_pelaksanaan || "", // 12: waktu_pelaksanaan
+      data.tanggal_mulai || "", // 13: tanggal_mulai
+      data.tanggal_selesai_kontrak || "", // 14: tanggal_selesai_kontrak
+      data.tanggal_ba_serah_terima || "", // 15: tanggal_ba_serah_terima
+      data.daftar_url || "", // 16: daftar_url
+      data.kontrak_url || "", // 17: kontrak_url
+      tanggalInput, // 18: tanggal_input (AUTO)
+      author, // 19: author (AUTO)
     ];
 
     await this.sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID_PERUSAHAAN,
-      range: "db_kontrak_pengalaman!A:X",
+      range: "db_kontrak_pengalaman!A:T", // Updated to column T (19 columns)
       valueInputOption: "USER_ENTERED",
       resource: { values: [newRow] },
     });
@@ -4066,7 +4047,7 @@ class GoogleSheetsService {
 
     const rows = await this.readSheet(
       process.env.GOOGLE_SHEET_ID_PERUSAHAAN,
-      "db_kontrak_pengalaman"
+      "db_kontrak_pengalaman",
     );
     const rowIndex = rows.findIndex((row) => row.id_kontrak === idKontrak);
 
@@ -4075,68 +4056,89 @@ class GoogleSheetsService {
 
     const existingRow = rows[rowIndex];
 
-    // Construct updated row with new 24-column schema (preserving existing values if new data is undefined)
+    // Helper: Combine kegiatan if individual fields provided
+    let kegiatan = data.kegiatan;
+    if (!kegiatan && (data.nama_program || data.nama_kegiatan)) {
+      const parts = [
+        data.nama_program || existingRow.nama_program,
+        data.nama_kegiatan || existingRow.nama_kegiatan,
+      ].filter(Boolean);
+      kegiatan = parts.join(" \n\n ");
+    }
+
+    // Helper: Combine kontak_pemberi_tugas if individual fields provided
+    let kontak_pemberi_tugas = data.kontak_pemberi_tugas;
+    if (
+      !kontak_pemberi_tugas &&
+      (data.alamat_pemberi_tugas ||
+        data.telepon_pemberi_tugas ||
+        data.fax_pemberi_tugas ||
+        data.kode_pos_pemberi_tugas)
+    ) {
+      const parts = [];
+      if (data.alamat_pemberi_tugas) parts.push(data.alamat_pemberi_tugas);
+      if (data.telepon_pemberi_tugas)
+        parts.push(`Telp. ${data.telepon_pemberi_tugas}`);
+      if (data.fax_pemberi_tugas) parts.push(`Fax ${data.fax_pemberi_tugas}`);
+      if (data.kode_pos_pemberi_tugas)
+        parts.push(`Kode Pos ${data.kode_pos_pemberi_tugas}`);
+      kontak_pemberi_tugas = parts.join(", ");
+    }
+
+    // Construct updated row with new 19-column schema
     const updatedRow = [
       existingRow.id_kontrak, // 0: id_kontrak
       existingRow.id_perusahaan, // 1: id_perusahaan
-      data.nama_program !== undefined
-        ? data.nama_program
-        : existingRow.nama_program, // 2: nama_program
-      data.nama_kegiatan !== undefined
-        ? data.nama_kegiatan
-        : existingRow.nama_kegiatan, // 3: nama_kegiatan
+      kegiatan !== undefined ? kegiatan : existingRow.kegiatan, // 2: kegiatan
       data.nama_sub_kegiatan !== undefined
         ? data.nama_sub_kegiatan
-        : existingRow.nama_sub_kegiatan, // 4: nama_sub_kegiatan
+        : data.sub_kegiatan !== undefined
+          ? data.sub_kegiatan
+          : existingRow.sub_kegiatan, // 3: sub_kegiatan
       data.nama_pekerjaan !== undefined
         ? data.nama_pekerjaan
-        : existingRow.nama_pekerjaan, // 5: nama_pekerjaan
-      data.lokasi !== undefined ? data.lokasi : existingRow.lokasi, // 6: lokasi
+        : data.pekerjaan !== undefined
+          ? data.pekerjaan
+          : existingRow.pekerjaan, // 4: pekerjaan
+      data.lokasi !== undefined ? data.lokasi : existingRow.lokasi, // 5: lokasi
       data.nama_pemberi_tugas !== undefined
         ? data.nama_pemberi_tugas
-        : existingRow.nama_pemberi_tugas, // 7
-      data.alamat_pemberi_tugas !== undefined
-        ? data.alamat_pemberi_tugas
-        : existingRow.alamat_pemberi_tugas, // 8
-      data.telepon_pemberi_tugas !== undefined
-        ? data.telepon_pemberi_tugas
-        : existingRow.telepon_pemberi_tugas, // 9
-      data.fax_pemberi_tugas !== undefined
-        ? data.fax_pemberi_tugas
-        : existingRow.fax_pemberi_tugas, // 10
-      data.kode_pos_pemberi_tugas !== undefined
-        ? data.kode_pos_pemberi_tugas
-        : existingRow.kode_pos_pemberi_tugas, // 11
+        : data.pemberi_tugas !== undefined
+          ? data.pemberi_tugas
+          : existingRow.pemberi_tugas, // 6: pemberi_tugas
+      kontak_pemberi_tugas !== undefined
+        ? kontak_pemberi_tugas
+        : existingRow.kontak_pemberi_tugas, // 7: kontak_pemberi_tugas
       data.sumber_dana !== undefined
         ? data.sumber_dana
-        : existingRow.sumber_dana, // 12: sumber_dana
+        : existingRow.sumber_dana, // 8: sumber_dana
       data.nomor_kontrak !== undefined
         ? data.nomor_kontrak
-        : existingRow.nomor_kontrak, // 13
+        : existingRow.nomor_kontrak, // 9: nomor_kontrak
       data.tanggal_kontrak !== undefined
         ? data.tanggal_kontrak
-        : existingRow.tanggal_kontrak, // 14
+        : existingRow.tanggal_kontrak, // 10: tanggal_kontrak
       data.nilai_kontrak !== undefined
         ? data.nilai_kontrak
-        : existingRow.nilai_kontrak, // 15
+        : existingRow.nilai_kontrak, // 11: nilai_kontrak
       data.waktu_pelaksanaan !== undefined
         ? data.waktu_pelaksanaan
-        : existingRow.waktu_pelaksanaan, // 16
+        : existingRow.waktu_pelaksanaan, // 12: waktu_pelaksanaan
       data.tanggal_mulai !== undefined
         ? data.tanggal_mulai
-        : existingRow.tanggal_mulai, // 17: tanggal_mulai
+        : existingRow.tanggal_mulai, // 13: tanggal_mulai
       data.tanggal_selesai_kontrak !== undefined
         ? data.tanggal_selesai_kontrak
-        : existingRow.tanggal_selesai_kontrak, // 18
+        : existingRow.tanggal_selesai_kontrak, // 14: tanggal_selesai_kontrak
       data.tanggal_ba_serah_terima !== undefined
         ? data.tanggal_ba_serah_terima
-        : existingRow.tanggal_ba_serah_terima, // 19
-      data.daftar_url !== undefined ? data.daftar_url : existingRow.daftar_url, // 20
+        : existingRow.tanggal_ba_serah_terima, // 15: tanggal_ba_serah_terima
+      data.daftar_url !== undefined ? data.daftar_url : existingRow.daftar_url, // 16: daftar_url
       data.kontrak_url !== undefined
         ? data.kontrak_url
-        : existingRow.kontrak_url, // 21
-      existingRow.tanggal_input, // 22: tanggal_input (preserve)
-      existingRow.author, // 23: author (preserve)
+        : existingRow.kontrak_url, // 17: kontrak_url
+      existingRow.tanggal_input, // 18: tanggal_input (preserve)
+      existingRow.author, // 19: author (preserve)
     ];
 
     await this.sheets.spreadsheets.values.update({
@@ -4155,7 +4157,7 @@ class GoogleSheetsService {
       process.env.SPREADSHEET_ID_DB_PERUSAHAAN,
       "db_kontrak_pengalaman",
       "id_kontrak",
-      idKontrak
+      idKontrak,
     );
   }
 }

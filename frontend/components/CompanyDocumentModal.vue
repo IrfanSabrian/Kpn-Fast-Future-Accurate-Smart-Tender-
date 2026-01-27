@@ -16,8 +16,8 @@
               isEditMode && isViewOnly
                 ? "Detail"
                 : isEditMode
-                ? "Edit"
-                : "Tambah"
+                  ? "Edit"
+                  : "Tambah"
             }}
             {{ documentLabel }}
           </h3>
@@ -219,7 +219,8 @@ const props = defineProps({
   documentType: {
     type: String,
     required: true,
-    validator: (value) => ["npwp", "spt", "pkp", "kswp"].includes(value),
+    validator: (value) =>
+      ["npwp", "spt", "pkp", "kswp", "pengalaman"].includes(value),
   },
   companyName: String,
   isEditMode: Boolean,
@@ -282,6 +283,14 @@ const documentConfig = {
     button:
       "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/30",
   },
+  pengalaman: {
+    label: "Daftar Pengalaman",
+    icon: "fas fa-briefcase",
+    iconBg:
+      "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400",
+    button:
+      "bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white shadow-indigo-500/30",
+  },
 };
 
 const config = computed(() => documentConfig[props.documentType]);
@@ -318,23 +327,29 @@ const scanWithAI = async () => {
       // Case 1: Scanning a local file (Upload)
       const formData = new FormData();
       formData.append("file", selectedFile.value);
-      formData.append("documentType", props.documentType);
+      formData.append(
+        "documentType",
+        props.documentType === "pengalaman" ? "daftar" : props.documentType,
+      );
 
       console.log(
-        `[AI SCAN] Sending ${props.documentType.toUpperCase()} (File) to AI for analysis...`
+        `[AI SCAN] Sending ${props.documentType.toUpperCase()} (File) to AI for analysis...`,
       );
 
-      response = await fetch(
-        `${runtimeConfig.public.apiBaseUrl}/ai/scan-tax-document`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      // Determine endpoint based on type
+      const endpoint =
+        props.documentType === "pengalaman"
+          ? `${runtimeConfig.public.apiBaseUrl}/ai/scan-document`
+          : `${runtimeConfig.public.apiBaseUrl}/ai/scan-tax-document`;
+
+      response = await fetch(endpoint, {
+        method: "POST",
+        body: formData,
+      });
     } else {
       // Case 2: Scanning an existing Drive file (URL)
       console.log(
-        `[AI SCAN] Sending ${props.documentType.toUpperCase()} (URL) to AI for analysis...`
+        `[AI SCAN] Sending ${props.documentType.toUpperCase()} (URL) to AI for analysis...`,
       );
 
       // Extract fileId from Drive URL if possible, or send the full URL
@@ -349,10 +364,13 @@ const scanWithAI = async () => {
           },
           body: JSON.stringify({
             fileUrl: props.existingFileUrl,
-            documentType: props.documentType, // Ensure backend supports this for context
+            documentType:
+              props.documentType === "pengalaman"
+                ? "daftar"
+                : props.documentType, // Ensure backend supports this for context
             instruction: `Extract ${props.documentType} details`, // Generic fallback instruction
           }),
-        }
+        },
       );
     }
 
@@ -403,7 +421,7 @@ const scanWithAI = async () => {
     // Check if result has valid data
     if (!result.success || !result.data) {
       showError(
-        "Data tidak lengkap. AI tidak dapat menemukan informasi yang cukup di dokumen. Silakan isi form secara manual."
+        "Data tidak lengkap. AI tidak dapat menemukan informasi yang cukup di dokumen. Silakan isi form secara manual.",
       );
       throw new Error("Invalid or incomplete data from AI");
     }
@@ -425,7 +443,7 @@ const scanWithAI = async () => {
       showError(
         "Gagal Memindai Dokumen",
         err.message ||
-          "Terjadi kesalahan saat memindai dokumen. Silakan coba lagi atau isi form secara manual."
+          "Terjadi kesalahan saat memindai dokumen. Silakan coba lagi atau isi form secara manual.",
       );
     }
   } finally {
@@ -443,7 +461,7 @@ watch(
           ? newUrl.replace("/view", "/preview")
           : newUrl;
     }
-  }
+  },
 );
 
 // View Only Logic
@@ -467,7 +485,7 @@ watch(
       }
       isViewOnly.value = false;
     }
-  }
+  },
 );
 
 // Watch props.isEditMode change while open (rare but possible)
@@ -477,7 +495,7 @@ watch(
     if (props.show) {
       isViewOnly.value = val;
     }
-  }
+  },
 );
 
 // Set initial preview if editing

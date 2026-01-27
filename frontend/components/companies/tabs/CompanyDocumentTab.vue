@@ -111,7 +111,7 @@
           <div
             class="mt-4 space-y-0.5"
             :class="{
-              'max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar':
+              'max-h-[45vh] overflow-y-auto pr-2 custom-scrollbar':
                 isEditing && editingId === item[idKey],
             }"
           >
@@ -139,62 +139,138 @@
               </div>
 
               <!-- Edit Mode -->
-              <div v-else>
-                <input
-                  v-if="
-                    !field.type ||
-                    field.type === 'text' ||
-                    field.type === 'date' ||
-                    field.type === 'number'
+              <div v-else class="flex gap-2 items-start">
+                <div class="flex-1 min-w-0">
+                  <input
+                    v-if="
+                      !field.type ||
+                      field.type === 'text' ||
+                      field.type === 'date' ||
+                      field.type === 'number'
+                    "
+                    v-model="editFormData[field.key]"
+                    :type="field.type || 'text'"
+                    :placeholder="field.label"
+                    :disabled="validatedFields[field.key]"
+                    class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                    :class="{
+                      'border-green-500 ring-1 ring-green-500/20':
+                        validatedFields[field.key],
+                    }"
+                  />
+                  <textarea
+                    v-else-if="field.type === 'textarea'"
+                    v-model="editFormData[field.key]"
+                    rows="2"
+                    :placeholder="field.label"
+                    :disabled="validatedFields[field.key]"
+                    class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white resize-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                    :class="{
+                      'border-green-500 ring-1 ring-green-500/20':
+                        validatedFields[field.key],
+                    }"
+                  ></textarea>
+                  <select
+                    v-else-if="field.type === 'select'"
+                    v-model="editFormData[field.key]"
+                    :disabled="validatedFields[field.key]"
+                    class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                    :class="{
+                      'border-green-500 ring-1 ring-green-500/20':
+                        validatedFields[field.key],
+                    }"
+                  >
+                    <option value="" disabled>Pilih {{ field.label }}</option>
+                    <option
+                      v-for="opt in field.options"
+                      :key="opt"
+                      :value="opt"
+                    >
+                      {{ opt }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Validation Toggle Button -->
+                <button
+                  @click.stop="toggleValidation(field.key)"
+                  type="button"
+                  class="w-6 h-6 flex items-center justify-center rounded transition-all shrink-0"
+                  :class="[
+                    validatedFields[field.key]
+                      ? 'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                  ]"
+                  :title="
+                    validatedFields[field.key]
+                      ? 'Batalkan validasi (Edit kembali)'
+                      : 'Validasi data ini (Kunci)'
                   "
-                  v-model="editFormData[field.key]"
-                  :type="field.type || 'text'"
-                  :placeholder="field.label"
-                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white"
-                />
-                <textarea
-                  v-else-if="field.type === 'textarea'"
-                  v-model="editFormData[field.key]"
-                  rows="2"
-                  :placeholder="field.label"
-                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white resize-none"
-                ></textarea>
-                <select
-                  v-else-if="field.type === 'select'"
-                  v-model="editFormData[field.key]"
-                  class="w-full px-2 py-1.5 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white"
                 >
-                  <option value="" disabled>Pilih {{ field.label }}</option>
-                  <option v-for="opt in field.options" :key="opt" :value="opt">
-                    {{ opt }}
-                  </option>
-                </select>
+                  <i class="fas fa-check text-[10px]"></i>
+                </button>
               </div>
             </div>
             <!-- Edit Footer Actions -->
             <div
               v-if="isEditing && editingId === item[idKey]"
-              class="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 py-3 mt-2 flex justify-end gap-2"
+              class="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 py-3 mt-2 flex justify-between items-center gap-2"
             >
               <button
                 @click.stop="triggerAiScan"
-                class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 mr-auto"
+                class="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-500 rounded-lg shadow-sm transition-colors flex items-center gap-1"
                 title="Scan data dari dokumen PDF dengan AI"
               >
                 <i class="fas fa-magic"></i> Scan AI
               </button>
-              <button
-                @click.stop="cancelEditing"
-                class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                @click.stop="saveEditing"
-                class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors flex items-center gap-1"
-              >
-                <i class="fas fa-save"></i> Simpan
-              </button>
+
+              <div class="flex items-center gap-2">
+                <!-- Warning -->
+                <span
+                  v-if="!isAllValidated"
+                  class="text-[9px] text-orange-500 font-bold animate-pulse"
+                >
+                  <i class="fas fa-exclamation-circle mr-1"></i>
+                  Ceklis semua data!
+                </span>
+
+                <!-- Validate All Button -->
+                <button
+                  @click.stop="validateAll"
+                  class="px-2 py-1 text-[10px] font-bold rounded transition-all flex items-center gap-1"
+                  :class="[
+                    isAllValidated
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400',
+                  ]"
+                  title="Validasi semua kolom sekaligus"
+                >
+                  <i
+                    class="fas"
+                    :class="isAllValidated ? 'fa-check' : 'fa-check-double'"
+                  ></i>
+                  {{ isAllValidated ? "Verified" : "All" }}
+                </button>
+
+                <button
+                  @click.stop="cancelEditing"
+                  class="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  @click.stop="saveEditing"
+                  :disabled="!isAllValidated"
+                  class="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-400"
+                  :title="
+                    !isAllValidated
+                      ? 'Validasi semua kolom terlebih dahulu'
+                      : 'Simpan Perubahan'
+                  "
+                >
+                  <i class="fas fa-save"></i> Simpan
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -261,21 +337,36 @@ const emit = defineEmits([
 const isEditing = ref(false);
 const editingId = ref(null);
 const editFormData = ref({});
+const validatedFields = ref({});
 
 const startEditing = (item) => {
   isEditing.value = true;
   editingId.value = item[props.idKey];
   // Clone data for editing
   editFormData.value = { ...item };
+
+  // Initialize all fields as NOT validated (unchecked)
+  const validation = {};
+  if (props.fields) {
+    props.fields.forEach((f) => {
+      validation[f.key] = false;
+    });
+  }
+  validatedFields.value = validation;
 };
 
 const cancelEditing = () => {
   isEditing.value = false;
   editingId.value = null;
   editFormData.value = {};
+  validatedFields.value = {};
 };
 
 const saveEditing = () => {
+  // Only save if all fields validated
+  if (!isAllValidated.value) {
+    return;
+  }
   emit("update-item", { ...editFormData.value }); // Send clean object
   cancelEditing();
 };
@@ -285,13 +376,43 @@ const triggerAiScan = () => {
 };
 
 const updateEditData = (newData) => {
+  // Update form data with AI scan results
   editFormData.value = { ...editFormData.value, ...newData };
+
+  // Reset all validations to force manual review
+  const resetValidation = {};
+  if (props.fields) {
+    props.fields.forEach((f) => {
+      resetValidation[f.key] = false;
+    });
+  }
+  validatedFields.value = resetValidation;
 };
+
+// Validation functions
+const toggleValidation = (key) => {
+  validatedFields.value[key] = !validatedFields.value[key];
+};
+
+const validateAll = () => {
+  const allValidated = {};
+  if (props.fields) {
+    props.fields.forEach((f) => {
+      allValidated[f.key] = true;
+    });
+  }
+  validatedFields.value = allValidated;
+};
+
+const isAllValidated = computed(() => {
+  if (!props.fields || props.fields.length === 0) return true;
+  return props.fields.every((f) => validatedFields.value[f.key] === true);
+});
 
 defineExpose({ updateEditData, startEditing, cancelEditing, saveEditing });
 
 const selectedId = computed(() =>
-  props.selectedItem ? props.selectedItem[props.idKey] : null
+  props.selectedItem ? props.selectedItem[props.idKey] : null,
 );
 
 const iconBgClass = computed(() => {
