@@ -27,6 +27,7 @@ dist/
 
 # Credentials
 credentials/service-account.json
+backend/config/api-settings.json
 
 # Portable Runtime (don't commit ~500MB)
 portable-runtime/
