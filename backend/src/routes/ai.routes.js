@@ -54,7 +54,16 @@ router.post("/scan-document", upload.single("file"), async (req, res) => {
       });
     }
 
-    const validTypes = ["ktp", "npwp", "ijazah", "cv", "daftarpengalaman"];
+    const validTypes = [
+      "ktp",
+      "npwp",
+      "ijazah",
+      "cv",
+      "daftarpengalaman",
+      "kontrak",
+      "kontrak_pengalaman",
+      "sertifikat",
+    ];
     if (!validTypes.includes(documentType.toLowerCase())) {
       return res.status(400).json({
         success: false,

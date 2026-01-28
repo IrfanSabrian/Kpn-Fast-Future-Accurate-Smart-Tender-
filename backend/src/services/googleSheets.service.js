@@ -2409,6 +2409,14 @@ class GoogleSheetsService {
       telepon_pemberi_tugas: data.telepon_pemberi_tugas,
       fax_pemberi_tugas: data.fax_pemberi_tugas,
       kode_pos_pemberi_tugas: data.kode_pos_pemberi_tugas,
+
+      // Direct mapping for new fields
+      kegiatan: data.kegiatan,
+      sub_kegiatan: data.sub_kegiatan,
+      pekerjaan: data.pekerjaan,
+      pemberi_tugas: data.pemberi_tugas,
+      kontak_pemberi_tugas: data.kontak_pemberi_tugas,
+
       sumber_dana: data.sumber_dana,
       nomor_kontrak: data.nomor_kontrak,
       tanggal_kontrak: data.tanggal_kontrak,

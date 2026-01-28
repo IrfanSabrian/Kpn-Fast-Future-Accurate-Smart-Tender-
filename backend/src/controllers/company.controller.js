@@ -161,17 +161,32 @@ export const getCompanyNib = async (req, res) => {
 
     // Enrich KBLI data with Master Data (if available)
     enrichedKbli = Array.from(kbliCodesSet).map((code) => {
+      const strCode = String(code).trim();
+
       // Note: KBLI master data uses 'kode_kbli' field (not 'kode_klbi')
-      const master = masterKbliData.find(
-        (m) => m.kode_kbli === code || m.kode_klbi === code,
+      let master = masterKbliData.find(
+        (m) =>
+          String(m.kode_kbli).trim() == strCode ||
+          String(m.kode_klbi).trim() == strCode,
       );
+
+      // Fix: If not found, try stripping dot suffix (e.g. "71101.B" -> "71101")
+      if (!master && strCode.includes(".")) {
+        const baseCode = strCode.split(".")[0];
+        master = masterKbliData.find(
+          (m) =>
+            String(m.kode_kbli).trim() == baseCode ||
+            String(m.kode_klbi).trim() == baseCode,
+        );
+      }
+
       return {
         id_perusahaan: id,
-        kode_kbli: code,
-        judul_kbli: master ? master.nama_klasifikasi : `KBLI ${code}`,
-        nama_klasifikasi: master ? master.nama_klasifikasi : `KBLI ${code}`,
-        id_kbli: code, // Use code as ID
-        id_perusahaan_kbli: code, // Backward compatibility
+        kode_kbli: strCode,
+        judul_kbli: master ? master.nama_klasifikasi : `KBLI ${strCode}`,
+        nama_klasifikasi: master ? master.nama_klasifikasi : `KBLI ${strCode}`,
+        id_kbli: strCode, // Use code as ID
+        id_perusahaan_kbli: strCode, // Backward compatibility
       };
     });
 
@@ -347,17 +362,32 @@ export const getCompanyKbli = async (req, res) => {
 
     // Enrich
     const enrichedKbli = Array.from(kbliCodesSet).map((code) => {
+      const strCode = String(code).trim();
+
       // Note: KBLI master data uses 'kode_kbli' field (not 'kode_klbi')
-      const master = masterKbliData.find(
-        (m) => m.kode_kbli === code || m.kode_klbi === code,
+      let master = masterKbliData.find(
+        (m) =>
+          String(m.kode_kbli).trim() == strCode ||
+          String(m.kode_klbi).trim() == strCode,
       );
+
+      // Fix: If not found, try stripping dot suffix (e.g. "71101.B" -> "71101")
+      if (!master && strCode.includes(".")) {
+        const baseCode = strCode.split(".")[0];
+        master = masterKbliData.find(
+          (m) =>
+            String(m.kode_kbli).trim() == baseCode ||
+            String(m.kode_klbi).trim() == baseCode,
+        );
+      }
+
       return {
         id_perusahaan: id,
-        kode_kbli: code,
-        judul_kbli: master ? master.nama_klasifikasi : `KBLI ${code}`,
-        nama_klasifikasi: master ? master.nama_klasifikasi : `KBLI ${code}`,
-        id_kbli: code,
-        id_perusahaan_kbli: code, // Backward compatibility
+        kode_kbli: strCode,
+        judul_kbli: master ? master.nama_klasifikasi : `KBLI ${strCode}`,
+        nama_klasifikasi: master ? master.nama_klasifikasi : `KBLI ${strCode}`,
+        id_kbli: strCode,
+        id_perusahaan_kbli: strCode, // Backward compatibility
       };
     });
 

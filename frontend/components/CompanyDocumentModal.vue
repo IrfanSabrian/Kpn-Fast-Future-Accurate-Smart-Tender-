@@ -220,7 +220,15 @@ const props = defineProps({
     type: String,
     required: true,
     validator: (value) =>
-      ["npwp", "spt", "pkp", "kswp", "pengalaman"].includes(value),
+      [
+        "npwp",
+        "spt",
+        "pkp",
+        "kswp",
+        "pengalaman",
+        "sertifikat",
+        "kontrak",
+      ].includes(value),
   },
   companyName: String,
   isEditMode: Boolean,
@@ -238,8 +246,9 @@ const props = defineProps({
 
 const emit = defineEmits([
   "close",
+  "close",
   "save",
-  "aiScanComplete",
+  "scan-complete",
   "validate-all",
   "fileSelected",
 ]);
@@ -290,6 +299,20 @@ const documentConfig = {
       "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400",
     button:
       "bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white shadow-indigo-500/30",
+  },
+  sertifikat: {
+    label: "Sertifikat Standar",
+    icon: "fas fa-award",
+    iconBg: "bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400",
+    button:
+      "bg-gradient-to-r from-teal-600 to-green-600 hover:from-teal-500 hover:to-green-500 text-white shadow-teal-500/30",
+  },
+  kontrak: {
+    label: "Kontrak Kerjasama",
+    icon: "fas fa-file-contract",
+    iconBg: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400",
+    button:
+      "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/30",
   },
 };
 
@@ -342,7 +365,9 @@ const scanWithAI = async () => {
       const endpoint =
         props.documentType === "pengalaman"
           ? `${runtimeConfig.public.apiBaseUrl}/ai/scan-document`
-          : `${runtimeConfig.public.apiBaseUrl}/ai/scan-tax-document`;
+          : props.documentType === "sertifikat"
+            ? `${runtimeConfig.public.apiBaseUrl}/ai/scan-document`
+            : `${runtimeConfig.public.apiBaseUrl}/ai/scan-tax-document`;
 
       response = await fetch(endpoint, {
         method: "POST",
@@ -403,7 +428,7 @@ const scanWithAI = async () => {
           "Waktu pemindaian habis. File mungkin terlalu besar atau kompleks. Silakan coba lagi atau isi manual.";
       }
 
-      showError("Gagal Memindai Dokumen", userMessage);
+      // showError("Gagal Memindai Dokumen", userMessage); // Removed to prevent double toast
       throw new Error(userMessage);
     }
 
@@ -431,7 +456,7 @@ const scanWithAI = async () => {
     console.log("[AI SCAN] ✅ Success:", result.data);
 
     // Emit scanned data to parent component (parent will handle toast)
-    emit("aiScanComplete", result.data);
+    emit("scan-complete", result.data);
 
     // Hide persistent scanning toast
     hideToast(scanToastId);
@@ -529,11 +554,10 @@ const handleFileSelect = (event) => {
   selectedFile.value = file;
 
   // Create preview URL
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    previewUrl.value = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  if (previewUrl.value && previewUrl.value.startsWith("blob:")) {
+    URL.revokeObjectURL(previewUrl.value);
+  }
+  previewUrl.value = URL.createObjectURL(file);
 
   // Emit event to parent to enable validation buttons
   emit("fileSelected", file);

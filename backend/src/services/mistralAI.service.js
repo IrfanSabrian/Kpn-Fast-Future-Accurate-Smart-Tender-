@@ -216,23 +216,29 @@ class MistralAIService {
         return `${baseInstruction}
         
         INSTRUKSI KHUSUS UNTUK KONTRAK / DAFTAR PENGALAMAN (SPK FORMAT):
-        Analyze the document "SURAT PERJANJIAN PEKERJAAN (SPK)" closely.
+        Analyze the document "SURAT PERJANJIAN PEKERJAAN (SPK)" or "SURAT PERINTAH MULAI KERJA (SPMK)" / "BERITA ACARA SERAH TERIMA (BAST)" closely.
         
         EXTRACT FIELDS BASED ON THIS EXACT STRUCTURE:
         1. "NOMOR" -> nomor_kontrak
         2. "TANGGAL" -> tanggal_kontrak (Convert to YYYY-MM-DD)
         3. "PIHAK PERTAMA" / "PEJABAT PEMBUAT KOMITMEN" -> pemberi_tugas (Extract Agency Name)
-        4. "KEGIATAN" -> kegiatan (Extract exact text, e.g. "PENGELOLAAN...")
-        5. "PEKERJAAN" -> pekerjaan (Extract exact text, e.g. "KONSULTANSI...")
-        6. "LOKASI" -> lokasi
-        7. "BIAYA" -> nilai_kontrak (Extract numeric value, ignore "Rp" and text description)
-        8. "WAKTU PELAKSANAAN" -> waktu_pelaksanaan
-        9. "SUMBER DANA" -> sumber_dana (e.g. "DANA ALOKASI KHUSUS (DAK)")
+        4. "ALAMAT" (under Pihak Pertama) -> alamat_pemberi_tugas (Extract full address of agency)
+        5. "KEGIATAN" -> kegiatan (Extract exact text, e.g. "PENGELOLAAN...")
+        6. "PEKERJAAN" -> pekerjaan (Extract exact text, e.g. "KONSULTANSI...")
+        7. "LOKASI" -> lokasi
+        8. "BIAYA" -> nilai_kontrak (Extract numeric value, ignore "Rp" and text description)
+        9. "WAKTU PELAKSANAAN" -> waktu_pelaksanaan
+        10. "SUMBER DANA" -> sumber_dana (e.g. "DANA ALOKASI KHUSUS (DAK)")
+        11. "TANGGAL MULAI" / "SPMK DATE" -> tanggal_mulai (YYYY-MM-DD)
+        12. "TANGGAL SELESAI" / "END DATE" -> tanggal_selesai_kontrak (YYYY-MM-DD)
+        13. "TANGGAL SERAH TERIMA" / "BAST DATE" -> tanggal_ba_serah_terima (YYYY-MM-DD)
         
         IMPORTANT: 
         - DO NOT extract "sub_kegiatan" for SPK format (Field does not exist).
         - Ensure "pekerjaan" is the specific job title.
         - Ensure "kegiatan" is the broader activity.
+        - Look for SPMK (Surat Perintah Mulai Kerja) or "Jangka Waktu" section for Start/End dates.
+        - Look for BAST (Berita Acara Serah Terima) section for Handover date.
         - Return a SINGLE OBJECT if it's a single contract.
         - If multiple experiences are listed, return the first one found or the most prominent one.
 
@@ -243,11 +249,15 @@ class MistralAIService {
           "sub_kegiatan": "", 
           "lokasi": "Lokasi",
           "pemberi_tugas": "Nama Instansi",
+          "alamat_pemberi_tugas": "Alamat Instansi / Pemberi Tugas",
           "nomor_kontrak": "Nomor SPK",
           "tanggal_kontrak": "YYYY-MM-DD",
           "nilai_kontrak": "Nilai (angka)",
           "waktu_pelaksanaan": "Waktu Pelaksanaan",
-          "sumber_dana": "Sumber Dana"
+          "sumber_dana": "Sumber Dana",
+          "tanggal_mulai": "YYYY-MM-DD",
+          "tanggal_selesai_kontrak": "YYYY-MM-DD",
+          "tanggal_ba_serah_terima": "YYYY-MM-DD"
         }`;
 
       case "stnk":
@@ -313,6 +323,18 @@ class MistralAIService {
           "nama_asosiasi": "Association Name",
           "penanggung_jawab": "Person in Charge",
           "status_keanggotaan": "Status",
+          "tanggal_terbit": "YYYY-MM-DD"
+        }`;
+
+      case "sertifikat":
+        return `${baseInstruction}
+        Structure:
+        {
+          "nomor_sertifikat": "Nomor Sertifikat Standar",
+          "kode_kbli": "Kode KBLI (e.g. 41112)",
+          "lembaga_verifikasi": "Lembaga penerbit/verifikasi e.g. OSS",
+          "klasifikasi_risiko": "Risiko (e.g. Menengah Tinggi)",
+          "status_pemenuhan": "Status pemenuhan (e.g. Telah Memenuhi)",
           "tanggal_terbit": "YYYY-MM-DD"
         }`;
 

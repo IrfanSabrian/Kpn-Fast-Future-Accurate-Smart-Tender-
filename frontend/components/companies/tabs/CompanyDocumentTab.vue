@@ -44,7 +44,7 @@
               {{ field.label }}
             </div>
             <div
-              class="text-xs font-medium text-slate-400 dark:text-slate-500 break-all"
+              class="text-xs font-medium text-slate-400 dark:text-slate-500 break-word"
             >
               -
             </div>
@@ -129,7 +129,7 @@
               <!-- View Mode -->
               <div
                 v-if="!isEditing || editingId !== item[idKey]"
-                class="text-xs font-medium text-slate-700 dark:text-slate-200 break-all"
+                class="text-xs font-medium text-slate-700 dark:text-slate-200 break-word"
               >
                 {{
                   field.format

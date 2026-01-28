@@ -40,7 +40,7 @@
                 Email Perusahaan
               </p>
               <p
-                class="font-medium text-slate-700 dark:text-slate-200 break-all"
+                class="font-medium text-slate-700 dark:text-slate-200 break-word"
               >
                 {{ company?.email || "-" }}
               </p>

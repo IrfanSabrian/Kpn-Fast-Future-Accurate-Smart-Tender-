@@ -217,6 +217,41 @@
                         <div
                           class="mt-4 space-y-0.5 max-h-[45vh] overflow-y-auto pr-2 custom-scrollbar"
                         >
+                          <!-- Pekerjaan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              PEKERJAAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="daftarEditFormData.pekerjaan"
+                                  type="text"
+                                  placeholder="Konsultansi Perencanaan..."
+                                  :disabled="daftarEditFieldLocks.pekerjaan"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleDaftarEditFieldLock('pekerjaan')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  daftarEditFieldLocks.pekerjaan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
                           <!-- Kegiatan -->
                           <div
                             class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
@@ -229,60 +264,19 @@
                             <div class="flex gap-2 items-start">
                               <div class="flex-1 min-w-0">
                                 <input
-                                  v-model="daftarEditFormData.nama_kegiatan"
+                                  v-model="daftarEditFormData.kegiatan"
                                   type="text"
-                                  placeholder="Nama Kegiatan"
-                                  :disabled="daftarEditFieldLocks.nama_kegiatan"
+                                  placeholder="-"
+                                  :disabled="daftarEditFieldLocks.kegiatan"
                                   class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
                                 />
                               </div>
                               <button
-                                @click="
-                                  toggleDaftarEditFieldLock('nama_kegiatan')
-                                "
+                                @click="toggleDaftarEditFieldLock('kegiatan')"
                                 type="button"
                                 :class="[
                                   'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
-                                  daftarEditFieldLocks.nama_kegiatan
-                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
-                                ]"
-                                title="Validasi data ini (Kunci)"
-                              >
-                                <i class="fas fa-check text-[10px]"></i>
-                              </button>
-                            </div>
-                          </div>
-
-                          <!-- Sub Kegiatan -->
-                          <div
-                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
-                          >
-                            <div
-                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                            >
-                              SUB KEGIATAN
-                            </div>
-                            <div class="flex gap-2 items-start">
-                              <div class="flex-1 min-w-0">
-                                <input
-                                  v-model="daftarEditFormData.nama_sub_kegiatan"
-                                  type="text"
-                                  placeholder="Sub Kegiatan"
-                                  :disabled="
-                                    daftarEditFieldLocks.nama_sub_kegiatan
-                                  "
-                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
-                                />
-                              </div>
-                              <button
-                                @click="
-                                  toggleDaftarEditFieldLock('nama_sub_kegiatan')
-                                "
-                                type="button"
-                                :class="[
-                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
-                                  daftarEditFieldLocks.nama_sub_kegiatan
+                                  daftarEditFieldLocks.kegiatan
                                     ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
                                     : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
                                 ]"
@@ -466,7 +460,7 @@
                               KEGIATAN
                             </div>
                             <div
-                              class="text-xs font-medium text-slate-700 dark:text-slate-200 break-all"
+                              class="text-xs font-medium text-slate-700 dark:text-slate-200 break-words"
                             >
                               {{ item.kegiatan || item.nama_kegiatan || "-" }}
                             </div>
@@ -478,7 +472,7 @@
                               LOKASI
                             </div>
                             <div
-                              class="text-xs font-medium text-slate-700 dark:text-slate-200 break-all"
+                              class="text-xs font-medium text-slate-700 dark:text-slate-200 break-words"
                             >
                               {{ item.lokasi || "-" }}
                             </div>
@@ -583,6 +577,219 @@
                       >
                         <!-- EDIT MODE FORM -->
                         <div v-if="isEditingKontrak" class="space-y-0.5">
+                          <!-- Pekerjaan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              PEKERJAAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.pekerjaan"
+                                  type="text"
+                                  placeholder="Nama Pekerjaan"
+                                  :disabled="kontrakFieldLocks.pekerjaan"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('pekerjaan')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.pekerjaan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Kegiatan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              KEGIATAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.kegiatan"
+                                  type="text"
+                                  placeholder="Kegiatan"
+                                  :disabled="kontrakFieldLocks.kegiatan"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('kegiatan')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.kegiatan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Sub Kegiatan -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              SUB KEGIATAN
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.sub_kegiatan"
+                                  type="text"
+                                  placeholder="Sub Kegiatan"
+                                  :disabled="kontrakFieldLocks.sub_kegiatan"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('sub_kegiatan')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.sub_kegiatan
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Lokasi -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              LOKASI
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.lokasi"
+                                  type="text"
+                                  placeholder="Lokasi"
+                                  :disabled="kontrakFieldLocks.lokasi"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('lokasi')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.lokasi
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Pemberi Tugas -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
+                            >
+                              PEMBERI TUGAS
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <input
+                                  v-model="kontrakFormData.pemberi_tugas"
+                                  type="text"
+                                  placeholder="Pemberi Tugas"
+                                  :disabled="kontrakFieldLocks.pemberi_tugas"
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                />
+                              </div>
+                              <button
+                                @click="toggleKontrakFieldLock('pemberi_tugas')"
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.pemberi_tugas
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <!-- Kontak Pemberi Tugas -->
+                          <div
+                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-start"
+                          >
+                            <div
+                              class="text-[10px] font-bold text-slate-400 uppercase pt-2"
+                            >
+                              ALAMAT / KONTAK
+                            </div>
+                            <div class="flex gap-2 items-start">
+                              <div class="flex-1 min-w-0">
+                                <textarea
+                                  v-model="kontrakFormData.kontak_pemberi_tugas"
+                                  rows="3"
+                                  placeholder="Alamat / Kontak"
+                                  :disabled="
+                                    kontrakFieldLocks.kontak_pemberi_tugas
+                                  "
+                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
+                                ></textarea>
+                              </div>
+                              <button
+                                @click="
+                                  toggleKontrakFieldLock('kontak_pemberi_tugas')
+                                "
+                                type="button"
+                                :class="[
+                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
+                                  kontrakFieldLocks.kontak_pemberi_tugas
+                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
+                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
+                                ]"
+                                title="Validasi data ini (Kunci)"
+                              >
+                                <i class="fas fa-check text-[10px]"></i>
+                              </button>
+                            </div>
+                          </div>
                           <!-- Nomor Kontrak -->
                           <div
                             class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
@@ -881,220 +1088,6 @@
                             </div>
                           </div>
 
-                          <!-- Pekerjaan -->
-                          <div
-                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
-                          >
-                            <div
-                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                            >
-                              PEKERJAAN
-                            </div>
-                            <div class="flex gap-2 items-start">
-                              <div class="flex-1 min-w-0">
-                                <input
-                                  v-model="kontrakFormData.pekerjaan"
-                                  type="text"
-                                  placeholder="Nama Pekerjaan"
-                                  :disabled="kontrakFieldLocks.pekerjaan"
-                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
-                                />
-                              </div>
-                              <button
-                                @click="toggleKontrakFieldLock('pekerjaan')"
-                                type="button"
-                                :class="[
-                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
-                                  kontrakFieldLocks.pekerjaan
-                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
-                                ]"
-                                title="Validasi data ini (Kunci)"
-                              >
-                                <i class="fas fa-check text-[10px]"></i>
-                              </button>
-                            </div>
-                          </div>
-
-                          <!-- Kegiatan -->
-                          <div
-                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
-                          >
-                            <div
-                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                            >
-                              KEGIATAN
-                            </div>
-                            <div class="flex gap-2 items-start">
-                              <div class="flex-1 min-w-0">
-                                <input
-                                  v-model="kontrakFormData.kegiatan"
-                                  type="text"
-                                  placeholder="Kegiatan"
-                                  :disabled="kontrakFieldLocks.kegiatan"
-                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
-                                />
-                              </div>
-                              <button
-                                @click="toggleKontrakFieldLock('kegiatan')"
-                                type="button"
-                                :class="[
-                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
-                                  kontrakFieldLocks.kegiatan
-                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
-                                ]"
-                                title="Validasi data ini (Kunci)"
-                              >
-                                <i class="fas fa-check text-[10px]"></i>
-                              </button>
-                            </div>
-                          </div>
-
-                          <!-- Sub Kegiatan -->
-                          <div
-                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
-                          >
-                            <div
-                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                            >
-                              SUB KEGIATAN
-                            </div>
-                            <div class="flex gap-2 items-start">
-                              <div class="flex-1 min-w-0">
-                                <input
-                                  v-model="kontrakFormData.sub_kegiatan"
-                                  type="text"
-                                  placeholder="Sub Kegiatan"
-                                  :disabled="kontrakFieldLocks.sub_kegiatan"
-                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
-                                />
-                              </div>
-                              <button
-                                @click="toggleKontrakFieldLock('sub_kegiatan')"
-                                type="button"
-                                :class="[
-                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
-                                  kontrakFieldLocks.sub_kegiatan
-                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
-                                ]"
-                                title="Validasi data ini (Kunci)"
-                              >
-                                <i class="fas fa-check text-[10px]"></i>
-                              </button>
-                            </div>
-                          </div>
-
-                          <!-- Lokasi -->
-                          <div
-                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
-                          >
-                            <div
-                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                            >
-                              LOKASI
-                            </div>
-                            <div class="flex gap-2 items-start">
-                              <div class="flex-1 min-w-0">
-                                <input
-                                  v-model="kontrakFormData.lokasi"
-                                  type="text"
-                                  placeholder="Lokasi"
-                                  :disabled="kontrakFieldLocks.lokasi"
-                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
-                                />
-                              </div>
-                              <button
-                                @click="toggleKontrakFieldLock('lokasi')"
-                                type="button"
-                                :class="[
-                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
-                                  kontrakFieldLocks.lokasi
-                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
-                                ]"
-                                title="Validasi data ini (Kunci)"
-                              >
-                                <i class="fas fa-check text-[10px]"></i>
-                              </button>
-                            </div>
-                          </div>
-
-                          <!-- Pemberi Tugas -->
-                          <div
-                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-center"
-                          >
-                            <div
-                              class="text-[10px] font-bold text-slate-400 uppercase pt-0.5"
-                            >
-                              PEMBERI TUGAS
-                            </div>
-                            <div class="flex gap-2 items-start">
-                              <div class="flex-1 min-w-0">
-                                <input
-                                  v-model="kontrakFormData.pemberi_tugas"
-                                  type="text"
-                                  placeholder="Pemberi Tugas"
-                                  :disabled="kontrakFieldLocks.pemberi_tugas"
-                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
-                                />
-                              </div>
-                              <button
-                                @click="toggleKontrakFieldLock('pemberi_tugas')"
-                                type="button"
-                                :class="[
-                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
-                                  kontrakFieldLocks.pemberi_tugas
-                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
-                                ]"
-                                title="Validasi data ini (Kunci)"
-                              >
-                                <i class="fas fa-check text-[10px]"></i>
-                              </button>
-                            </div>
-                          </div>
-
-                          <!-- Kontak Pemberi Tugas -->
-                          <div
-                            class="grid grid-cols-[140px_1fr] gap-2 py-1 border-b border-dashed border-slate-100 dark:border-slate-700 items-start"
-                          >
-                            <div
-                              class="text-[10px] font-bold text-slate-400 uppercase pt-2"
-                            >
-                              ALAMAT / KONTAK
-                            </div>
-                            <div class="flex gap-2 items-start">
-                              <div class="flex-1 min-w-0">
-                                <textarea
-                                  v-model="kontrakFormData.kontak_pemberi_tugas"
-                                  rows="3"
-                                  placeholder="Alamat / Kontak"
-                                  :disabled="
-                                    kontrakFieldLocks.kontak_pemberi_tugas
-                                  "
-                                  class="w-full px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded focus:outline-none focus:border-blue-500 bg-white dark:bg-slate-900 dark:text-white disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
-                                ></textarea>
-                              </div>
-                              <button
-                                @click="
-                                  toggleKontrakFieldLock('kontak_pemberi_tugas')
-                                "
-                                type="button"
-                                :class="[
-                                  'w-6 h-6 flex items-center justify-center rounded transition-all shrink-0',
-                                  kontrakFieldLocks.kontak_pemberi_tugas
-                                    ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 hover:text-blue-500',
-                                ]"
-                                title="Validasi data ini (Kunci)"
-                              >
-                                <i class="fas fa-check text-[10px]"></i>
-                              </button>
-                            </div>
-                          </div>
-
                           <!-- Footer Actions (Sticky Bottom) -->
                           <div
                             class="sticky bottom-0 z-10 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 py-3 mt-2 flex justify-between items-center gap-2"
@@ -1174,6 +1167,141 @@
 
                         <!-- DISPLAY MODE (v-else) -->
                         <div v-else class="space-y-6">
+                          <!-- 2. Informasi Pekerjaan -->
+                          <div>
+                            <h5
+                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
+                            >
+                              <i class="fas fa-building"></i> Detail Pekerjaan
+                            </h5>
+                            <div class="grid grid-cols-2 gap-4">
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  PEKERJAAN
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.pekerjaan ||
+                                    selectedPengalamanDetail.nama_pekerjaan ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  KEGIATAN
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.kegiatan ||
+                                    selectedPengalamanDetail.nama_kegiatan ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div>
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  SUB KEGIATAN
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.sub_kegiatan ||
+                                    selectedPengalamanDetail.nama_sub_kegiatan ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  LOKASI
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{ selectedPengalamanDetail.lokasi || "-" }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            class="border-t border-slate-100 dark:border-slate-700"
+                          ></div>
+
+                          <!-- 2. Informasi Pekerjaan -->
+                          <!-- 3. Pemberi Tugas -->
+                          <div>
+                            <h5
+                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
+                            >
+                              <i class="fas fa-user-tie"></i> Pemberi Tugas
+                            </h5>
+                            <div class="grid grid-cols-2 gap-4">
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  PEMBERI TUGAS
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.pemberi_tugas ||
+                                    selectedPengalamanDetail.nama_pemberi_tugas ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                              <div class="col-span-2">
+                                <div
+                                  class="text-[10px] font-bold text-slate-400 uppercase"
+                                >
+                                  ALAMAT / KONTAK
+                                </div>
+                                <div
+                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm whitespace-pre-line"
+                                >
+                                  {{
+                                    selectedPengalamanDetail.kontak_pemberi_tugas ||
+                                    [
+                                      selectedPengalamanDetail.alamat_pemberi_tugas,
+                                      selectedPengalamanDetail.telepon_pemberi_tugas
+                                        ? "Telp. " +
+                                          selectedPengalamanDetail.telepon_pemberi_tugas
+                                        : "",
+                                      selectedPengalamanDetail.fax_pemberi_tugas
+                                        ? "Fax " +
+                                          selectedPengalamanDetail.fax_pemberi_tugas
+                                        : "",
+                                    ]
+                                      .filter(Boolean)
+                                      .join(", ") ||
+                                    "-"
+                                  }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div
+                            class="border-t border-slate-100 dark:border-slate-700"
+                          ></div>
+
                           <!-- 1. Informasi Utama & Nilai -->
                           <div>
                             <h5
@@ -1293,140 +1421,6 @@
                                     formatDate(
                                       selectedPengalamanDetail.tanggal_ba_serah_terima,
                                     )
-                                  }}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div
-                            class="border-t border-slate-100 dark:border-slate-700"
-                          ></div>
-
-                          <!-- 2. Informasi Pekerjaan -->
-                          <div>
-                            <h5
-                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
-                            >
-                              <i class="fas fa-building"></i> Detail Pekerjaan
-                            </h5>
-                            <div class="grid grid-cols-2 gap-4">
-                              <div class="col-span-2">
-                                <div
-                                  class="text-[10px] font-bold text-slate-400 uppercase"
-                                >
-                                  PEKERJAAN
-                                </div>
-                                <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
-                                >
-                                  {{
-                                    selectedPengalamanDetail.pekerjaan ||
-                                    selectedPengalamanDetail.nama_pekerjaan ||
-                                    "-"
-                                  }}
-                                </div>
-                              </div>
-                              <div>
-                                <div
-                                  class="text-[10px] font-bold text-slate-400 uppercase"
-                                >
-                                  KEGIATAN
-                                </div>
-                                <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
-                                >
-                                  {{
-                                    selectedPengalamanDetail.kegiatan ||
-                                    selectedPengalamanDetail.nama_kegiatan ||
-                                    "-"
-                                  }}
-                                </div>
-                              </div>
-                              <div>
-                                <div
-                                  class="text-[10px] font-bold text-slate-400 uppercase"
-                                >
-                                  SUB KEGIATAN
-                                </div>
-                                <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
-                                >
-                                  {{
-                                    selectedPengalamanDetail.sub_kegiatan ||
-                                    selectedPengalamanDetail.nama_sub_kegiatan ||
-                                    "-"
-                                  }}
-                                </div>
-                              </div>
-                              <div class="col-span-2">
-                                <div
-                                  class="text-[10px] font-bold text-slate-400 uppercase"
-                                >
-                                  LOKASI
-                                </div>
-                                <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
-                                >
-                                  {{ selectedPengalamanDetail.lokasi || "-" }}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div
-                            class="border-t border-slate-100 dark:border-slate-700"
-                          ></div>
-
-                          <!-- 3. Pemberi Tugas -->
-                          <div>
-                            <h5
-                              class="text-xs font-bold text-slate-500 uppercase mb-3 flex items-center gap-2"
-                            >
-                              <i class="fas fa-user-tie"></i> Pemberi Tugas
-                            </h5>
-                            <div class="grid grid-cols-2 gap-4">
-                              <div class="col-span-2">
-                                <div
-                                  class="text-[10px] font-bold text-slate-400 uppercase"
-                                >
-                                  PEMBERI TUGAS
-                                </div>
-                                <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm"
-                                >
-                                  {{
-                                    selectedPengalamanDetail.pemberi_tugas ||
-                                    selectedPengalamanDetail.nama_pemberi_tugas ||
-                                    "-"
-                                  }}
-                                </div>
-                              </div>
-                              <div class="col-span-2">
-                                <div
-                                  class="text-[10px] font-bold text-slate-400 uppercase"
-                                >
-                                  ALAMAT / KONTAK
-                                </div>
-                                <div
-                                  class="font-medium text-slate-700 dark:text-slate-200 text-sm whitespace-pre-line"
-                                >
-                                  {{
-                                    selectedPengalamanDetail.kontak_pemberi_tugas ||
-                                    [
-                                      selectedPengalamanDetail.alamat_pemberi_tugas,
-                                      selectedPengalamanDetail.telepon_pemberi_tugas
-                                        ? "Telp. " +
-                                          selectedPengalamanDetail.telepon_pemberi_tugas
-                                        : "",
-                                      selectedPengalamanDetail.fax_pemberi_tugas
-                                        ? "Fax " +
-                                          selectedPengalamanDetail.fax_pemberi_tugas
-                                        : "",
-                                    ]
-                                      .filter(Boolean)
-                                      .join(", ") ||
-                                    "-"
                                   }}
                                 </div>
                               </div>
@@ -1770,7 +1764,8 @@
                     <div
                       v-for="kbli in subModules.kbli"
                       :key="kbli.id_kbli"
-                      class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-600 transition-all group"
+                      class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 hover:border-blue-300 dark:hover:border-blue-600 transition-all group cursor-pointer hover:shadow-md"
+                      @click="handleKbliClick(kbli)"
                     >
                       <div
                         class="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 mb-1"
@@ -2128,7 +2123,8 @@
                       <div
                         v-for="kbli in subModules.kbli"
                         :key="kbli.id_perusahaan_kbli"
-                        class="group relative p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-300 min-h-[60px] flex items-center"
+                        class="group relative p-3 rounded-lg border border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-500/30 transition-all duration-300 min-h-[60px] flex items-center cursor-pointer"
+                        @click="handleKbliClick(kbli)"
                       >
                         <div class="flex items-center gap-2 w-full">
                           <div
@@ -2357,37 +2353,13 @@
             />
 
             <!-- SERTIFIKAT TAB -->
-            <CompanyDocumentTab
+            <!-- SERTIFIKAT TAB -->
+            <CompanyCertificateTab
               v-if="activeTab === 'sertifikat'"
               :items="subModules.sertifikat"
-              document-type="sertifikat"
-              label="Sertifikat Standar"
-              icon="fas fa-award"
-              color="indigo"
-              id-key="id_sertifikat_standar"
-              title-key="nomor_sertifikat"
-              title-label="Nomor Sertifikat"
-              :fields="[
-                {
-                  label: 'Nomor Sertifikat',
-                  key: 'nomor_sertifikat',
-                  type: 'text',
-                },
-                { label: 'Kode KBLI', key: 'kode_kbli', type: 'text' },
-                { label: 'Lembaga', key: 'lembaga_verifikasi', type: 'text' },
-                {
-                  label: 'Klasifikasi Risiko',
-                  key: 'klasifikasi_risiko',
-                  type: 'text',
-                },
-                { label: 'Status', key: 'status_pemenuhan', type: 'text' },
-                {
-                  label: 'Tanggal Terbit',
-                  key: 'tanggal_terbit',
-                  type: 'date',
-                  format: formatDate,
-                },
-              ]"
+              :kbli-items="subModules.kbli"
+              :nib-items="subModules.nib"
+              :company-name="company ? company.nama_perusahaan : ''"
               :selected-item="selectedItems.sertifikat"
               :selected-url="getSelectedDocUrl('sertifikat')"
               :pending-file="pendingUploads.sertifikat?.file"
@@ -2397,7 +2369,9 @@
               @upload-select="(file) => handleFileSelect('sertifikat', file)"
               @upload-save="() => handleUploadSave('sertifikat')"
               @upload-cancel="() => handleUploadCancel('sertifikat')"
-              @update-item="(data) => handleUpdateItem('sertifikat', data)"
+              @save-item="handleSaveSertifikat"
+              @delete-item="handleDeleteSertifikat"
+              @ai-scan="(data) => handleAiScan('sertifikat', data)"
             />
           </div>
         </Transition>
@@ -3702,7 +3676,7 @@
             class="text-[10px] text-orange-500 font-medium animate-pulse hidden sm:inline-block"
           >
             <i class="fas fa-exclamation-circle mr-1"></i>
-            Validasi!
+            Ceklis semua data!
           </span>
 
           <button
@@ -3764,6 +3738,7 @@
 
     <!-- Edit Kontrak Pengalaman Modal -->
     <CompanyDocumentModal
+      document-type="kontrak"
       :show="showEditKontrakModal"
       :title="kontrakFormData.nomor_kontrak || 'Edit Kontrak'"
       :subtitle="'NOMOR KONTRAK'"
@@ -3853,6 +3828,7 @@ import BaseSkeleton from "~/components/BaseSkeleton.vue";
 import ToastNotification from "~/components/ToastNotification.vue";
 import FormInput from "~/components/FormInput.vue";
 import DocumentPdfPreview from "~/components/DocumentPdfPreview.vue";
+import CompanyCertificateTab from "~/components/companies/tabs/CompanyCertificateTab.vue";
 import CompanyDocumentModal from "~/components/CompanyDocumentModal.vue";
 import CompanyTaxTab from "~/components/companies/tabs/CompanyTaxTab.vue";
 import CompanyOverviewTab from "~/components/companies/tabs/CompanyOverviewTab.vue";
@@ -4171,8 +4147,8 @@ const openEditKontrakModal = (item) => {
 
 const editingDaftarId = ref(null);
 const daftarEditFormData = ref({
-  nama_kegiatan: "",
-  nama_sub_kegiatan: "",
+  pekerjaan: "",
+  kegiatan: "",
   lokasi: "",
 });
 const isScanningDaftarEdit = ref(false);
@@ -4181,8 +4157,8 @@ const isSavingDaftarEdit = ref(false);
 const openEditPengalaman = (item) => {
   editingDaftarId.value = item.id_kontrak;
   daftarEditFormData.value = {
-    nama_kegiatan: item.nama_kegiatan || item.kegiatan || "",
-    nama_sub_kegiatan: item.nama_sub_kegiatan || item.sub_kegiatan || "",
+    pekerjaan: item.pekerjaan || item.nama_pekerjaan || "",
+    kegiatan: item.kegiatan || item.nama_kegiatan || "",
     lokasi: item.lokasi || "",
   };
 };
@@ -4190,8 +4166,8 @@ const openEditPengalaman = (item) => {
 const cancelEditDaftar = () => {
   editingDaftarId.value = null;
   daftarEditFormData.value = {
-    nama_kegiatan: "",
-    nama_sub_kegiatan: "",
+    pekerjaan: "",
+    kegiatan: "",
     lokasi: "",
   };
 };
@@ -4220,10 +4196,14 @@ const handleAiScanDaftarEdit = async (item) => {
     if (result.success && result.data) {
       const data = result.data;
       daftarEditFormData.value = {
-        nama_kegiatan:
-          data.nama_kegiatan || daftarEditFormData.value.nama_kegiatan,
-        nama_sub_kegiatan:
-          data.nama_sub_kegiatan || daftarEditFormData.value.nama_sub_kegiatan,
+        pekerjaan:
+          data.pekerjaan ||
+          data.nama_pekerjaan ||
+          daftarEditFormData.value.pekerjaan,
+        kegiatan:
+          data.kegiatan ||
+          data.nama_kegiatan ||
+          daftarEditFormData.value.kegiatan,
         lokasi: data.lokasi || daftarEditFormData.value.lokasi,
       };
       toast.success("Scan berhasil! Data telah diperbarui.");
@@ -4267,7 +4247,9 @@ const saveDaftarEdit = async (item) => {
 };
 
 const confirmDeletePengalaman = (item) => {
-  if (confirm(`Yakin ingin membatalkan kontrak "${item.nama_kegiatan}"?`)) {
+  if (
+    confirm(`Yakin ingin menghapus "${item.pekerjaan || item.nama_pekerjaan}"?`)
+  ) {
     deletePengalaman(item.id_kontrak);
   }
 };
@@ -4845,15 +4827,15 @@ const daftarPengalamanFormData = ref({
 
 // -- DAFTAR PENGALAMAN EDIT / VALIDATION STATE --
 const daftarEditFieldLocks = ref({
-  nama_kegiatan: false,
-  nama_sub_kegiatan: false,
+  pekerjaan: false,
+  kegiatan: false,
   lokasi: false,
 });
 
 const isAllDaftarEditFieldsLocked = computed(() => {
   return (
-    daftarEditFieldLocks.value.nama_kegiatan &&
-    daftarEditFieldLocks.value.nama_sub_kegiatan &&
+    daftarEditFieldLocks.value.pekerjaan &&
+    daftarEditFieldLocks.value.kegiatan &&
     daftarEditFieldLocks.value.lokasi
   );
 });
@@ -5287,7 +5269,7 @@ const handleAiScanKontrak = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         fileUrl: selectedPengalamanDetail.value.kontrak_url,
-        documentType: "kontrak",
+        documentType: "kontrak_pengalaman",
         category: "company",
       }),
     });
@@ -5296,20 +5278,112 @@ const handleAiScanKontrak = async () => {
     console.log("✅ AI Scan Result:", result);
 
     if (result.success && result.data) {
-      const scannedData = result.data;
+      const rawData = result.data;
+
+      // --- NORMALIZE DATA STRUCTURE ---
+      let scannedSubObj = {};
+
+      if (
+        rawData.experience_list &&
+        Array.isArray(rawData.experience_list) &&
+        rawData.experience_list.length > 0
+      ) {
+        scannedSubObj = rawData.experience_list[0];
+      } else if (Array.isArray(rawData) && rawData.length > 0) {
+        scannedSubObj = rawData[0];
+      } else if (rawData.data) {
+        if (Array.isArray(rawData.data) && rawData.data.length > 0) {
+          scannedSubObj = rawData.data[0];
+        } else {
+          scannedSubObj = rawData.data;
+        }
+      } else {
+        scannedSubObj = rawData;
+      }
+
+      console.log("🔍 Normalized Data Object:", scannedSubObj);
+
       let filledCount = 0;
+
+      const mappingConfig = {
+        nomor_kontrak: ["nomor_kontrak", "contract_number", "no_kontrak"],
+        nilai_kontrak: ["nilai_kontrak", "contract_value", "nilai"],
+        sumber_dana: ["sumber_dana", "source_of_fund", "sumber_pembiayaan"],
+        tanggal_kontrak: ["tanggal_kontrak", "contract_date", "tgl_kontrak"],
+        tanggal_mulai: ["tanggal_mulai", "start_date", "tgl_mulai"],
+        tanggal_selesai_kontrak: [
+          "tanggal_selesai_kontrak",
+          "end_date",
+          "tgl_selesai",
+        ],
+        waktu_pelaksanaan: ["waktu_pelaksanaan", "duration", "jangka_waktu"],
+        tanggal_ba_serah_terima: [
+          "tanggal_ba_serah_terima",
+          "handover_date",
+          "tgl_bast",
+          "bast_date",
+        ],
+        pekerjaan: ["pekerjaan", "nama_pekerjaan", "job_title", "project_name"],
+        kegiatan: ["kegiatan", "nama_kegiatan", "activity"],
+        sub_kegiatan: ["sub_kegiatan", "nama_sub_kegiatan", "sub_activity"],
+        lokasi: ["lokasi", "location", "tempat"],
+        pemberi_tugas: [
+          "pemberi_tugas",
+          "nama_pemberi_tugas",
+          "employer",
+          "owner",
+        ],
+        kontak_pemberi_tugas: [
+          "kontak_pemberi_tugas",
+          "alamat_pemberi_tugas",
+          "employer_address",
+          "alamat",
+        ],
+      };
+
+      const getValue = (keys) => {
+        for (const k of keys) {
+          if (
+            scannedSubObj[k] !== undefined &&
+            scannedSubObj[k] !== null &&
+            scannedSubObj[k] !== ""
+          ) {
+            return scannedSubObj[k];
+          }
+        }
+        return null;
+      };
 
       // Update form with scanned data
       Object.keys(kontrakFormData.value).forEach((key) => {
-        // Check if key exists in scanned data (allow empty strings to clear if needed, or stick to non-empty?)
-        // User request: "datanya tidak masuk". Usually means keys didn't match or were undefined.
-        // We will be permissive: if key exists in result, take it.
-        if (scannedData.hasOwnProperty(key)) {
-          console.log(`📝 Mapping ${key}: ${scannedData[key]}`);
-          kontrakFormData.value[key] = scannedData[key] || "";
-          if (scannedData[key]) filledCount++;
+        const potentialKeys = mappingConfig[key];
+        if (potentialKeys) {
+          const val = getValue(potentialKeys);
+          if (val) {
+            kontrakFormData.value[key] = val;
+            filledCount++;
+          }
+        } else if (scannedSubObj[key]) {
+          kontrakFormData.value[key] = scannedSubObj[key];
+          filledCount++;
         }
       });
+
+      // Special handling for kontak_pemberi_tugas composite
+      if (!kontrakFormData.value.kontak_pemberi_tugas) {
+        const parts = [];
+        if (scannedSubObj.alamat_pemberi_tugas)
+          parts.push(scannedSubObj.alamat_pemberi_tugas);
+        if (scannedSubObj.telepon_pemberi_tugas)
+          parts.push("Telp: " + scannedSubObj.telepon_pemberi_tugas);
+        if (scannedSubObj.fax_pemberi_tugas)
+          parts.push("Fax: " + scannedSubObj.fax_pemberi_tugas);
+
+        if (parts.length > 0) {
+          kontrakFormData.value.kontak_pemberi_tugas = parts.join(", ");
+          filledCount++;
+        }
+      }
 
       // Reset all locks to allow user to validate the scanned data
       Object.keys(kontrakFieldLocks.value).forEach((key) => {
@@ -5351,7 +5425,7 @@ const handleKontrakAiScanInline = async () => {
   try {
     const requestBody = {
       fileUrl: selectedPengalamanDetail.value.kontrak_url,
-      documentType: "kontrak",
+      documentType: "kontrak_pengalaman",
       category: "company",
     };
     console.log("📤 [INLINE KONTRAK] Request:", requestBody);
@@ -5368,18 +5442,139 @@ const handleKontrakAiScanInline = async () => {
     console.log("✅ [INLINE KONTRAK] AI Scan Result:", result);
 
     if (result.success && result.data) {
-      // Log the scanned data
-      console.log("📝 [INLINE KONTRAK] Scanned Data:", result.data);
+      const rawData = result.data;
+      console.log("📝 [INLINE KONTRAK] Scanned Data (Raw):", rawData);
+
+      // --- NORMALIZE DATA STRUCTURE ---
+      let scannedSubObj = {};
+
+      // Case 1: Nested in experience_list array (common for experience docs)
+      if (
+        rawData.experience_list &&
+        Array.isArray(rawData.experience_list) &&
+        rawData.experience_list.length > 0
+      ) {
+        scannedSubObj = rawData.experience_list[0];
+      }
+      // Case 2: Generic array
+      else if (Array.isArray(rawData) && rawData.length > 0) {
+        scannedSubObj = rawData[0];
+      }
+      // Case 3: Nested in 'data' property
+      else if (rawData.data) {
+        if (Array.isArray(rawData.data) && rawData.data.length > 0) {
+          scannedSubObj = rawData.data[0];
+        } else {
+          scannedSubObj = rawData.data;
+        }
+      }
+      // Case 4: Direct object (flat) - Fallback
+      else {
+        scannedSubObj = rawData;
+      }
+
+      console.log("🔍 [INLINE KONTRAK] Normalized Data Object:", scannedSubObj);
 
       let filledCount = 0;
-      // Update form with scanned data
-      Object.keys(kontrakFormData.value).forEach((key) => {
-        if (result.data.hasOwnProperty(key)) {
-          console.log(`📝 [INLINE KONTRAK] Mapping ${key}:`, result.data[key]);
-          kontrakFormData.value[key] = result.data[key] || "";
-          if (result.data[key]) filledCount++;
+
+      // --- MAPPING STRATEGY ---
+      // We explicitly map keys because AI might return variations (e.g. 'activity' vs 'kegiatan')
+      // This ensures we catch as much as possible.
+
+      const mappingConfig = {
+        // Kontrak Fields
+        nomor_kontrak: ["nomor_kontrak", "contract_number", "no_kontrak"],
+        nilai_kontrak: ["nilai_kontrak", "contract_value", "nilai"],
+        sumber_dana: ["sumber_dana", "source_of_fund", "sumber_pembiayaan"],
+        tanggal_kontrak: ["tanggal_kontrak", "contract_date", "tgl_kontrak"],
+        tanggal_mulai: ["tanggal_mulai", "start_date", "tgl_mulai"],
+        tanggal_selesai_kontrak: [
+          "tanggal_selesai_kontrak",
+          "end_date",
+          "tgl_selesai",
+        ],
+        waktu_pelaksanaan: ["waktu_pelaksanaan", "duration", "jangka_waktu"],
+        tanggal_ba_serah_terima: [
+          "tanggal_ba_serah_terima",
+          "handover_date",
+          "tgl_bast",
+          "bast_date",
+        ],
+
+        // Job Info Fields
+        pekerjaan: ["pekerjaan", "nama_pekerjaan", "job_title", "project_name"],
+        kegiatan: ["kegiatan", "nama_kegiatan", "activity"],
+        sub_kegiatan: ["sub_kegiatan", "nama_sub_kegiatan", "sub_activity"],
+        lokasi: ["lokasi", "location", "tempat"],
+
+        // Pemberi Tugas Fields
+        pemberi_tugas: [
+          "pemberi_tugas",
+          "nama_pemberi_tugas",
+          "employer",
+          "owner",
+        ],
+        kontak_pemberi_tugas: [
+          "kontak_pemberi_tugas",
+          "alamat_pemberi_tugas",
+          "employer_address",
+          "alamat",
+        ], // Fallback logic handled below for composite
+      };
+
+      // Helper to find value from multiple possible keys
+      const getValue = (keys) => {
+        for (const k of keys) {
+          if (
+            scannedSubObj[k] !== undefined &&
+            scannedSubObj[k] !== null &&
+            scannedSubObj[k] !== ""
+          ) {
+            return scannedSubObj[k];
+          }
+        }
+        return null;
+      };
+
+      // Apply Mapping
+      Object.keys(kontrakFormData.value).forEach((formKey) => {
+        const potentialKeys = mappingConfig[formKey];
+
+        if (potentialKeys) {
+          const val = getValue(potentialKeys);
+          // Special handling for money/dates could be added here if needed,
+          // but keeping it simple as standard strings/numbers for now.
+          if (val) {
+            console.log(`✨ Mapped ${formKey} -> ${val}`);
+            kontrakFormData.value[formKey] = val;
+            filledCount++;
+          }
+        }
+        // Fallback: checks if the exact key exists in the scanned object (if not in mapping config)
+        else if (scannedSubObj[formKey]) {
+          console.log(
+            `✨ Direct Mapped ${formKey} -> ${scannedSubObj[formKey]}`,
+          );
+          kontrakFormData.value[formKey] = scannedSubObj[formKey];
+          filledCount++;
         }
       });
+
+      // Special handling: if kontak_pemberi_tugas is empty, try to construct it from address/phone
+      if (!kontrakFormData.value.kontak_pemberi_tugas) {
+        const parts = [];
+        if (scannedSubObj.alamat_pemberi_tugas)
+          parts.push(scannedSubObj.alamat_pemberi_tugas);
+        if (scannedSubObj.telepon_pemberi_tugas)
+          parts.push("Telp: " + scannedSubObj.telepon_pemberi_tugas);
+        if (scannedSubObj.fax_pemberi_tugas)
+          parts.push("Fax: " + scannedSubObj.fax_pemberi_tugas);
+
+        if (parts.length > 0) {
+          kontrakFormData.value.kontak_pemberi_tugas = parts.join(", ");
+          filledCount++;
+        }
+      }
 
       // Reset all locks to allow user to validate the scanned data
       Object.keys(kontrakFieldLocks.value).forEach((key) => {
@@ -5627,6 +5822,62 @@ const tabs = computed(() => [
 ]);
 
 // Helper Functions
+const handleKbliClick = async (kbli) => {
+  if (!kbli || !kbli.kode_kbli) return;
+
+  const targetCode = String(kbli.kode_kbli).trim();
+  const targetBase = targetCode.split(".")[0];
+
+  // Fetch data if not available
+  if (
+    !subModules.value.sertifikat ||
+    subModules.value.sertifikat.length === 0
+  ) {
+    const loadingId =
+      typeof toast !== "undefined"
+        ? toast.info("Memuat data sertifikat...", 0)
+        : null;
+    try {
+      await fetchSertifikat();
+    } catch (e) {
+      console.error("Failed to fetch sertifikat:", e);
+    } finally {
+      if (loadingId && typeof toast !== "undefined")
+        toast.removeToast(loadingId);
+    }
+  }
+
+  const sertifikats = subModules.value.sertifikat || [];
+
+  // Find matching certificate
+  // Match exact code OR code with/without suffix by comparing BASES
+  const match = sertifikats.find((s) => {
+    if (!s.kode_kbli) return false;
+    const sCode = String(s.kode_kbli).trim();
+    // Compare BASE codes (e.g. 71101 == 71101, 71101 == 71101.B, etc.)
+    return sCode.split(".")[0] === targetBase;
+  });
+
+  if (match) {
+    // Found! Switch tab and select
+    activeTab.value = "sertifikat";
+    // Slight timeout to allow tab to mount
+    setTimeout(() => {
+      selectItem("sertifikat", match);
+      // Optional: scroll to top or center if needed
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 100);
+  } else {
+    // Not found
+    if (typeof toast !== "undefined") {
+      toast.error(`Sertifikat tidak ditemukan untuk KBLI ${targetCode}`);
+    } else {
+      console.warn("Toast not defined, alert:", targetCode);
+      alert(`Sertifikat tidak ditemukan untuk KBLI ${targetCode}`);
+    }
+  }
+};
+
 const getInitials = (name) => {
   if (!name) return "?";
   const words = name
@@ -6043,6 +6294,105 @@ const handleUploadCancel = (tabId) => {
 };
 
 // Fetch Logic
+const handleSaveSertifikat = async ({ data, file }) => {
+  if (!data) return;
+
+  // Show Loading
+  const loadingId = toast.info("Menyimpan Sertifikat...", 0);
+
+  try {
+    const id = data.id_sertifikat_standar; // key in subModules.sertifikat
+    let fileUrl = "";
+
+    // 1. Upload File if present
+    if (file) {
+      toast.info("Mengunggah dokumen Sertifikat...");
+      const formData = new FormData();
+      formData.append("file", file);
+      // Use generic upload endpoint
+      const res = await fetch(
+        `${apiBaseUrl}/companies/${companyId}/sertifikat/upload`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+      if (!res.ok) throw new Error("Gagal upload dokumen");
+      const json = await res.json();
+      fileUrl = json.data.fileUrl;
+    }
+
+    // 2. Prepare payload
+    const payload = { ...data };
+    if (fileUrl) {
+      payload.sertifikat_standar_url = fileUrl;
+    }
+
+    let url = `${apiBaseUrl}/companies/${companyId}/sertifikat`;
+    let method = "POST";
+
+    if (id) {
+      url = `${url}/${id}`;
+      method = "PUT";
+    } else {
+      // Add date for new
+      payload.tanggal_input = new Date().toISOString();
+    }
+
+    // 3. Save Data
+    toast.info("Menyimpan data...");
+    const saveRes = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!saveRes.ok) throw new Error("Gagal menyimpan data sertifikat");
+
+    // 4. Cleanup & Refresh
+    // toast.removeToast(loadingId); // Ensure useToast supports this or rely on success to override
+    toast.success("Sertifikat berhasil disimpan");
+    await fetchSertifikat();
+
+    // Clear pending uploads if any
+    if (pendingUploads.value.sertifikat) {
+      pendingUploads.value.sertifikat = null;
+    }
+  } catch (e) {
+    console.error(e);
+    // toast.removeToast(loadingId);
+    toast.error("Gagal: " + e.message);
+  }
+};
+
+const handleDeleteSertifikat = async (item) => {
+  if (
+    !confirm(
+      `Apakah Anda yakin ingin menghapus sertifikat "${item.nomor_sertifikat}"?`,
+    )
+  )
+    return;
+
+  const loadingId = toast.info("Menghapus data...", 0);
+  try {
+    const res = await fetch(
+      `${apiBaseUrl}/companies/${companyId}/sertifikat/${item.id_sertifikat_standar}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    if (!res.ok) throw new Error("Gagal menghapus data");
+
+    // toast.removeToast(loadingId);
+    toast.success("Data berhasil dihapus");
+    await fetchSertifikat();
+  } catch (e) {
+    // toast.removeToast(loadingId);
+    toast.error(e.message);
+  }
+};
+
 const handleUpdateItem = async (module, data) => {
   try {
     const idKeyMap = {
@@ -6267,6 +6617,9 @@ const fetchCompanyDetail = async () => {
 
     // Fetch Pajak data to refresh tax documents
     await fetchPajak();
+
+    // Fetch NIB data to ensure KBLI and NIB info is available for other tabs (e.g. Sertifikat)
+    await fetchNIB();
   } catch (e) {
     console.error("Error fetching company:", e);
   } finally {
