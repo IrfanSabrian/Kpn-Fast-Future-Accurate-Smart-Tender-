@@ -94,7 +94,7 @@ export const useToast = () => {
   };
 
   const successScan = (
-    message = "Data berhasil diekstrak. Silakan validasi data sebelum menyimpan."
+    message = "Data berhasil diekstrak. Silakan validasi data sebelum menyimpan.",
   ) => {
     return success(message);
   };
@@ -115,6 +115,32 @@ export const useToast = () => {
     return error(message);
   };
 
+  // Standardized Save Helpers
+  const loadingSave = (message = "Menyimpan data...") => {
+    return info(message, 0);
+  };
+
+  const successSave = (message = "Data berhasil disimpan.") => {
+    return success(message);
+  };
+
+  const errorSave = (message = "Gagal menyimpan data.") => {
+    return error(message);
+  };
+
+  // Standardized Delete Helpers
+  const loadingDelete = (message = "Menghapus data...") => {
+    return info(message, 0);
+  };
+
+  const successDelete = (message = "Data berhasil dihapus.") => {
+    return success(message);
+  };
+
+  const errorDelete = (message = "Gagal menghapus data.") => {
+    return error(message);
+  };
+
   return {
     toast: toasts, // Alias for backward compatibility
     toasts,
@@ -132,5 +158,11 @@ export const useToast = () => {
     loadingUpload,
     successUpload,
     errorUpload,
+    loadingSave,
+    successSave,
+    errorSave,
+    loadingDelete,
+    successDelete,
+    errorDelete,
   };
 };

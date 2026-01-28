@@ -66,8 +66,8 @@ const upload = multer({
       } else {
         cb(
           new Error(
-            "Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed for images."
-          )
+            "Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed for images.",
+          ),
         );
       }
     }
@@ -84,6 +84,9 @@ router.get("/", companyController.getAllCompanies);
 // Get company by ID (overview only)
 router.get("/:id", companyController.getCompanyById);
 
+// Get company FULL details (Single Request for all tabs)
+router.get("/:id/full", companyController.getCompanyFullDetails);
+
 // Add new company with logo and kop upload
 router.post(
   "/",
@@ -91,7 +94,7 @@ router.post(
     { name: "logo", maxCount: 1 },
     { name: "kop", maxCount: 1 },
   ]),
-  companyController.addCompany
+  companyController.addCompany,
 );
 
 // Update company by ID
@@ -114,7 +117,7 @@ router.put(
     { name: "sppkp_perusahaan", maxCount: 1 },
     { name: "spt_perusahaan", maxCount: 1 },
   ]),
-  companyController.updateCompany
+  companyController.updateCompany,
 );
 
 // Delete company by ID (Legacy/Full)
@@ -132,7 +135,7 @@ router.get("/:id/kop", companyController.getCompanyKop);
 router.post(
   "/:id/scan-profile",
   upload.single("pdf"),
-  companyController.scanCompanyProfile
+  companyController.scanCompanyProfile,
 );
 
 // ========================================
@@ -143,7 +146,7 @@ router.post(
 router.post(
   "/:id/:type/upload",
   upload.single("file"),
-  companyController.uploadCompanyDocument
+  companyController.uploadCompanyDocument,
 );
 
 // Get company's Akta data
@@ -200,7 +203,7 @@ router.put("/:id/akta/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.updateAkta(
       req.params.itemId,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -232,7 +235,7 @@ router.put("/:id/pejabat/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.updatePejabat(
       req.params.itemId,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -309,7 +312,7 @@ router.delete("/:id/pengalaman/:itemId", async (req, res) => {
 router.post(
   "/:id/pengalaman/:itemId/:type/upload",
   upload.single("file"),
-  companyController.uploadPengalamanDocument
+  companyController.uploadPengalamanDocument,
 );
 
 // --- SBU CRUD ---
@@ -327,7 +330,7 @@ router.put("/:id/sbu/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.updateSBU(
       req.params.itemId,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -359,7 +362,7 @@ router.put("/:id/kta/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.updateKTA(
       req.params.itemId,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -391,7 +394,7 @@ router.put("/:id/sertifikat/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.updateSertifikat(
       req.params.itemId,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -402,7 +405,7 @@ router.put("/:id/sertifikat/:itemId", async (req, res) => {
 router.delete("/:id/sertifikat/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.deleteSertifikat(
-      req.params.itemId
+      req.params.itemId,
     );
     res.json(result);
   } catch (error) {
@@ -425,7 +428,7 @@ router.put("/:id/cek/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.updateCek(
       req.params.itemId,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -457,7 +460,7 @@ router.put("/:id/bpjs/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.updateBPJS(
       req.params.itemId,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -479,7 +482,7 @@ router.delete("/:id/bpjs/:itemId", async (req, res) => {
 router.get("/:id/projects", async (req, res) => {
   try {
     const projects = await googleSheetsService.getProjectsByCompany(
-      req.params.id
+      req.params.id,
     );
     res.json(projects);
   } catch (error) {
@@ -501,7 +504,7 @@ router.put("/projects/:idProject", async (req, res) => {
   try {
     const result = await googleSheetsService.updateProject(
       req.params.idProject,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -512,7 +515,7 @@ router.put("/projects/:idProject", async (req, res) => {
 router.delete("/projects/:idProject", async (req, res) => {
   try {
     const result = await googleSheetsService.deleteProject(
-      req.params.idProject
+      req.params.idProject,
     );
     res.json(result);
   } catch (error) {
@@ -533,7 +536,7 @@ router.post("/projects/:idProject/personel", async (req, res) => {
     // If id_perusahaan is missing, fetch it from project
     if (!data.id_perusahaan) {
       const project = await googleSheetsService.getProjectById(
-        req.params.idProject
+        req.params.idProject,
       );
       if (project) {
         data.id_perusahaan = project.id_perusahaan;
@@ -570,7 +573,7 @@ router.delete("/projects/:idProject/personel/:nik", async (req, res) => {
     // But first, let's add the route.
     const result = await googleSheetsService.deletePersonelProject(
       req.params.idProject,
-      req.params.nik
+      req.params.nik,
     );
     res.json(result);
   } catch (error) {
@@ -587,7 +590,7 @@ router.put("/:id/pengalaman/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.updateKontrakPengalaman(
       req.params.itemId,
-      req.body
+      req.body,
     );
     res.json(result);
   } catch (error) {
@@ -598,7 +601,7 @@ router.put("/:id/pengalaman/:itemId", async (req, res) => {
 router.delete("/:id/pengalaman/:itemId", async (req, res) => {
   try {
     const result = await googleSheetsService.deleteKontrakPengalaman(
-      req.params.itemId
+      req.params.itemId,
     );
     res.json(result);
   } catch (error) {

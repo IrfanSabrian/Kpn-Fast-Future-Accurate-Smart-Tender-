@@ -69,6 +69,217 @@ export const getCompanyById = async (req, res) => {
 };
 
 // ========================================
+// FULL DETAILS ENDPOINT (Optimized)
+// ========================================
+export const getCompanyFullDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🔍 GET /api/companies/${id}/full (Full Details)`);
+
+    // 1. Fetch main company profile first (fast fail if not found)
+    const company = await googleSheetsService.getProfilPerusahaanById(id);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: `Company with ID ${id} not found`,
+      });
+    }
+
+    // 2. Fetch all other data in parallel
+    const [
+      aktaData,
+      pejabatData,
+      personelData,
+      nibData,
+      masterKbliDataRaw,
+      sbuData,
+      ktaData,
+      sertifikatData,
+      npwpData,
+      kswpData,
+      sptData,
+      pkpData,
+      kontrakData,
+      cekData,
+      bpjsData,
+    ] = await Promise.all([
+      googleSheetsService.getSheetData("db_akta"),
+      googleSheetsService.getSheetData("db_pejabat"),
+      googleSheetsService.getAllPersonil(),
+      googleSheetsService.getSheetData("db_nib"),
+      googleSheetsService.getAllKBLI().catch((e) => {
+        console.warn("⚠️ KBLI Master fetch failed:", e.message);
+        return [];
+      }),
+      googleSheetsService.getSheetData("db_sbu"),
+      googleSheetsService.getSheetData("db_kta"),
+      googleSheetsService.getSheetData("db_sertifikat_standar"),
+      googleSheetsService.getSheetData("db_npwp_perusahaan"),
+      googleSheetsService.getSheetData("db_kswp"),
+      googleSheetsService.getSheetData("db_spt"),
+      googleSheetsService.getSheetData("db_pkp"),
+      googleSheetsService.getSheetData("db_kontrak_pengalaman"),
+      googleSheetsService.getSheetData("db_cek"),
+      googleSheetsService.getSheetData("db_bpjs"),
+    ]);
+
+    // Ensure masterKbliData is array
+    const masterKbliData = Array.isArray(masterKbliDataRaw)
+      ? masterKbliDataRaw
+      : [];
+
+    // 3. Process/Filter Data
+
+    // Akta
+    const akta = aktaData.filter((item) => item.id_perusahaan === id);
+
+    // Pejabat (Enriched with Personel Name)
+    const pejabat = pejabatData
+      .filter((item) => item.id_perusahaan === id)
+      .map((p) => {
+        const personel = personelData.find(
+          (per) => per.id_personel === p.id_personel,
+        );
+        return {
+          ...p,
+          nama_lengkap: personel?.nama_lengkap || p.id_personel || "Unknown",
+        };
+      });
+
+    // NIB & KBLI Enrichment
+    const companyNib = nibData.filter((item) => item.id_perusahaan === id);
+    const kbliCodesSet = new Set();
+
+    companyNib.forEach((nib) => {
+      const rawCodes =
+        nib.kode_kbli || nib["Kode KBLI"] || nib["KBLI"] || nib["kbli"];
+      if (rawCodes) {
+        const codes = rawCodes
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c);
+        codes.forEach((code) => kbliCodesSet.add(code));
+      }
+    });
+
+    const enrichedKbli = Array.from(kbliCodesSet).map((code) => {
+      const strCode = String(code).trim();
+      let master = masterKbliData.find(
+        (m) =>
+          String(m.kode_kbli).trim() == strCode ||
+          String(m.kode_klbi).trim() == strCode,
+      );
+
+      if (!master && strCode.includes(".")) {
+        const baseCode = strCode.split(".")[0];
+        master = masterKbliData.find(
+          (m) =>
+            String(m.kode_kbli).trim() == baseCode ||
+            String(m.kode_klbi).trim() == baseCode,
+        );
+      }
+
+      return {
+        id_perusahaan: id,
+        kode_kbli: strCode,
+        judul_kbli: master ? master.nama_klasifikasi : `KBLI ${strCode}`,
+        nama_klasifikasi: master ? master.nama_klasifikasi : `KBLI ${strCode}`,
+        id_kbli: strCode,
+        id_perusahaan_kbli: strCode,
+      };
+    });
+
+    // SBU
+    const sbu = sbuData.filter((item) => item.id_perusahaan === id);
+
+    // KTA
+    const kta = ktaData.filter((item) => item.id_perusahaan === id);
+
+    // Sertifikat
+    const sertifikat = sertifikatData.filter(
+      (item) => item.id_perusahaan === id,
+    );
+
+    // Pajak
+    const pajak = {
+      npwp: npwpData.filter((item) => item.id_perusahaan === id),
+      kswp: kswpData.filter((item) => item.id_perusahaan === id),
+      spt: sptData.filter((item) => item.id_perusahaan === id),
+      pkp: pkpData.filter((item) => item.id_perusahaan === id),
+    };
+
+    // Pengalaman
+    const pengalaman = kontrakData.filter((item) => item.id_perusahaan === id);
+
+    // Cek
+    const cek = cekData.filter((item) => item.id_perusahaan === id);
+
+    // BPJS
+    const bpjs = bpjsData.filter((item) => item.id_perusahaan === id);
+
+    // Construct Document Counts (No extra fetch needed!)
+    const documentCounts = {
+      akta: akta.length,
+      pejabat: pejabat.length,
+      nib: companyNib.length, // or kbli.length
+      kbli: enrichedKbli.length,
+      sbu: sbu.length,
+      kta: kta.length,
+      sertifikat: sertifikat.length,
+      pajak:
+        pajak.npwp.length +
+        pajak.kswp.length +
+        pajak.spt.length +
+        pajak.pkp.length,
+      pengalaman: pengalaman.length,
+      cek: cek.length,
+      bpjs: bpjs.length,
+      total:
+        akta.length +
+        pejabat.length +
+        companyNib.length +
+        sbu.length +
+        kta.length +
+        sertifikat.length +
+        (pajak.npwp.length +
+          pajak.kswp.length +
+          pajak.spt.length +
+          pajak.pkp.length) +
+        pengalaman.length +
+        cek.length +
+        bpjs.length,
+    };
+
+    // Return aggregated response
+    res.json({
+      company, // The main profile
+      documentCounts, // Summary counts
+      // Sub-modules data:
+      akta,
+      pejabat,
+      nib: {
+        nib: companyNib,
+        kbli: enrichedKbli,
+      },
+      sbu,
+      kta,
+      sertifikat,
+      pajak,
+      pengalaman,
+      cek,
+      bpjs,
+    });
+  } catch (error) {
+    console.error("Error in getCompanyFullDetails:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to get company full details",
+    });
+  }
+};
+
+// ========================================
 // SUB-MODULE ENDPOINTS - Lazy Loading
 // ========================================
 

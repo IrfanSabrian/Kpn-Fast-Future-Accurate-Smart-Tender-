@@ -4507,7 +4507,7 @@ const saveNpwpDocument = async () => {
     }
 
     // Show success toast (auto-hide after 3s)
-    toast.success("Berhasil!", "Dokumen NPWP berhasil disimpan");
+    toast.successSave("Dokumen NPWP berhasil disimpan");
 
     // Refresh company data to get updated tax documents
     await fetchCompanyDetail();
@@ -4527,10 +4527,7 @@ const saveNpwpDocument = async () => {
     };
   } catch (error) {
     console.error("Save NPWP Error:", error);
-    toast.error(
-      "Gagal Menyimpan",
-      error.message || "Terjadi kesalahan saat menyimpan",
-    );
+    toast.errorSave(error.message || "Terjadi kesalahan saat menyimpan");
   } finally {
     savingNpwp.value = false;
   }
@@ -4551,7 +4548,7 @@ const saveSptDocument = async () => {
     }
 
     savingSpt.value = true;
-    const uploadToastId = toast.info("Mengunggah dokumen SPT...", 0);
+    const uploadToastId = toast.loadingUpload("Mengunggah dokumen SPT...");
 
     const formData = new FormData();
 
@@ -4606,7 +4603,7 @@ const saveSptDocument = async () => {
       throw new Error(errorMessage);
     }
 
-    toast.success("Berhasil!", "Dokumen SPT berhasil disimpan");
+    toast.successSave("Dokumen SPT berhasil disimpan");
 
     // Refresh company data to get updated tax documents
     await fetchCompanyDetail();
@@ -4631,7 +4628,7 @@ const saveSptDocument = async () => {
     };
   } catch (error) {
     console.error("Save SPT Error:", error);
-    toast.error("Gagal Menyimpan", error.message || "Terjadi kesalahan");
+    toast.errorSave(error.message || "Terjadi kesalahan");
   } finally {
     savingSpt.value = false;
   }
@@ -4652,7 +4649,7 @@ const savePkpDocument = async () => {
     }
 
     savingPkp.value = true;
-    const uploadToastId = toast.info("Mengunggah dokumen PKP...", 0);
+    const uploadToastId = toast.loadingUpload("Mengunggah dokumen PKP...");
 
     const formData = new FormData();
     formData.append("sppkp_perusahaan", selectedFile); // Fixed: backend expects sppkp_perusahaan
@@ -4701,7 +4698,7 @@ const savePkpDocument = async () => {
       throw new Error(errorMessage);
     }
 
-    toast.success("Berhasil!", "Dokumen PKP berhasil disimpan");
+    toast.successSave("Dokumen PKP berhasil disimpan");
 
     // Refresh company data to get updated tax documents
     await fetchCompanyDetail();
@@ -4718,10 +4715,7 @@ const savePkpDocument = async () => {
     };
   } catch (error) {
     console.error("Save PKP Error:", error);
-    toast.error(
-      "Gagal Menyimpan",
-      error.message || "Terjadi kesalahan saat menyimpan",
-    );
+    toast.errorSave(error.message || "Terjadi kesalahan saat menyimpan");
   } finally {
     savingPkp.value = false;
   }
@@ -4742,7 +4736,7 @@ const saveKswpDocument = async () => {
     }
 
     savingKswp.value = true;
-    const uploadToastId = toast.info("Mengunggah dokumen KSWP...", 0);
+    const uploadToastId = toast.loadingUpload("Mengunggah dokumen KSWP...");
 
     const formData = new FormData();
     formData.append("kswp_perusahaan", selectedFile);
@@ -4791,7 +4785,7 @@ const saveKswpDocument = async () => {
       throw new Error(errorMessage);
     }
 
-    toast.success("Berhasil!", "Dokumen KSWP berhasil disimpan");
+    toast.successSave("Dokumen KSWP berhasil disimpan");
 
     // Refresh company data to get updated tax documents
     await fetchCompanyDetail();
@@ -5582,17 +5576,14 @@ const handleKontrakAiScanInline = async () => {
       });
 
       toast.removeToast(toastId);
-      toast.success(
-        "AI Scan Berhasil!",
-        `${filledCount} field terisi otomatis.`,
-      );
+      toast.successScan(`${filledCount} field terisi otomatis.`);
     } else {
       throw new Error(result.message || "Scan AI gagal");
     }
   } catch (error) {
     console.error("❌ [INLINE KONTRAK] AI Scan Error:", error);
     toast.removeToast(toastId);
-    toast.error("Gagal melakukan scan AI: " + error.message);
+    toast.errorScan(error.message);
   } finally {
     isAiScanning.value = false;
     console.log("🏁 [INLINE KONTRAK] Scan complete");
@@ -5668,7 +5659,7 @@ const saveKontrakInline = async () => {
       throw new Error(error.message || "Gagal menyimpan data");
     }
 
-    toast.success("Data kontrak berhasil diperbarui!");
+    toast.successSave("Data kontrak berhasil diperbarui!");
 
     // Reset validation locks after successful save
     Object.keys(kontrakFieldLocks.value).forEach((key) => {
@@ -5691,7 +5682,7 @@ const saveKontrakInline = async () => {
     }
   } catch (error) {
     console.error("Error saving kontrak:", error);
-    toast.error(`Gagal menyimpan: ${error.message}`);
+    toast.errorSave(`Gagal menyimpan: ${error.message}`);
   } finally {
     isSubmittingKontrak.value = false;
   }
@@ -6113,7 +6104,9 @@ const handleUploadSave = async (tabId) => {
     if (!file) throw new Error("Tidak ada file yang dipilih");
 
     // Step 1: Upload to Google Drive
-    toast.info(`Mengunggah dokumen ${tabId.toUpperCase()} ke Drive...`); // Removed timeout
+    toast.loadingUpload(
+      `Mengunggah dokumen ${tabId.toUpperCase()} ke Drive...`,
+    );
 
     const uploadFormData = new FormData();
     uploadFormData.append("file", file);
@@ -6150,7 +6143,7 @@ const handleUploadSave = async (tabId) => {
     const fileUrl = uploadResult.data.fileUrl;
 
     // Step 2: Update Data
-    toast.info("Menyimpan data..."); // Removed timeout - will stay until success/error
+    toast.loadingSave("Menyimpan data...");
 
     // Identify if updating existing or adding new
     // For kontrak in detail view, use selectedPengalamanDetail instead
@@ -6280,10 +6273,10 @@ const handleUploadSave = async (tabId) => {
     }
 
     // Show success toast AFTER data is refreshed
-    toast.success(`Dokumen ${tabId.toUpperCase()} berhasil diunggah.`);
+    toast.successUpload(`Dokumen ${tabId.toUpperCase()} berhasil diunggah.`);
   } catch (error) {
     console.error("Upload failed:", error);
-    toast.error(`Gagal upload: ${error.message}`);
+    toast.errorUpload(`Gagal upload: ${error.message}`);
   } finally {
     uploadingState.value[tabId] = false;
   }
@@ -6298,7 +6291,7 @@ const handleSaveSertifikat = async ({ data, file }) => {
   if (!data) return;
 
   // Show Loading
-  const loadingId = toast.info("Menyimpan Sertifikat...", 0);
+  const loadingId = toast.loadingSave("Menyimpan Sertifikat...");
 
   try {
     const id = data.id_sertifikat_standar; // key in subModules.sertifikat
@@ -6306,7 +6299,7 @@ const handleSaveSertifikat = async ({ data, file }) => {
 
     // 1. Upload File if present
     if (file) {
-      toast.info("Mengunggah dokumen Sertifikat...");
+      toast.loadingUpload("Mengunggah dokumen Sertifikat...");
       const formData = new FormData();
       formData.append("file", file);
       // Use generic upload endpoint
@@ -6340,7 +6333,7 @@ const handleSaveSertifikat = async ({ data, file }) => {
     }
 
     // 3. Save Data
-    toast.info("Menyimpan data...");
+    toast.loadingSave("Menyimpan data...");
     const saveRes = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
@@ -6351,7 +6344,7 @@ const handleSaveSertifikat = async ({ data, file }) => {
 
     // 4. Cleanup & Refresh
     // toast.removeToast(loadingId); // Ensure useToast supports this or rely on success to override
-    toast.success("Sertifikat berhasil disimpan");
+    toast.successSave("Sertifikat berhasil disimpan");
     await fetchSertifikat();
 
     // Clear pending uploads if any
@@ -6361,7 +6354,7 @@ const handleSaveSertifikat = async ({ data, file }) => {
   } catch (e) {
     console.error(e);
     // toast.removeToast(loadingId);
-    toast.error("Gagal: " + e.message);
+    toast.errorSave("Gagal: " + e.message);
   }
 };
 
@@ -6373,7 +6366,7 @@ const handleDeleteSertifikat = async (item) => {
   )
     return;
 
-  const loadingId = toast.info("Menghapus data...", 0);
+  const loadingId = toast.loadingDelete("Menghapus data...");
   try {
     const res = await fetch(
       `${apiBaseUrl}/companies/${companyId}/sertifikat/${item.id_sertifikat_standar}`,
@@ -6385,11 +6378,11 @@ const handleDeleteSertifikat = async (item) => {
     if (!res.ok) throw new Error("Gagal menghapus data");
 
     // toast.removeToast(loadingId);
-    toast.success("Data berhasil dihapus");
+    toast.successDelete();
     await fetchSertifikat();
   } catch (e) {
     // toast.removeToast(loadingId);
-    toast.error(e.message);
+    toast.errorDelete(e.message);
   }
 };
 
@@ -6593,354 +6586,104 @@ const handleAiScan = async (module, data) => {
   }
 };
 
+// Track which tabs have been loaded (now all loaded at once)
+const loadedTabs = ref([]);
+
 const fetchCompanyDetail = async () => {
   loadingTab.value = true;
   try {
-    // Fetch company overview (main profile only)
-    const companyRes = await fetch(`${apiBaseUrl}/companies/${companyId}`);
+    // 🚀 NEW: Fetch ALL company data in a single request (Optimization)
+    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/full`);
 
-    if (companyRes.ok) {
-      company.value = await companyRes.json();
-      console.log("✅ Company profile loaded:", company.value);
-      console.log("🔑 Company fields check:");
-      console.log("  - logo_perusahaan:", company.value.logo_perusahaan);
-      console.log("  - logo_cloud:", company.value.logo_cloud);
-      console.log("  - kop_perusahaan:", company.value.kop_perusahaan);
-      console.log("  - id_perusahaan:", company.value.id_perusahaan);
+    if (!res.ok) {
+      throw new Error(`Failed to load company data: ${res.statusText}`);
     }
 
-    // Fetch KBLI for overview tab
-    await fetchKBLI();
+    const fullData = await res.json();
+    console.log("✅ FULL Company Data Loaded:", fullData);
 
-    // Fetch Pejabat for overview tab (moved from separate tab)
-    await fetchPejabat();
+    // 1. Set Company Profile
+    company.value = fullData.company;
 
-    // Fetch Pajak data to refresh tax documents
-    await fetchPajak();
+    // 2. Set ALL Sub-Modules Data
+    subModules.value.akta = fullData.akta || [];
+    subModules.value.pejabat = fullData.pejabat || [];
 
-    // Fetch NIB data to ensure KBLI and NIB info is available for other tabs (e.g. Sertifikat)
-    await fetchNIB();
+    // NIB & KBLI
+    subModules.value.nib = fullData.nib?.nib || [];
+    subModules.value.kbli = fullData.nib?.kbli || [];
+
+    subModules.value.sbu = fullData.sbu || [];
+    subModules.value.kta = fullData.kta || [];
+    subModules.value.sertifikat = fullData.sertifikat || [];
+
+    // Pajak
+    subModules.value.npwp = fullData.pajak?.npwp || [];
+    subModules.value.kswp = fullData.pajak?.kswp || [];
+    subModules.value.spt = fullData.pajak?.spt || [];
+    subModules.value.pkp = fullData.pajak?.pkp || [];
+
+    subModules.value.kontrak = fullData.pengalaman || [];
+    subModules.value.cek = fullData.cek || [];
+    subModules.value.bpjs = fullData.bpjs || [];
+
+    // 3. Initialize Selected Items (Default to first item)
+    if (subModules.value.akta.length)
+      selectedItems.value.akta = subModules.value.akta[0];
+    if (subModules.value.nib.length)
+      selectedItems.value.nib = subModules.value.nib[0];
+    if (subModules.value.sbu.length)
+      selectedItems.value.sbu = subModules.value.sbu[0];
+    if (subModules.value.kta.length)
+      selectedItems.value.kta = subModules.value.kta[0];
+    if (subModules.value.sertifikat.length)
+      selectedItems.value.sertifikat = subModules.value.sertifikat[0];
+    if (subModules.value.cek.length)
+      selectedItems.value.cek = subModules.value.cek[0];
+    if (subModules.value.bpjs.length)
+      selectedItems.value.bpjs = subModules.value.bpjs[0];
+
+    // Pajak Selection
+    if (subModules.value.spt.length)
+      selectedItems.value.spt = subModules.value.spt[0];
+    // if (subModules.value.pkp.length) selectedItems.value.pkp = subModules.value.pkp[0]; // Logic typically handled elsewhere or not needed
+
+    // Kontrak List View Init
+    if (subModules.value.kontrak.length) {
+      selectedItems.value.kontrak = subModules.value.kontrak[0];
+      selectedPengalamanList.value = subModules.value.kontrak[0];
+    }
+
+    // 4. Mark all tabs as loaded (to prevent re-fetching if we kept the watcher)
+    loadedTabs.value = [
+      "overview",
+      "akta",
+      "nib",
+      "sbu",
+      "kta",
+      "sertifikat",
+      "pajak",
+      "kontrak",
+      "cek",
+      "bpjs",
+    ];
   } catch (e) {
-    console.error("Error fetching company:", e);
+    console.error("Error fetching company full details:", e);
+    toast.error("Gagal memuat data perusahaan: " + e.message);
   } finally {
     loadingTab.value = false;
   }
 };
 
-// Fetch KBLI data
-const fetchKBLI = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/kbli`);
-    if (res.ok) {
-      subModules.value.kbli = await res.json();
-      console.log(
-        "✅ KBLI Data loaded:",
-        subModules.value.kbli.length,
-        "items",
-      );
-    }
-  } catch (e) {
-    console.error("Error fetching KBLI:", e);
-  }
-};
+// ... Single Fetchers kept below for "Refresh after Update" only ...
 
-// Fetch Akta data
-const fetchAkta = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/akta`);
-    if (res.ok) {
-      subModules.value.akta = await res.json();
-      if (subModules.value.akta.length)
-        selectedItems.value.akta = subModules.value.akta[0];
-      console.log(
-        "✅ Akta Data loaded:",
-        subModules.value.akta.length,
-        "items",
-      );
-    }
-  } catch (e) {
-    console.error("Error fetching Akta:", e);
-  }
-};
-
-// Fetch Pejabat data (now loaded with overview)
-const fetchPejabat = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/pejabat`);
-    if (res.ok) {
-      subModules.value.pejabat = await res.json();
-      console.log(
-        "✅ Pejabat Data loaded:",
-        subModules.value.pejabat.length,
-        "items",
-      );
-    }
-  } catch (e) {
-    console.error("Error fetching Pejabat:", e);
-  }
-};
-
-// Fetch NIB data (now includes KBLI data)
-const fetchNIB = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/nib`);
-    if (res.ok) {
-      const data = await res.json();
-      // The response now includes both nib and kbli data
-      subModules.value.nib = data.nib || [];
-      subModules.value.kbli = data.kbli || [];
-
-      if (subModules.value.nib.length) {
-        selectedItems.value.nib = subModules.value.nib[0];
-        console.log(
-          "✅ NIB Data loaded:",
-          subModules.value.nib.length,
-          "items",
-        );
-        console.log("📋 First NIB item:", subModules.value.nib[0]);
-        console.log(
-          "🔗 NIB URL from first item:",
-          subModules.value.nib[0]?.nib_url,
-        );
-      } else {
-        console.warn("⚠️ NIB Data loaded but EMPTY");
-      }
-
-      console.log(
-        "✅ KBLI Data loaded from NIB:",
-        subModules.value.kbli.length,
-        "items",
-      );
-    } else {
-      console.error("❌ Failed to fetch NIB data:", res.status, res.statusText);
-    }
-  } catch (e) {
-    console.error("Error fetching NIB:", e);
-  }
-};
-
-// Fetch SBU data
-const fetchSBU = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/sbu`);
-    if (res.ok) {
-      subModules.value.sbu = await res.json();
-      if (subModules.value.sbu.length)
-        selectedItems.value.sbu = subModules.value.sbu[0];
-      console.log("✅ SBU Data loaded:", subModules.value.sbu.length, "items");
-    }
-  } catch (e) {
-    console.error("Error fetching SBU:", e);
-  }
-};
-
-// Fetch KTA data
-const fetchKTA = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/kta`);
-    if (res.ok) {
-      subModules.value.kta = await res.json();
-      if (subModules.value.kta.length)
-        selectedItems.value.kta = subModules.value.kta[0];
-      console.log("✅ KTA Data loaded:", subModules.value.kta.length, "items");
-    }
-  } catch (e) {
-    console.error("Error fetching KTA:", e);
-  }
-};
-
-// Fetch Sertifikat data
-const fetchSertifikat = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/sertifikat`);
-    if (res.ok) {
-      subModules.value.sertifikat = await res.json();
-      if (subModules.value.sertifikat.length)
-        selectedItems.value.sertifikat = subModules.value.sertifikat[0];
-      console.log(
-        "✅ Sertifikat Data loaded:",
-        subModules.value.sertifikat.length,
-        "items",
-      );
-    }
-  } catch (e) {
-    console.error("Error fetching Sertifikat:", e);
-  }
-};
-
-// Fetch Pajak data (combined)
-const fetchPajak = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/pajak`);
-    if (res.ok) {
-      const pajakData = await res.json();
-      subModules.value.npwp = pajakData.npwp || [];
-      subModules.value.kswp = pajakData.kswp || [];
-      subModules.value.spt = pajakData.spt || [];
-      subModules.value.pkp = pajakData.pkp || [];
-
-      const taxCount =
-        subModules.value.npwp.length +
-        subModules.value.kswp.length +
-        subModules.value.spt.length +
-        subModules.value.pkp.length;
-
-      // Fix: Accessed global 'tabs' ref with .value
-      if (tabs.value) {
-        const pajakTab = tabs.value.find((t) => t.id === "pajak");
-        if (pajakTab) pajakTab.count = taxCount;
-      }
-
-      if (subModules.value.spt.length)
-        selectedItems.value.spt = subModules.value.spt[0];
-      console.log(
-        "✅ Pajak Data loaded - NPWP:",
-        subModules.value.npwp.length,
-        "KSWP:",
-        subModules.value.kswp.length,
-        "SPT:",
-        subModules.value.spt.length,
-        "PKP:",
-        subModules.value.pkp.length,
-      );
-    }
-  } catch (e) {
-    console.error("Error fetching Pajak:", e);
-  }
-};
-
-// Fetch Pengalaman/Kontrak data
-const fetchPengalaman = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/pengalaman`);
-    if (res.ok) {
-      subModules.value.kontrak = await res.json();
-      if (subModules.value.kontrak.length) {
-        selectedItems.value.kontrak = subModules.value.kontrak[0];
-        // Also initialize selectedPengalamanList for the list view
-        selectedPengalamanList.value = subModules.value.kontrak[0];
-      }
-      console.log(
-        "✅ Pengalaman Data loaded:",
-        subModules.value.kontrak.length,
-        "items",
-      );
-    }
-  } catch (e) {
-    console.error("Error fetching Pengalaman:", e);
-  }
-};
-
-// Fetch Cek data
-const fetchCek = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/cek`);
-    if (res.ok) {
-      subModules.value.cek = await res.json();
-      if (subModules.value.cek.length)
-        selectedItems.value.cek = subModules.value.cek[0];
-      console.log("✅ Cek Data loaded:", subModules.value.cek.length, "items");
-    }
-  } catch (e) {
-    console.error("Error fetching Cek:", e);
-  }
-};
-
-// Fetch BPJS data
-const fetchBPJS = async () => {
-  try {
-    const res = await fetch(`${apiBaseUrl}/companies/${companyId}/bpjs`);
-    if (res.ok) {
-      subModules.value.bpjs = await res.json();
-      if (subModules.value.bpjs.length)
-        selectedItems.value.bpjs = subModules.value.bpjs[0];
-      console.log(
-        "✅ BPJS Data loaded:",
-        subModules.value.bpjs.length,
-        "items",
-      );
-    }
-  } catch (e) {
-    console.error("Error fetching BPJS:", e);
-  }
-};
-
-// Lazy load data when tab changes
-const loadedTabs = ref(["overview"]); // Track which tabs have been loaded
-
+// Tab Watcher Removed - Data is now pre-loaded!
+/* 
 watch(
   activeTab,
-  async (newTab) => {
-    // Basic check
-    if (!newTab || newTab === "overview") return;
-
-    // Check if data is essentially empty
-    const data = subModules.value[newTab];
-    const hasData = Array.isArray(data) ? data.length > 0 : !!data;
-
-    // Skip only if loaded AND has data (prevent infinite retry on truly empty data? NO, loadedTabs handles that)
-    // Retry logic: If loaded but empty, maybe we should try again?
-    // Let's stick to loadedTabs flag, but push to loadedTabs only on SUCCESS.
-    // The previous code pushed to loadedTabs in finally block, which marks failed attempts as loaded.
-
-    if (loadedTabs.value.includes(newTab) && hasData) return;
-
-    // Force fetch if not loaded OR (loaded but empty - optional, maybe user wants refresh)
-    // For now, respect loadedTabs but ensure we only add to it on success
-    if (loadedTabs.value.includes(newTab)) {
-      // If it's empty, we might want to retry silently?
-      // Let's trust the flag. If user wants refresh, they usually reload page.
-      // But invalidating cache on error is better.
-      return;
-    }
-
-    console.log(`🔄 Fetching data for tab: ${newTab}`);
-    loadingTab.value = true;
-
-    try {
-      switch (newTab) {
-        case "akta":
-          await fetchAkta();
-          break;
-        case "nib":
-          await fetchNIB();
-          break;
-        case "sbu":
-          await fetchSBU();
-          break;
-        case "kta":
-          await fetchKTA();
-          break;
-        case "sertifikat":
-          await fetchSertifikat();
-          break;
-        case "pajak":
-          await fetchPajak();
-          break;
-        case "kontrak":
-          await fetchPengalaman();
-          break;
-        case "cek":
-          await fetchCek();
-          break;
-        case "bpjs":
-          await fetchBPJS();
-          break;
-      }
-
-      // Mark tab as loaded ONLY if successful
-      if (!loadedTabs.value.includes(newTab)) {
-        loadedTabs.value.push(newTab);
-      }
-    } catch (e) {
-      console.error(`❌ Error loading tab ${newTab}:`, e);
-      // Do NOT mark as loaded, so next click tries again
-    } finally {
-      loadingTab.value = false;
-    }
-  },
-  { immediate: true },
-);
+  async (newTab) => { ... } 
+); 
+*/
 
 // Placeholder Actions
 const openAddModal = (tab) => {
@@ -7188,9 +6931,8 @@ const saveCompanyProfile = async () => {
   console.log("📤 Starting PDF upload...");
   isUploadingCompanyProfile.value = true;
   // Show persistent toast
-  const uploadToastId = toast.info(
+  const uploadToastId = toast.loadingUpload(
     "Sedang mengupload Company Profile ke Google Drive...",
-    0,
   );
 
   try {
@@ -7230,7 +6972,7 @@ const saveCompanyProfile = async () => {
 
     // Hide persistent toast
     toast.hideToast(uploadToastId);
-    toast.success("Company Profile PDF berhasil disimpan!");
+    toast.successSave("Company Profile PDF berhasil disimpan!");
 
     // Clear pending state
     pendingCompanyProfileFile.value = null;
@@ -7244,7 +6986,7 @@ const saveCompanyProfile = async () => {
     console.error("❌ Error saving PDF:", error);
     // Hide persistent toast on error too
     toast.hideToast(uploadToastId);
-    toast.error("Gagal menyimpan PDF: " + error.message);
+    toast.errorSave("Gagal menyimpan PDF: " + error.message);
   } finally {
     isUploadingCompanyProfile.value = false;
   }
@@ -7374,14 +7116,14 @@ const savePejabat = async () => {
       throw new Error(errData.message || "Gagal menyimpan pejabat");
     }
 
-    toast.success("Pejabat berhasil ditambahkan!");
+    toast.successSave("Pejabat berhasil ditambahkan!");
     saveSuccessful = true;
 
     // Refresh pejabat data
     await fetchPejabat();
   } catch (error) {
     console.error("❌ Error saving pejabat:", error);
-    toast.error("Gagal menambahkan pejabat: " + error.message);
+    toast.errorSave("Gagal menambahkan pejabat: " + error.message);
   } finally {
     isSubmittingPejabat.value = false;
 
@@ -7492,7 +7234,9 @@ const saveDocument = async (documentType) => {
     toast.success("Database Spreadsheet berhasil diperbarui", 2000);
 
     // 3. Notification: Final Success
-    toast.success(`Dokumen ${documentType.toUpperCase()} berhasil disimpan!`);
+    toast.successSave(
+      `Dokumen ${documentType.toUpperCase()} berhasil disimpan!`,
+    );
 
     // Clear pending state
     doc.file = null;
@@ -7515,7 +7259,7 @@ const saveDocument = async (documentType) => {
     console.log("✅ Upload complete!");
   } catch (error) {
     console.error(`❌ Error saving ${documentType}:`, error);
-    toast.error(`Gagal menyimpan ${documentType}: ` + error.message);
+    toast.errorSave(`Gagal menyimpan ${documentType}: ` + error.message);
   } finally {
     doc.uploading = false;
   }
@@ -7598,14 +7342,14 @@ const saveContactData = async () => {
       throw new Error(result.message || "Gagal menyimpan data");
     }
 
-    toast.success("Data kontak berhasil disimpan!");
+    toast.successSave("Data kontak berhasil disimpan!");
     saveSuccessful = true;
 
     // Refresh company data
     await fetchCompanyDetail();
   } catch (error) {
     console.error("Error saving contact:", error);
-    toast.error("Gagal menyimpan data: " + error.message);
+    toast.errorSave("Gagal menyimpan data: " + error.message);
   } finally {
     isSubmittingContact.value = false;
 
